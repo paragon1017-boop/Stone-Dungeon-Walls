@@ -83,6 +83,8 @@ export default {
         },
       },
       fontFamily: {
+        pixel: ["'Press Start 2P'", "cursive"],
+        retro: ["'VT323'", "monospace"],
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
