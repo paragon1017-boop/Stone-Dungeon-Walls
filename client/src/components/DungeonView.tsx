@@ -15,7 +15,7 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     const wallImg = new Image();
     wallImg.src = "/assets/textures/wall_stone.jpg";
     const floorImg = new Image();
-    floorImg.src = "/assets/textures/floor_stone.jpg";
+    floorImg.src = "/assets/textures/floor_cobble.jpg";
 
     wallImg.onload = () => { texturesRef.current.wall = wallImg; draw(); };
     floorImg.onload = () => { texturesRef.current.floor = floorImg; draw(); };
@@ -61,34 +61,29 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     ctx.fillStyle = ceilingGradient;
     ctx.fillRect(0, 0, w, h / 2);
 
-    // Draw Floor with perspective floor casting (stone walkway effect)
+    // Draw Floor with perspective floor casting (cobblestone walkway effect)
     const floorTex = texturesRef.current.floor;
     if (floorTex) {
       const texW = floorTex.width;
       const texH = floorTex.height;
-      const texScale = 64; // Larger = bigger tiles on floor
+      const texScale = 128; // Larger = bigger visible cobblestones
       
       // Floor casting - draw every scanline for maximum sharpness
       for (let y = Math.floor(h / 2) + 1; y < h; y++) {
-        // Current y position compared to horizon
         const p = y - h / 2;
         const rowDistance = (h * 0.5) / p;
         
-        // Calculate floor step per pixel
         const floorStepX = rowDistance * (planeX * 2) / w;
         const floorStepY = rowDistance * (planeY * 2) / w;
         
-        // Starting floor position for leftmost column
         let floorX = posX + rowDistance * (dirX - planeX);
         let floorY = posY + rowDistance * (dirY - planeY);
         
-        // Draw each pixel for sharp texture
+        // Draw each pixel for sharp cobblestone texture
         for (let x = 0; x < w; x += 2) {
-          // Get texture coordinates with larger tile size
           const tx = Math.floor(Math.abs(floorX * texScale) % texW);
           const ty = Math.floor(Math.abs(floorY * texScale) % texH);
           
-          // Sample 2x2 block from texture for slightly better quality
           ctx.drawImage(
             floorTex,
             tx, ty, 2, 2,
@@ -100,13 +95,14 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
         }
       }
       
-      // Apply subtle distance fog overlay
-      for (let y = Math.floor(h / 2) + 1; y < h; y += 4) {
+      // Apply mossy green-tinted fog overlay for atmosphere
+      for (let y = Math.floor(h / 2) + 1; y < h; y += 2) {
         const p = y - h / 2;
         const rowDistance = (h * 0.5) / p;
-        const fog = Math.min(0.7, rowDistance / 10);
-        ctx.fillStyle = `rgba(10, 8, 6, ${fog})`;
-        ctx.fillRect(0, y, w, 4);
+        const fog = Math.min(0.6, rowDistance / 12);
+        // Green-tinted fog for mossy dungeon atmosphere
+        ctx.fillStyle = `rgba(8, 15, 10, ${fog})`;
+        ctx.fillRect(0, y, w, 2);
       }
     } else {
       // Fallback gradient floor
