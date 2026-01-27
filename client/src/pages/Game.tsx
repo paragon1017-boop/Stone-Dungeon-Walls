@@ -209,35 +209,51 @@ export default function Game() {
         <div className="lg:col-span-6 order-1 lg:order-2">
           <RetroCard className="p-1 bg-neutral-900 border-primary">
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden">
-              {combatState.active && combatState.monster ? (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
-                  <div className="text-4xl animate-bounce mb-4">
-                    {combatState.monster.image ? (
-                      <img src={combatState.monster.image} alt={combatState.monster.name} className="w-32 h-32 object-contain pixelated" />
-                    ) : (
-                      <Skull className="w-24 h-24 text-red-500" />
-                    )}
+              {/* Always show dungeon view as background */}
+              <DungeonView gameData={game} className="w-full h-full" />
+              
+              {/* Monster overlay during combat */}
+              {combatState.active && combatState.monster && (
+                <>
+                  {/* Monster sprite centered in dungeon view */}
+                  <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                    <div className="animate-in fade-in zoom-in duration-300">
+                      {combatState.monster.image ? (
+                        <img 
+                          src={combatState.monster.image} 
+                          alt={combatState.monster.name} 
+                          className="w-48 h-48 object-contain drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]" 
+                          style={{ imageRendering: 'auto' }}
+                        />
+                      ) : (
+                        <Skull className="w-32 h-32 text-red-500 drop-shadow-lg" />
+                      )}
+                    </div>
                   </div>
-                  <h2 className="font-pixel text-destructive text-xl mb-4">{combatState.monster.name}</h2>
-                  <div className="w-48 mb-8">
-                    <StatBar 
-                      label="HP" 
-                      current={combatState.monster.hp} 
-                      max={combatState.monster.maxHp} 
-                      color={combatState.monster.color} 
-                    />
+                  
+                  {/* Combat UI overlay at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <h2 className="font-pixel text-destructive text-sm mb-1">{combatState.monster.name}</h2>
+                        <StatBar 
+                          label="HP" 
+                          current={combatState.monster.hp} 
+                          max={combatState.monster.maxHp} 
+                          color={combatState.monster.color} 
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <RetroButton onClick={handleAttack} className="px-4 py-2" data-testid="button-attack">
+                          <Sword className="w-4 h-4 mr-1 inline" /> ATTACK
+                        </RetroButton>
+                        <RetroButton onClick={() => setCombatState({ active: false, turn: 0 })} variant="ghost" className="px-4 py-2" data-testid="button-run">
+                          RUN
+                        </RetroButton>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-4">
-                    <RetroButton onClick={handleAttack} className="text-lg px-8 py-4 animate-pulse">
-                      <Sword className="w-4 h-4 mr-2 inline" /> ATTACK
-                    </RetroButton>
-                    <RetroButton onClick={() => setCombatState({ active: false, turn: 0 })} variant="ghost">
-                      RUN
-                    </RetroButton>
-                  </div>
-                </div>
-              ) : (
-                <DungeonView gameData={game} className="w-full h-full" />
+                </>
               )}
             </div>
             
