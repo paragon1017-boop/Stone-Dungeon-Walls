@@ -484,7 +484,11 @@ export default function Game() {
     const aliveMonsters = newMonsters.filter(m => m.hp > 0);
     if (aliveMonsters.length === 0) {
       const totalXp = newMonsters.reduce((sum, m) => sum + m.xpValue, 0);
-      log(`Victory! +${totalXp} XP`);
+      const totalGold = newMonsters.reduce((sum, m) => sum + m.goldValue, 0);
+      log(`Victory! +${totalXp} XP, +${totalGold} Gold`);
+      
+      // Award gold
+      setGame(prev => prev ? ({ ...prev, gold: prev.gold + totalGold }) : null);
       
       // Check for equipment drops from each monster
       const droppedEquipment: Equipment[] = [];

@@ -213,6 +213,7 @@ export function getLevelUpStats(job: string): { hp: number, mp: number, attack: 
 
 export interface Monster extends Entity {
   xpValue: number;
+  goldValue: number;
 }
 
 export interface Tile {
@@ -446,17 +447,17 @@ function generateMaze(width: number, height: number, floor: number = 1): number[
 
 // Combat Logic Helpers
 export const MONSTERS: Monster[] = [
-  // Easy monsters for level 1
-  { id: 'm1', name: 'Slimy Ooze', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 10, color: '#2ecc71', image: '/assets/monsters/ooze.png' },
-  { id: 'm2', name: 'Giant Rat', hp: 15, maxHp: 15, mp: 0, maxMp: 0, attack: 4, defense: 1, xpValue: 8, color: '#8B4513', image: '/assets/monsters/rat.png' },
-  { id: 'm3', name: 'Cave Bat', hp: 12, maxHp: 12, mp: 0, maxMp: 0, attack: 3, defense: 1, xpValue: 6, color: '#4a0080', image: '/assets/monsters/bat.png' },
-  { id: 'm4', name: 'Poison Mushroom', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 4, defense: 2, xpValue: 9, color: '#e74c3c', image: '/assets/monsters/mushroom.png' },
-  { id: 'm5', name: 'Dungeon Spider', hp: 22, maxHp: 22, mp: 0, maxMp: 0, attack: 6, defense: 2, xpValue: 12, color: '#2c3e50', image: '/assets/monsters/spider.png' },
-  { id: 'm6', name: 'Small Goblin', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 6, defense: 3, xpValue: 14, color: '#27ae60', image: '/assets/monsters/goblin.png' },
-  { id: 'm7', name: 'Slime Warrior', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 8, defense: 3, xpValue: 20, color: '#9b59b6', image: '/assets/monsters/slime.png' },
-  // Harder monsters for later floors
-  { id: 'm8', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, color: '#27ae60', image: '/assets/monsters/orc.png' },
-  { id: 'm9', name: 'Skeleton', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 10, defense: 4, xpValue: 25, color: '#bdc3c7' },
+  // Easy monsters for level 1 (low gold)
+  { id: 'm1', name: 'Slimy Ooze', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 10, goldValue: 5, color: '#2ecc71', image: '/assets/monsters/ooze.png' },
+  { id: 'm2', name: 'Giant Rat', hp: 15, maxHp: 15, mp: 0, maxMp: 0, attack: 4, defense: 1, xpValue: 8, goldValue: 3, color: '#8B4513', image: '/assets/monsters/rat.png' },
+  { id: 'm3', name: 'Cave Bat', hp: 12, maxHp: 12, mp: 0, maxMp: 0, attack: 3, defense: 1, xpValue: 6, goldValue: 2, color: '#4a0080', image: '/assets/monsters/bat.png' },
+  { id: 'm4', name: 'Poison Mushroom', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 4, defense: 2, xpValue: 9, goldValue: 4, color: '#e74c3c', image: '/assets/monsters/mushroom.png' },
+  { id: 'm5', name: 'Dungeon Spider', hp: 22, maxHp: 22, mp: 0, maxMp: 0, attack: 6, defense: 2, xpValue: 12, goldValue: 7, color: '#2c3e50', image: '/assets/monsters/spider.png' },
+  { id: 'm6', name: 'Small Goblin', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 6, defense: 3, xpValue: 14, goldValue: 10, color: '#27ae60', image: '/assets/monsters/goblin.png' },
+  { id: 'm7', name: 'Slime Warrior', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 8, defense: 3, xpValue: 20, goldValue: 15, color: '#9b59b6', image: '/assets/monsters/slime.png' },
+  // Harder monsters for later floors (more gold)
+  { id: 'm8', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, goldValue: 35, color: '#27ae60', image: '/assets/monsters/orc.png' },
+  { id: 'm9', name: 'Skeleton', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 10, defense: 4, xpValue: 25, goldValue: 20, color: '#bdc3c7' },
 ];
 
 export function getRandomMonster(floor: number): Monster {
@@ -471,5 +472,6 @@ export function getRandomMonster(floor: number): Monster {
     hp: Math.floor(base.hp * (1 + (floor * 0.1))), // 10% buff per floor
     maxHp: Math.floor(base.maxHp * (1 + (floor * 0.1))),
     attack: Math.floor(base.attack * (1 + (floor * 0.1))),
+    goldValue: Math.floor(base.goldValue * (1 + (floor * 0.15))), // 15% more gold per floor
   };
 }
