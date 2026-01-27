@@ -698,6 +698,102 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
       ctx.lineTo(stainX + (decorRandom() - 0.5) * 8, stainY + stainLen);
       ctx.stroke();
     }
+    
+    // Wall-mounted candles and lanterns (sparse)
+    // Only 0-1 light source per view
+    if (decorRandom() > 0.5) {
+      const lightX = 60 + decorRandom() * (w - 120);
+      const lightY = h / 2 + 15 + decorRandom() * 30;
+      const isLantern = decorRandom() > 0.6;
+      
+      if (isLantern) {
+        // Wall lantern
+        const lanternW = 8;
+        const lanternH = 12;
+        
+        // Metal bracket
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(lightX - 1, lightY - lanternH - 6, 2, 8);
+        ctx.fillRect(lightX - 4, lightY - lanternH - 6, 8, 2);
+        
+        // Lantern frame (dark metal)
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(lightX - lanternW/2, lightY - lanternH, lanternW, lanternH);
+        
+        // Glass panels (amber glow)
+        ctx.fillStyle = 'rgba(255, 180, 80, 0.8)';
+        ctx.fillRect(lightX - lanternW/2 + 1, lightY - lanternH + 2, lanternW - 2, lanternH - 4);
+        
+        // Flame inside
+        ctx.fillStyle = 'rgba(255, 220, 100, 0.9)';
+        ctx.beginPath();
+        ctx.ellipse(lightX, lightY - lanternH/2, 2, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Lantern top
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(lightX - lanternW/2 - 1, lightY - lanternH - 2, lanternW + 2, 3);
+        ctx.fillRect(lightX - lanternW/2, lightY - 1, lanternW, 2);
+        
+        // Glow effect
+        const glowGrad = ctx.createRadialGradient(lightX, lightY - lanternH/2, 0, lightX, lightY - lanternH/2, 35);
+        glowGrad.addColorStop(0, 'rgba(255, 180, 80, 0.25)');
+        glowGrad.addColorStop(1, 'rgba(255, 150, 50, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(lightX - 40, lightY - lanternH - 30, 80, 70);
+      } else {
+        // Wall candle with holder
+        const candleH = 8 + decorRandom() * 4;
+        
+        // Metal candle holder/sconce
+        ctx.fillStyle = '#4a4a4a';
+        ctx.fillRect(lightX - 1, lightY - 3, 2, 5);
+        ctx.fillRect(lightX - 4, lightY, 8, 3);
+        
+        // Candle base plate
+        ctx.fillStyle = '#3a3530';
+        ctx.beginPath();
+        ctx.ellipse(lightX, lightY, 5, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Candle body (cream/white)
+        ctx.fillStyle = '#e8e0d0';
+        ctx.fillRect(lightX - 2, lightY - candleH, 4, candleH);
+        
+        // Candle shading
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.fillRect(lightX + 1, lightY - candleH, 1, candleH);
+        
+        // Wick
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(lightX, lightY - candleH - 2, 1, 3);
+        
+        // Flame
+        ctx.fillStyle = 'rgba(255, 200, 80, 0.95)';
+        ctx.beginPath();
+        ctx.ellipse(lightX, lightY - candleH - 4, 2, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Flame core (bright)
+        ctx.fillStyle = 'rgba(255, 255, 200, 0.9)';
+        ctx.beginPath();
+        ctx.ellipse(lightX, lightY - candleH - 3, 1, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Wax drips
+        if (decorRandom() > 0.4) {
+          ctx.fillStyle = 'rgba(220, 210, 190, 0.8)';
+          ctx.fillRect(lightX - 2, lightY - candleH + 2, 1, 3 + decorRandom() * 3);
+        }
+        
+        // Glow effect
+        const glowGrad = ctx.createRadialGradient(lightX, lightY - candleH - 4, 0, lightX, lightY - candleH - 4, 25);
+        glowGrad.addColorStop(0, 'rgba(255, 180, 80, 0.2)');
+        glowGrad.addColorStop(1, 'rgba(255, 150, 50, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(lightX - 30, lightY - candleH - 25, 60, 50);
+      }
+    }
   };
 
   return (
