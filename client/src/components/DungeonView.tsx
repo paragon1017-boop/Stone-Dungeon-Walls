@@ -258,6 +258,94 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
       ctx.fillStyle = ceilingGradient;
       ctx.fillRect(0, 0, w, h / 2);
     }
+    
+    // Stone boulder fascia at ceiling/wall transition
+    const fasciaY = Math.floor(h / 2) - 8;
+    const fasciaHeight = 12;
+    
+    // Seeded random for consistent boulder pattern
+    let fasciaSeed = 98765;
+    const fasciaRandom = () => {
+      fasciaSeed = (fasciaSeed * 1103515245 + 12345) & 0x7fffffff;
+      return fasciaSeed / 0x7fffffff;
+    };
+    
+    // Draw stone boulders across the fascia
+    let boulderX = 0;
+    while (boulderX < w) {
+      const boulderW = 12 + Math.floor(fasciaRandom() * 18);
+      const boulderH = 8 + Math.floor(fasciaRandom() * 5);
+      const boulderYOffset = Math.floor(fasciaRandom() * 3) - 1;
+      
+      // Boulder base color with variation
+      const baseGray = 65 + Math.floor(fasciaRandom() * 25);
+      const rVar = Math.floor(fasciaRandom() * 15) - 7;
+      const gVar = Math.floor(fasciaRandom() * 10) - 5;
+      const bVar = Math.floor(fasciaRandom() * 10) - 5;
+      
+      const r = baseGray + rVar;
+      const g = baseGray + gVar - 3;
+      const b = baseGray + bVar - 5;
+      
+      // Main boulder body
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 2, fasciaY + boulderYOffset);
+      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset);
+      ctx.lineTo(boulderX + boulderW, fasciaY + boulderYOffset + 3);
+      ctx.lineTo(boulderX + boulderW - 1, fasciaY + boulderYOffset + boulderH - 2);
+      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + boulderH);
+      ctx.lineTo(boulderX + 3, fasciaY + boulderYOffset + boulderH);
+      ctx.lineTo(boulderX, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.lineTo(boulderX + 1, fasciaY + boulderYOffset + 2);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Boulder top highlight
+      ctx.fillStyle = `rgb(${r + 20}, ${g + 18}, ${b + 15})`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 3, fasciaY + boulderYOffset + 1);
+      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + 1);
+      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + 3);
+      ctx.lineTo(boulderX + 4, fasciaY + boulderYOffset + 3);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Boulder bottom shadow
+      ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 4, fasciaY + boulderYOffset + boulderH - 1);
+      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + boulderH - 1);
+      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.lineTo(boulderX + 2, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Cracks and texture on boulder
+      if (fasciaRandom() > 0.4) {
+        ctx.strokeStyle = `rgba(30, 28, 25, 0.5)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const crackStartX = boulderX + 3 + Math.floor(fasciaRandom() * (boulderW - 6));
+        ctx.moveTo(crackStartX, fasciaY + boulderYOffset + 2);
+        ctx.lineTo(crackStartX + (fasciaRandom() - 0.5) * 4, fasciaY + boulderYOffset + boulderH - 2);
+        ctx.stroke();
+      }
+      
+      // Mortar/gap between boulders
+      ctx.fillStyle = 'rgba(20, 18, 15, 0.7)';
+      ctx.fillRect(boulderX + boulderW - 1, fasciaY, 2, fasciaHeight);
+      
+      boulderX += boulderW + 1;
+    }
+    
+    // Shadow below fascia (transition to wall)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, fasciaY + fasciaHeight - 2, w, 3);
+    
+    // Dark line at very top of fascia (ceiling shadow)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(0, fasciaY - 1, w, 2);
 
     // Draw Floor with perspective floor casting (cobblestone walkway effect)
     const floorTex = texturesRef.current.floor;
