@@ -574,40 +574,90 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
       ctx.stroke();
     }
     
-    // Hanging vines from ceiling
-    const vineCount = 3 + Math.floor(decorRandom() * 3);
+    // Hanging vines from ceiling (sparse, small, slimy)
+    const vineCount = 1 + Math.floor(decorRandom() * 2); // Sparse: 1-2 vines
     for (let i = 0; i < vineCount; i++) {
-      const vineX = 30 + decorRandom() * (w - 60);
-      const vineStartY = h / 2 - 20 - decorRandom() * 30;
-      const vineLength = 30 + decorRandom() * 50;
-      const vineAlpha = 0.5 + decorRandom() * 0.3;
+      if (decorRandom() > 0.6) continue; // Extra sparseness
       
-      // Main vine stem
-      ctx.strokeStyle = `rgba(40, 70, 35, ${vineAlpha})`;
-      ctx.lineWidth = 2;
+      const vineX = 40 + decorRandom() * (w - 80);
+      const vineStartY = h / 2 - 15 - decorRandom() * 20;
+      const vineLength = 15 + decorRandom() * 25; // Smaller
+      const vineAlpha = 0.6 + decorRandom() * 0.25;
+      
+      // Thin vine stem with natural curve
+      ctx.strokeStyle = `rgba(35, 55, 30, ${vineAlpha})`;
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(vineX, vineStartY);
       
       let vx = vineX;
       let vy = vineStartY;
-      for (let v = 0; v < vineLength; v += 5) {
-        vx += (decorRandom() - 0.5) * 6;
-        vy += 5;
+      const swayDir = decorRandom() < 0.5 ? -1 : 1;
+      const vinePoints: {x: number, y: number}[] = [{x: vx, y: vy}];
+      
+      for (let v = 0; v < vineLength; v += 3) {
+        vx += swayDir * (0.5 + decorRandom() * 1.5);
+        vy += 3;
         ctx.lineTo(vx, vy);
+        vinePoints.push({x: vx, y: vy});
       }
       ctx.stroke();
       
-      // Vine leaves
-      const leafCount = 2 + Math.floor(decorRandom() * 4);
-      for (let l = 0; l < leafCount; l++) {
-        const leafY = vineStartY + 10 + decorRandom() * (vineLength - 15);
-        const leafX = vineX + (decorRandom() - 0.5) * 10;
-        const leafDir = decorRandom() < 0.5 ? -1 : 1;
-        const leafSize = 4 + decorRandom() * 4;
+      // Small tendrils branching off
+      if (vinePoints.length > 3) {
+        ctx.strokeStyle = `rgba(30, 50, 25, ${vineAlpha * 0.7})`;
+        ctx.lineWidth = 1;
+        for (let t = 0; t < 2; t++) {
+          const pointIdx = 2 + Math.floor(decorRandom() * (vinePoints.length - 3));
+          const pt = vinePoints[pointIdx];
+          const tendrilDir = decorRandom() < 0.5 ? -1 : 1;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.quadraticCurveTo(
+            pt.x + tendrilDir * 6, pt.y + 4,
+            pt.x + tendrilDir * 8, pt.y + 8
+          );
+          ctx.stroke();
+        }
+      }
+      
+      // Slime drips on vine
+      const slimeCount = 2 + Math.floor(decorRandom() * 3);
+      for (let s = 0; s < slimeCount; s++) {
+        const pointIdx = Math.floor(decorRandom() * vinePoints.length);
+        const pt = vinePoints[pointIdx];
+        const slimeLen = 3 + decorRandom() * 6;
         
-        ctx.fillStyle = `rgba(35, 65, 30, ${vineAlpha})`;
+        // Slime droplet
+        ctx.fillStyle = `rgba(120, 180, 90, ${0.4 + decorRandom() * 0.3})`;
         ctx.beginPath();
-        ctx.ellipse(leafX + leafDir * leafSize, leafY, leafSize, leafSize * 0.5, leafDir * 0.5, 0, Math.PI * 2);
+        ctx.ellipse(pt.x, pt.y + slimeLen, 2, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Slime strand
+        ctx.strokeStyle = `rgba(100, 160, 80, 0.5)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pt.x, pt.y);
+        ctx.lineTo(pt.x, pt.y + slimeLen);
+        ctx.stroke();
+        
+        // Slime highlight
+        ctx.fillStyle = `rgba(180, 220, 150, 0.3)`;
+        ctx.beginPath();
+        ctx.arc(pt.x - 0.5, pt.y + slimeLen - 1, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Tiny leaves (sparse)
+      if (decorRandom() > 0.5) {
+        const leafIdx = 1 + Math.floor(decorRandom() * (vinePoints.length - 2));
+        const pt = vinePoints[leafIdx];
+        const leafDir = decorRandom() < 0.5 ? -1 : 1;
+        
+        ctx.fillStyle = `rgba(40, 60, 35, ${vineAlpha})`;
+        ctx.beginPath();
+        ctx.ellipse(pt.x + leafDir * 3, pt.y, 2.5, 1.5, leafDir * 0.4, 0, Math.PI * 2);
         ctx.fill();
       }
     }
