@@ -234,7 +234,21 @@ export default function Game() {
       {/* Scanline Overlay */}
       <div className="absolute inset-0 scanlines z-50 pointer-events-none opacity-20" />
       
-      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
+      <div className="max-w-5xl w-full relative z-10 space-y-4">
+        {/* TOP: Player Health Bars */}
+        <div className="bg-black/80 border-2 border-primary/50 p-3 flex justify-around gap-4">
+          {game.party.map((char) => (
+            <div key={char.id} className="flex-1 max-w-48">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-pixel text-xs text-primary">{char.name}</span>
+                <span className="font-retro text-xs text-muted-foreground">Lv.{char.level}</span>
+              </div>
+              <StatBar label="HP" current={char.hp} max={char.maxHp} color={char.color} />
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* LEFT COLUMN: Commands */}
         <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
@@ -362,6 +376,7 @@ export default function Game() {
               </div>
             </div>
           </RetroCard>
+        </div>
         </div>
       </div>
     </div>
