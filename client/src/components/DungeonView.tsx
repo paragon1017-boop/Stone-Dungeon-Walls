@@ -87,12 +87,47 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
         }
       }
       
-      // Apply dark mossy overlay to ceiling
+      // Apply jagged stone texture with color variations to ceiling
+      const stoneColors = [
+        { r: 45, g: 42, b: 38 },   // Dark brown-gray
+        { r: 55, g: 50, b: 45 },   // Medium gray-brown
+        { r: 38, g: 45, b: 40 },   // Dark green-gray
+        { r: 50, g: 48, b: 52 },   // Purple-gray
+        { r: 42, g: 40, b: 35 },   // Warm dark gray
+      ];
+      
+      // Seed for consistent random pattern
+      let seed = 12345;
+      const seededRandom = () => {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed / 0x7fffffff;
+      };
+      
       for (let y = 0; y < Math.floor(h / 2); y += 2) {
         const p = Math.floor(h / 2) - y;
         const rowDistance = (h * 0.5) / p;
         const darkness = Math.min(0.75, 0.4 + rowDistance / 15);
-        // Dark green moss tint
+        
+        // Add jagged stone blocks with color variation
+        for (let x = 0; x < w; x += 6 + Math.floor(seededRandom() * 8)) {
+          const blockWidth = 4 + Math.floor(seededRandom() * 10);
+          const colorIdx = Math.floor(seededRandom() * stoneColors.length);
+          const color = stoneColors[colorIdx];
+          
+          // Vary brightness slightly for each block
+          const brightVar = 0.85 + seededRandom() * 0.3;
+          const r = Math.floor(color.r * brightVar);
+          const g = Math.floor(color.g * brightVar);
+          const b = Math.floor(color.b * brightVar);
+          
+          // Add jagged edge effect
+          const jaggedOffset = Math.floor(seededRandom() * 2) - 1;
+          
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.3 + seededRandom() * 0.2})`;
+          ctx.fillRect(x, y + jaggedOffset, blockWidth, 3);
+        }
+        
+        // Dark mossy overlay
         ctx.fillStyle = `rgba(5, 12, 8, ${darkness})`;
         ctx.fillRect(0, y, w, 2);
       }
