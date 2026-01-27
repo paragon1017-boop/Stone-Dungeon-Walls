@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGameState, useSaveGame } from "@/hooks/use-game";
 import { DungeonView } from "@/components/DungeonView";
+import dungeonWallBg from "@assets/Gemini_Generated_Image_8w52n78w52n78w52_1769494784513.png";
 import { TransparentMonster } from "@/components/TransparentMonster";
 import { RetroCard, RetroButton, StatBar } from "@/components/RetroUI";
 import { 
@@ -507,10 +508,26 @@ export default function Game() {
     <div 
       ref={gameContainerRef}
       tabIndex={-1}
-      className="min-h-screen dungeon-bg dungeon-vignette torch-glow p-4 md:p-8 flex items-center justify-center relative overflow-hidden outline-none">
-      {/* Flickering torch ambient glow */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/3 right-1/4 w-72 h-72 bg-amber-500/8 rounded-full blur-[100px] pointer-events-none" style={{ animationDelay: '1s' }} />
+      className="min-h-screen p-4 md:p-8 flex items-center justify-center relative overflow-hidden outline-none"
+      style={{
+        backgroundImage: `url(${dungeonWallBg})`,
+        backgroundSize: '400px',
+        backgroundRepeat: 'repeat',
+        backgroundPosition: 'center'
+      }}>
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      {/* Vignette effect */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)'
+      }} />
+      {/* Torch glow effects */}
+      <div className="absolute top-0 left-0 w-64 h-80 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at top left, rgba(255,150,50,0.25) 0%, transparent 60%)'
+      }} />
+      <div className="absolute top-0 right-0 w-64 h-80 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at top right, rgba(255,150,50,0.25) 0%, transparent 60%)'
+      }} />
       
       <div className="max-w-5xl w-full relative z-10 space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
