@@ -1014,10 +1014,24 @@ export default function Game() {
         {/* RIGHT COLUMN: Party Stats */}
         <div className="lg:col-span-2 order-3">
           <RetroCard title="PARTY STATUS" className="h-full space-y-3">
-            {game.party.map((char) => (
-              <div key={char.id} className="bg-white/5 p-3 rounded-lg border border-white/10">
+            {game.party.map((char, idx) => {
+              const isCurrentTurn = combatState.active && idx === combatState.currentCharIndex && char.hp > 0;
+              return (
+              <div 
+                key={char.id} 
+                className={`p-3 rounded-lg border transition-all duration-300 ${
+                  isCurrentTurn 
+                    ? 'bg-primary/20 border-primary/50 shadow-lg shadow-primary/30 animate-pulse' 
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-sm text-primary">{char.name}</span>
+                  <span className={`font-semibold text-sm transition-all duration-300 ${
+                    isCurrentTurn ? 'text-primary drop-shadow-[0_0_8px_rgba(200,140,50,0.8)]' : 'text-primary'
+                  }`}>
+                    {char.name}
+                    {isCurrentTurn && <span className="ml-2 text-xs">⚔️</span>}
+                  </span>
                   <span className="text-muted-foreground text-xs bg-white/5 px-2 py-0.5 rounded-full">Lv.{char.level} {char.job}</span>
                 </div>
                 <div className="space-y-2">
@@ -1026,7 +1040,8 @@ export default function Game() {
                   <StatBar label="XP" current={char.xp} max={xpForLevel(char.level + 1)} color="#f59e0b" />
                 </div>
               </div>
-            ))}
+            );
+            })}
             
             <div className="mt-4 pt-4 border-t border-white/10">
               <div className="flex justify-between items-center bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-4 py-3 rounded-lg border border-amber-500/20">
