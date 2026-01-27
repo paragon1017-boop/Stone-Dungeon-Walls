@@ -60,6 +60,9 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
         // Check if pixel matches detected background color (with tolerance)
         const matchesBg = Math.abs(r - bgR) < 35 && Math.abs(g - bgG) < 35 && Math.abs(b - bgB) < 35;
         
+        // Magenta chroma key (#FF00FF) - very common for transparency
+        const isMagenta = r > 200 && g < 80 && b > 200;
+        
         // Purple detection (common AI generation background)
         const isPurpleBackground = r > 80 && r < 180 && b > 80 && b < 180 && 
                                     Math.abs(r - b) < 40 && g < Math.max(r, b) - 5;
@@ -83,7 +86,7 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
         const isBeigeBackground = r > 180 && g > 160 && b > 140 && 
                                    r > g && g > b && (r - b) < 60 && brightness > 170;
         
-        if (matchesBg || isPurpleBackground || isGreenBackground || isWhiteBackground || 
+        if (matchesBg || isMagenta || isPurpleBackground || isGreenBackground || isWhiteBackground || 
             isLightGray || isDarkBackground || isBlueBackground || isBeigeBackground) {
           isBackground[pixelIndex] = 1;
         }
