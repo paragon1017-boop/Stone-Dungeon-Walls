@@ -112,6 +112,19 @@ export default function Game() {
   useKey('a', () => rotate('left'), {}, [game]);
   useKey('d', () => rotate('right'), {}, [game]);
 
+  // Combat keyboard shortcuts
+  useKey(' ', () => {
+    if (combatState.active && combatState.monster) {
+      handleAttack();
+    }
+  }, {}, [combatState, game]);
+
+  useKey('Shift', (e) => {
+    if (e.location === 2 && combatState.active) { // Right Shift only
+      handleRun();
+    }
+  }, {}, [combatState]);
+
   const handleSave = () => {
     if (!game) return;
     saveMutation.mutate({
