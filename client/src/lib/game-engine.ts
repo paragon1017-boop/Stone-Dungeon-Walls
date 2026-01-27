@@ -29,7 +29,7 @@ export interface Ability {
 }
 
 // Equipment System
-export type EquipmentSlot = 'weapon' | 'armor' | 'helmet' | 'accessory';
+export type EquipmentSlot = 'weapon' | 'armor' | 'helmet' | 'gloves' | 'accessory';
 
 export interface Equipment {
   id: string;
@@ -48,6 +48,7 @@ export interface PlayerEquipment {
   weapon: Equipment | null;
   armor: Equipment | null;
   helmet: Equipment | null;
+  gloves: Equipment | null;
   accessory: Equipment | null;
 }
 
@@ -172,6 +173,61 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'dragon_helm', name: 'Dragon Helm', slot: 'helmet', attack: 2, defense: 8, hp: 15, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Forged from dragon bone' },
   { id: 'arcane_crown', name: 'Arcane Crown', slot: 'helmet', attack: 4, defense: 3, hp: 0, mp: 40, rarity: 'epic', allowedJobs: ['Mage'], description: 'Ultimate magical focus' },
   { id: 'enlightened_crown', name: 'Enlightened Crown', slot: 'helmet', attack: 5, defense: 4, hp: 10, mp: 15, rarity: 'epic', allowedJobs: ['Monk'], description: 'True enlightenment' },
+
+  // ========== GLOVES ==========
+  // Common - All Classes
+  { id: 'cloth_gloves', name: 'Cloth Gloves', slot: 'gloves', attack: 0, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Simple hand protection' },
+  { id: 'leather_gloves', name: 'Leather Gloves', slot: 'gloves', attack: 1, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Basic leather' },
+  { id: 'work_gloves', name: 'Work Gloves', slot: 'gloves', attack: 1, defense: 2, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Monk'], description: 'Sturdy work gloves' },
+  // Common - Class Specific
+  { id: 'padded_mitts', name: 'Padded Mitts', slot: 'gloves', attack: 2, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter'], description: 'Padded for combat' },
+  { id: 'silk_gloves', name: 'Silk Gloves', slot: 'gloves', attack: 0, defense: 0, hp: 0, mp: 5, rarity: 'common', allowedJobs: ['Mage'], description: 'Magical threads' },
+  { id: 'training_wraps', name: 'Training Wraps', slot: 'gloves', attack: 2, defense: 0, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Monk'], description: 'Hand wraps for training' },
+  // Uncommon - Fighter
+  { id: 'chain_gauntlets', name: 'Chain Gauntlets', slot: 'gloves', attack: 2, defense: 3, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Chainmail gloves' },
+  { id: 'spiked_gauntlets', name: 'Spiked Gauntlets', slot: 'gloves', attack: 4, defense: 2, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Adds punch damage' },
+  { id: 'plate_gauntlets', name: 'Plate Gauntlets', slot: 'gloves', attack: 2, defense: 4, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Heavy plate protection' },
+  // Uncommon - Mage
+  { id: 'enchanted_gloves', name: 'Enchanted Gloves', slot: 'gloves', attack: 1, defense: 1, hp: 0, mp: 10, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Magical enhancement' },
+  { id: 'fire_mitts', name: 'Fire Mitts', slot: 'gloves', attack: 3, defense: 0, hp: 0, mp: 8, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Warm with fire magic' },
+  { id: 'frost_gloves', name: 'Frost Gloves', slot: 'gloves', attack: 2, defense: 1, hp: 0, mp: 10, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Cold to the touch' },
+  // Uncommon - Monk
+  { id: 'combat_wraps', name: 'Combat Wraps', slot: 'gloves', attack: 4, defense: 1, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Battle-ready wraps' },
+  { id: 'weighted_gloves', name: 'Weighted Gloves', slot: 'gloves', attack: 5, defense: 0, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Heavy for stronger hits' },
+  { id: 'martial_gloves', name: 'Martial Gloves', slot: 'gloves', attack: 3, defense: 2, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Traditional martial arts' },
+  // Rare - Fighter
+  { id: 'steel_gauntlets', name: 'Steel Gauntlets', slot: 'gloves', attack: 4, defense: 5, hp: 8, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Finest steel' },
+  { id: 'berserker_gloves', name: 'Berserker Gloves', slot: 'gloves', attack: 7, defense: 2, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Rage-infused' },
+  { id: 'knights_gauntlets', name: "Knight's Gauntlets", slot: 'gloves', attack: 4, defense: 6, hp: 10, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Knightly protection' },
+  { id: 'thunder_fists', name: 'Thunder Fists', slot: 'gloves', attack: 6, defense: 3, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Lightning strikes' },
+  // Rare - Mage
+  { id: 'arcane_gloves', name: 'Arcane Gloves', slot: 'gloves', attack: 2, defense: 2, hp: 0, mp: 18, rarity: 'rare', allowedJobs: ['Mage'], description: 'Pure arcane energy' },
+  { id: 'elemental_gloves', name: 'Elemental Gloves', slot: 'gloves', attack: 4, defense: 1, hp: 0, mp: 15, rarity: 'rare', allowedJobs: ['Mage'], description: 'Four elements' },
+  { id: 'void_gloves', name: 'Void Gloves', slot: 'gloves', attack: 3, defense: 0, hp: 0, mp: 22, rarity: 'rare', allowedJobs: ['Mage'], description: 'Touch the void' },
+  { id: 'starweave_gloves', name: 'Starweave Gloves', slot: 'gloves', attack: 2, defense: 2, hp: 5, mp: 18, rarity: 'rare', allowedJobs: ['Mage'], description: 'Woven from starlight' },
+  // Rare - Monk
+  { id: 'tiger_gloves', name: 'Tiger Gloves', slot: 'gloves', attack: 7, defense: 2, hp: 5, mp: 0, rarity: 'rare', allowedJobs: ['Monk'], description: 'Tiger style' },
+  { id: 'dragon_wraps', name: 'Dragon Wraps', slot: 'gloves', attack: 6, defense: 3, hp: 8, mp: 3, rarity: 'rare', allowedJobs: ['Monk'], description: 'Dragon spirit' },
+  { id: 'masters_gloves', name: "Master's Gloves", slot: 'gloves', attack: 5, defense: 4, hp: 10, mp: 5, rarity: 'rare', allowedJobs: ['Monk'], description: 'Worn by masters' },
+  { id: 'chi_wraps', name: 'Chi Wraps', slot: 'gloves', attack: 4, defense: 2, hp: 5, mp: 10, rarity: 'rare', allowedJobs: ['Monk'], description: 'Focus your chi' },
+  // Epic - Fighter
+  { id: 'dragon_gauntlets_eq', name: 'Dragon Gauntlets', slot: 'gloves', attack: 8, defense: 8, hp: 15, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Dragon claw design' },
+  { id: 'titan_fists', name: 'Titan Fists', slot: 'gloves', attack: 12, defense: 5, hp: 10, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Titanic strength' },
+  { id: 'godslayer_gauntlets', name: 'Godslayer Gauntlets', slot: 'gloves', attack: 10, defense: 8, hp: 20, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Slay even gods' },
+  { id: 'mithril_gauntlets', name: 'Mithril Gauntlets', slot: 'gloves', attack: 7, defense: 10, hp: 15, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Elven metal' },
+  // Epic - Mage
+  { id: 'cosmic_gloves', name: 'Cosmic Gloves', slot: 'gloves', attack: 5, defense: 3, hp: 0, mp: 35, rarity: 'epic', allowedJobs: ['Mage'], description: 'Power of cosmos' },
+  { id: 'archmage_gloves', name: 'Archmage Gloves', slot: 'gloves', attack: 6, defense: 4, hp: 10, mp: 30, rarity: 'epic', allowedJobs: ['Mage'], description: 'Ultimate magic' },
+  { id: 'phoenix_gloves', name: 'Phoenix Gloves', slot: 'gloves', attack: 4, defense: 3, hp: 15, mp: 28, rarity: 'epic', allowedJobs: ['Mage'], description: 'Rebirth flames' },
+  { id: 'time_gloves', name: 'Time Gloves', slot: 'gloves', attack: 3, defense: 2, hp: 0, mp: 40, rarity: 'epic', allowedJobs: ['Mage'], description: 'Bend time itself' },
+  // Epic - Monk
+  { id: 'celestial_wraps', name: 'Celestial Wraps', slot: 'gloves', attack: 10, defense: 5, hp: 15, mp: 10, rarity: 'epic', allowedJobs: ['Monk'], description: 'Heaven blessed' },
+  { id: 'grandmaster_gloves', name: 'Grandmaster Gloves', slot: 'gloves', attack: 9, defense: 6, hp: 20, mp: 8, rarity: 'epic', allowedJobs: ['Monk'], description: 'Ultimate technique' },
+  { id: 'phoenix_wraps', name: 'Phoenix Wraps', slot: 'gloves', attack: 8, defense: 4, hp: 18, mp: 12, rarity: 'epic', allowedJobs: ['Monk'], description: 'Rise from ashes' },
+  { id: 'spirit_wraps', name: 'Spirit Wraps', slot: 'gloves', attack: 7, defense: 5, hp: 15, mp: 15, rarity: 'epic', allowedJobs: ['Monk'], description: 'Pure spirit energy' },
+  // Epic - All Classes
+  { id: 'divine_gloves', name: 'Divine Gloves', slot: 'gloves', attack: 6, defense: 6, hp: 15, mp: 15, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Divine blessing' },
+  { id: 'infinity_gloves', name: 'Infinity Gloves', slot: 'gloves', attack: 8, defense: 8, hp: 20, mp: 20, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Infinite power' },
 
   // ========== ACCESSORIES ==========
   // Common
@@ -456,7 +512,7 @@ export function getEffectiveStats(player: Player): { attack: number; defense: nu
   let maxHp = player.maxHp;
   let maxMp = player.maxMp;
   
-  const slots: EquipmentSlot[] = ['weapon', 'armor', 'helmet', 'accessory'];
+  const slots: EquipmentSlot[] = ['weapon', 'armor', 'helmet', 'gloves', 'accessory'];
   for (const slot of slots) {
     const item = player.equipment[slot];
     if (item) {
@@ -614,19 +670,19 @@ export function createInitialState(): GameData {
         id: 'p1', name: 'Bork', job: 'Fighter', 
         hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 12, defense: 8, 
         color: '#e74c3c', xp: 0, level: 1,
-        equipment: { weapon: fighterWeapon, armor: fighterArmor, helmet: null, accessory: null }
+        equipment: { weapon: fighterWeapon, armor: fighterArmor, helmet: null, gloves: null, accessory: null }
       },
       { 
         id: 'p2', name: 'Pyra', job: 'Mage', 
         hp: 30, maxHp: 30, mp: 40, maxMp: 40, attack: 4, defense: 4, 
         color: '#9b59b6', xp: 0, level: 1,
-        equipment: { weapon: mageWeapon, armor: mageArmor, helmet: null, accessory: null }
+        equipment: { weapon: mageWeapon, armor: mageArmor, helmet: null, gloves: null, accessory: null }
       },
       { 
         id: 'p3', name: 'Milo', job: 'Monk', 
         hp: 45, maxHp: 45, mp: 10, maxMp: 10, attack: 10, defense: 6, 
         color: '#f1c40f', xp: 0, level: 1,
-        equipment: { weapon: monkWeapon, armor: monkArmor, helmet: null, accessory: null }
+        equipment: { weapon: monkWeapon, armor: monkArmor, helmet: null, gloves: null, accessory: null }
       },
     ],
     x: 1,

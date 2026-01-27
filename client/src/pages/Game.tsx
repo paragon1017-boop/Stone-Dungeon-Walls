@@ -66,7 +66,7 @@ export default function Game() {
           if (!char.equipment) {
             return {
               ...char,
-              equipment: { weapon: null, armor: null, helmet: null, accessory: null }
+              equipment: { weapon: null, armor: null, helmet: null, gloves: null, accessory: null }
             };
           }
           return char;
@@ -280,7 +280,7 @@ export default function Game() {
   }, [game, log]);
   
   // Unequip an item to inventory
-  const unequipItem = useCallback((charIndex: number, slot: 'weapon' | 'armor' | 'helmet' | 'accessory') => {
+  const unequipItem = useCallback((charIndex: number, slot: 'weapon' | 'armor' | 'helmet' | 'gloves' | 'accessory') => {
     if (!game) return;
     const char = game.party[charIndex];
     const item = char.equipment[slot];
@@ -684,7 +684,7 @@ export default function Game() {
               {/* Selected Character's Equipment Slots */}
               {game.party[selectedCharForEquip] && (
                 <div className="space-y-2">
-                  {(['weapon', 'armor', 'helmet', 'accessory'] as const).map(slot => {
+                  {(['weapon', 'armor', 'helmet', 'gloves', 'accessory'] as const).map(slot => {
                     const item = game.party[selectedCharForEquip].equipment[slot];
                     return (
                       <div 
