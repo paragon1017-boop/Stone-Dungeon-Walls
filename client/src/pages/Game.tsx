@@ -20,6 +20,14 @@ export default function Game() {
   const [game, setGame] = useState<GameData | null>(null);
   const [logs, setLogs] = useState<string[]>(["Welcome to the dungeon..."]);
   const [combatState, setCombatState] = useState<{ active: boolean, monster?: Monster, turn: number }>({ active: false, turn: 0 });
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+
+  // Restore focus after combat ends
+  useEffect(() => {
+    if (!combatState.active && gameContainerRef.current) {
+      gameContainerRef.current.focus();
+    }
+  }, [combatState.active]);
 
   // Initialize game state from server or default
   useEffect(() => {
@@ -182,7 +190,10 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-4 md:p-8 flex items-center justify-center relative overflow-hidden">
+    <div 
+      ref={gameContainerRef}
+      tabIndex={-1}
+      className="min-h-screen bg-neutral-950 p-4 md:p-8 flex items-center justify-center relative overflow-hidden outline-none">
       {/* Scanline Overlay */}
       <div className="absolute inset-0 scanlines z-50 pointer-events-none opacity-20" />
       
