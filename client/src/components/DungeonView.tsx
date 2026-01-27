@@ -13,9 +13,9 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
   // Load textures once
   useEffect(() => {
     const wallImg = new Image();
-    wallImg.src = "/assets/textures/wall_stone.jpg";
+    wallImg.src = "/assets/textures/wall_stone.png";
     const floorImg = new Image();
-    floorImg.src = "/assets/textures/floor_cobble.jpg";
+    floorImg.src = "/assets/textures/floor_cobble.png";
 
     wallImg.onload = () => { texturesRef.current.wall = wallImg; draw(); };
     floorImg.onload = () => { texturesRef.current.floor = floorImg; draw(); };
@@ -1030,9 +1030,9 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     <div className={className}>
       <canvas 
         ref={canvasRef} 
-        width={320} 
-        height={240} 
-        className="w-full h-full image-pixelated rounded-lg border-4 border-muted shadow-inner bg-black"
+        width={640} 
+        height={480} 
+        className="w-full h-full rounded-lg border-4 border-muted shadow-inner bg-black"
       />
       {/* Compass / Coords Overlay */}
       <div className="absolute top-4 right-4 text-primary font-pixel text-xs bg-black/50 p-2 rounded">
