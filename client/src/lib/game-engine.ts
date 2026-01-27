@@ -200,6 +200,130 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'monks_prayer', name: "Monk's Prayer", slot: 'accessory', attack: 5, defense: 3, hp: 15, mp: 15, rarity: 'epic', allowedJobs: ['Monk'], description: 'Divine martial blessing' },
   { id: 'ring_of_power', name: 'Ring of Power', slot: 'accessory', attack: 8, defense: 0, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Overwhelming might' },
   { id: 'amulet_of_kings', name: 'Amulet of Kings', slot: 'accessory', attack: 4, defense: 4, hp: 20, mp: 20, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Worn by royalty' },
+
+  // ========== ELEMENTAL WEAPONS ==========
+  // Fire
+  { id: 'flame_sword', name: 'Flame Sword', slot: 'weapon', attack: 14, defense: 0, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Burns with eternal flame' },
+  { id: 'inferno_blade', name: 'Inferno Blade', slot: 'weapon', attack: 22, defense: 0, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Forged in volcanic fire' },
+  { id: 'ember_staff', name: 'Ember Staff', slot: 'weapon', attack: 6, defense: 0, hp: 0, mp: 22, rarity: 'rare', allowedJobs: ['Mage'], description: 'Channels fire magic' },
+  { id: 'blazing_fists', name: 'Blazing Fists', slot: 'weapon', attack: 12, defense: 0, hp: 0, mp: 5, rarity: 'rare', allowedJobs: ['Monk'], description: 'Fists of fire' },
+  // Ice
+  { id: 'frost_blade', name: 'Frost Blade', slot: 'weapon', attack: 13, defense: 1, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Cold as death' },
+  { id: 'glacial_sword', name: 'Glacial Sword', slot: 'weapon', attack: 19, defense: 3, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Frozen for millennia' },
+  { id: 'blizzard_rod', name: 'Blizzard Rod', slot: 'weapon', attack: 5, defense: 0, hp: 0, mp: 28, rarity: 'rare', allowedJobs: ['Mage'], description: 'Summons winter storms' },
+  { id: 'frozen_claws', name: 'Frozen Claws', slot: 'weapon', attack: 11, defense: 2, hp: 0, mp: 3, rarity: 'rare', allowedJobs: ['Monk'], description: 'Freezing touch' },
+  // Thunder
+  { id: 'thunder_blade', name: 'Thunder Blade', slot: 'weapon', attack: 15, defense: 0, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Crackles with lightning' },
+  { id: 'storm_breaker', name: 'Storm Breaker', slot: 'weapon', attack: 24, defense: 0, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Commands the storm' },
+  { id: 'lightning_staff', name: 'Lightning Staff', slot: 'weapon', attack: 7, defense: 0, hp: 0, mp: 24, rarity: 'rare', allowedJobs: ['Mage'], description: 'Pure electrical power' },
+  { id: 'shock_gauntlets', name: 'Shock Gauntlets', slot: 'weapon', attack: 13, defense: 0, hp: 0, mp: 4, rarity: 'rare', allowedJobs: ['Monk'], description: 'Electric strikes' },
+  // Dark
+  { id: 'shadow_blade', name: 'Shadow Blade', slot: 'weapon', attack: 16, defense: 0, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Forged in darkness' },
+  { id: 'doom_bringer', name: 'Doom Bringer', slot: 'weapon', attack: 25, defense: 0, hp: -10, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Cursed blade of doom' },
+  { id: 'dark_scepter', name: 'Dark Scepter', slot: 'weapon', attack: 8, defense: 0, hp: 0, mp: 30, rarity: 'rare', allowedJobs: ['Mage'], description: 'Channels dark magic' },
+  { id: 'nightmare_staff', name: 'Nightmare Staff', slot: 'weapon', attack: 12, defense: 0, hp: -5, mp: 50, rarity: 'epic', allowedJobs: ['Mage'], description: 'Power at a cost' },
+  { id: 'shadow_claws', name: 'Shadow Claws', slot: 'weapon', attack: 14, defense: 0, hp: 0, mp: 6, rarity: 'rare', allowedJobs: ['Monk'], description: 'Strike from shadows' },
+  // Holy
+  { id: 'holy_sword', name: 'Holy Sword', slot: 'weapon', attack: 14, defense: 2, hp: 5, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Blessed by the divine' },
+  { id: 'sacred_blade', name: 'Sacred Blade', slot: 'weapon', attack: 20, defense: 4, hp: 15, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Holy light incarnate' },
+  { id: 'divine_staff', name: 'Divine Staff', slot: 'weapon', attack: 4, defense: 2, hp: 10, mp: 25, rarity: 'rare', allowedJobs: ['Mage'], description: 'Channels holy power' },
+  { id: 'blessed_fists', name: 'Blessed Fists', slot: 'weapon', attack: 12, defense: 2, hp: 8, mp: 5, rarity: 'rare', allowedJobs: ['Monk'], description: 'Divine martial arts' },
+
+  // ========== MORE WEAPON TYPES ==========
+  // Spears/Polearms (Fighter)
+  { id: 'wooden_spear', name: 'Wooden Spear', slot: 'weapon', attack: 4, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter'], description: 'Simple thrusting weapon' },
+  { id: 'iron_spear', name: 'Iron Spear', slot: 'weapon', attack: 7, defense: 2, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Reliable iron point' },
+  { id: 'halberd', name: 'Halberd', slot: 'weapon', attack: 9, defense: 3, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Versatile polearm' },
+  { id: 'steel_lance', name: 'Steel Lance', slot: 'weapon', attack: 13, defense: 2, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Knight cavalry weapon' },
+  { id: 'dragon_lance', name: 'Dragon Lance', slot: 'weapon', attack: 21, defense: 4, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Made to pierce scales' },
+  // Daggers (Fighter)
+  { id: 'rusty_dagger', name: 'Rusty Dagger', slot: 'weapon', attack: 2, defense: 0, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter'], description: 'Quick but weak' },
+  { id: 'steel_dagger', name: 'Steel Dagger', slot: 'weapon', attack: 5, defense: 0, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Fast and deadly' },
+  { id: 'assassin_blade', name: 'Assassin Blade', slot: 'weapon', attack: 9, defense: 0, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Silent killer' },
+  { id: 'poison_dagger', name: 'Poison Dagger', slot: 'weapon', attack: 8, defense: 0, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Coated in venom' },
+  // Orbs/Grimoires (Mage)
+  { id: 'crystal_orb', name: 'Crystal Orb', slot: 'weapon', attack: 2, defense: 0, hp: 0, mp: 14, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'See magical threads' },
+  { id: 'dark_orb', name: 'Dark Orb', slot: 'weapon', attack: 4, defense: 0, hp: 0, mp: 18, rarity: 'rare', allowedJobs: ['Mage'], description: 'Shadows within' },
+  { id: 'apprentice_tome', name: 'Apprentice Tome', slot: 'weapon', attack: 1, defense: 0, hp: 0, mp: 12, rarity: 'common', allowedJobs: ['Mage'], description: 'Basic spell book' },
+  { id: 'grimoire', name: 'Grimoire', slot: 'weapon', attack: 3, defense: 0, hp: 0, mp: 20, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Ancient spell book' },
+  { id: 'necronomicon', name: 'Necronomicon', slot: 'weapon', attack: 6, defense: 0, hp: -10, mp: 40, rarity: 'epic', allowedJobs: ['Mage'], description: 'Forbidden knowledge' },
+  { id: 'book_of_light', name: 'Book of Light', slot: 'weapon', attack: 5, defense: 2, hp: 10, mp: 35, rarity: 'epic', allowedJobs: ['Mage'], description: 'Divine scriptures' },
+  // Bo Staff/Martial Weapons (Monk)
+  { id: 'bo_staff', name: 'Bo Staff', slot: 'weapon', attack: 5, defense: 2, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Monk'], description: 'Traditional staff' },
+  { id: 'iron_bo', name: 'Iron Bo', slot: 'weapon', attack: 8, defense: 3, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Heavy iron staff' },
+  { id: 'sai', name: 'Sai', slot: 'weapon', attack: 6, defense: 3, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Defensive weapon' },
+  { id: 'tonfa', name: 'Tonfa', slot: 'weapon', attack: 7, defense: 4, hp: 0, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Block and strike' },
+  { id: 'jade_bo', name: 'Jade Bo', slot: 'weapon', attack: 11, defense: 4, hp: 5, mp: 5, rarity: 'rare', allowedJobs: ['Monk'], description: 'Carved from jade' },
+  { id: 'monks_fury', name: "Monk's Fury", slot: 'weapon', attack: 16, defense: 3, hp: 10, mp: 10, rarity: 'epic', allowedJobs: ['Monk'], description: 'Ultimate martial weapon' },
+
+  // ========== MORE ARMOR ==========
+  // Cloaks (All classes)
+  { id: 'travelers_cloak', name: "Traveler's Cloak", slot: 'armor', attack: 0, defense: 2, hp: 5, mp: 5, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Protects from elements' },
+  { id: 'shadow_cloak', name: 'Shadow Cloak', slot: 'armor', attack: 2, defense: 4, hp: 0, mp: 10, rarity: 'rare', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Blend with shadows' },
+  { id: 'phoenix_cloak', name: 'Phoenix Cloak', slot: 'armor', attack: 3, defense: 6, hp: 20, mp: 20, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Rise from ashes' },
+  // More Fighter Armor
+  { id: 'banded_mail', name: 'Banded Mail', slot: 'armor', attack: 0, defense: 7, hp: 8, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Horizontal metal bands' },
+  { id: 'splint_armor', name: 'Splint Armor', slot: 'armor', attack: 1, defense: 8, hp: 10, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Vertical metal strips' },
+  { id: 'crystal_armor', name: 'Crystal Armor', slot: 'armor', attack: 2, defense: 12, hp: 15, mp: 10, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Magical crystal plates' },
+  // More Mage Armor
+  { id: 'mystic_robe', name: 'Mystic Robe', slot: 'armor', attack: 1, defense: 3, hp: 0, mp: 22, rarity: 'rare', allowedJobs: ['Mage'], description: 'Mystic enchantments' },
+  { id: 'chaos_robe', name: 'Chaos Robe', slot: 'armor', attack: 5, defense: 2, hp: -5, mp: 50, rarity: 'epic', allowedJobs: ['Mage'], description: 'Unstable magic' },
+  // More Monk Armor
+  { id: 'iron_vest', name: 'Iron Vest', slot: 'armor', attack: 1, defense: 4, hp: 8, mp: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Weighted training vest' },
+  { id: 'spirit_robe', name: 'Spirit Robe', slot: 'armor', attack: 2, defense: 5, hp: 10, mp: 12, rarity: 'rare', allowedJobs: ['Monk'], description: 'Channel inner spirits' },
+
+  // ========== MORE HELMETS ==========
+  { id: 'bandits_mask', name: "Bandit's Mask", slot: 'helmet', attack: 2, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Monk'], description: 'Conceals identity' },
+  { id: 'knights_visor', name: "Knight's Visor", slot: 'helmet', attack: 1, defense: 5, hp: 10, mp: 0, rarity: 'rare', allowedJobs: ['Fighter'], description: 'Full face protection' },
+  { id: 'crown_of_thorns', name: 'Crown of Thorns', slot: 'helmet', attack: 5, defense: 0, hp: -5, mp: 0, rarity: 'rare', allowedJobs: ['Fighter', 'Monk'], description: 'Pain becomes power' },
+  { id: 'sage_hood', name: 'Sage Hood', slot: 'helmet', attack: 1, defense: 2, hp: 0, mp: 20, rarity: 'rare', allowedJobs: ['Mage'], description: 'Ancient wisdom' },
+  { id: 'demon_mask', name: 'Demon Mask', slot: 'helmet', attack: 4, defense: 2, hp: 0, mp: 0, rarity: 'rare', allowedJobs: ['Monk'], description: 'Terrifying presence' },
+  { id: 'crown_of_flames', name: 'Crown of Flames', slot: 'helmet', attack: 6, defense: 2, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Burning crown' },
+  { id: 'frozen_crown', name: 'Frozen Crown', slot: 'helmet', attack: 3, defense: 4, hp: 10, mp: 25, rarity: 'epic', allowedJobs: ['Mage'], description: 'Eternal ice' },
+  { id: 'third_eye_band', name: 'Third Eye Band', slot: 'helmet', attack: 4, defense: 2, hp: 5, mp: 20, rarity: 'epic', allowedJobs: ['Monk'], description: 'See beyond' },
+
+  // ========== MORE ACCESSORIES ==========
+  // Boots
+  { id: 'leather_boots', name: 'Leather Boots', slot: 'accessory', attack: 0, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Basic footwear' },
+  { id: 'iron_boots', name: 'Iron Boots', slot: 'accessory', attack: 0, defense: 3, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Heavy but protective' },
+  { id: 'wind_boots', name: 'Wind Boots', slot: 'accessory', attack: 4, defense: 1, hp: 0, mp: 5, rarity: 'rare', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Light as air' },
+  { id: 'dragon_boots', name: 'Dragon Boots', slot: 'accessory', attack: 5, defense: 5, hp: 10, mp: 0, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Dragon scale boots' },
+  // Belts
+  { id: 'leather_belt', name: 'Leather Belt', slot: 'accessory', attack: 1, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Simple belt' },
+  { id: 'warriors_belt', name: "Warrior's Belt", slot: 'accessory', attack: 3, defense: 2, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Battle ready' },
+  { id: 'mystic_sash', name: 'Mystic Sash', slot: 'accessory', attack: 1, defense: 1, hp: 0, mp: 15, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Magical sash' },
+  { id: 'black_belt', name: 'Black Belt', slot: 'accessory', attack: 4, defense: 2, hp: 10, mp: 5, rarity: 'rare', allowedJobs: ['Monk'], description: 'Master rank' },
+  // Capes
+  { id: 'wool_cape', name: 'Wool Cape', slot: 'accessory', attack: 0, defense: 2, hp: 5, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Warm and protective' },
+  { id: 'battle_cape', name: 'Battle Cape', slot: 'accessory', attack: 2, defense: 3, hp: 10, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Worn into battle' },
+  { id: 'wizards_cape', name: "Wizard's Cape", slot: 'accessory', attack: 1, defense: 2, hp: 0, mp: 18, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Magical protection' },
+  { id: 'cape_of_shadows', name: 'Cape of Shadows', slot: 'accessory', attack: 4, defense: 4, hp: 0, mp: 15, rarity: 'rare', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Move unseen' },
+  { id: 'royal_cape', name: 'Royal Cape', slot: 'accessory', attack: 3, defense: 5, hp: 15, mp: 15, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Worn by kings' },
+  // Earrings
+  { id: 'copper_earring', name: 'Copper Earring', slot: 'accessory', attack: 1, defense: 0, hp: 0, mp: 3, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Simple copper' },
+  { id: 'silver_earring', name: 'Silver Earring', slot: 'accessory', attack: 2, defense: 1, hp: 0, mp: 8, rarity: 'uncommon', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Fine silver' },
+  { id: 'gold_earring', name: 'Gold Earring', slot: 'accessory', attack: 3, defense: 2, hp: 5, mp: 12, rarity: 'rare', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Pure gold' },
+  { id: 'diamond_earring', name: 'Diamond Earring', slot: 'accessory', attack: 5, defense: 3, hp: 10, mp: 20, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Flawless diamond' },
+  // Gloves
+  { id: 'leather_gloves', name: 'Leather Gloves', slot: 'accessory', attack: 1, defense: 1, hp: 0, mp: 0, rarity: 'common', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Basic hand protection' },
+  { id: 'gauntlets', name: 'Gauntlets', slot: 'accessory', attack: 3, defense: 3, hp: 5, mp: 0, rarity: 'uncommon', allowedJobs: ['Fighter'], description: 'Metal hand guards' },
+  { id: 'spell_gloves', name: 'Spell Gloves', slot: 'accessory', attack: 2, defense: 0, hp: 0, mp: 15, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Enhance casting' },
+  { id: 'dragon_gauntlets', name: 'Dragon Gauntlets', slot: 'accessory', attack: 6, defense: 4, hp: 10, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Dragon claw design' },
+
+  // ========== LEGENDARY ITEMS (Floor 10+) ==========
+  { id: 'excalibur', name: 'Excalibur', slot: 'weapon', attack: 30, defense: 5, hp: 20, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'The legendary sword' },
+  { id: 'mjolnir', name: 'Mjolnir', slot: 'weapon', attack: 28, defense: 3, hp: 15, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Hammer of the gods' },
+  { id: 'masamune', name: 'Masamune', slot: 'weapon', attack: 26, defense: 0, hp: 0, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Perfect katana' },
+  { id: 'staff_of_merlin', name: 'Staff of Merlin', slot: 'weapon', attack: 10, defense: 3, hp: 15, mp: 60, rarity: 'epic', allowedJobs: ['Mage'], description: 'Legendary wizard staff' },
+  { id: 'wand_of_cosmos', name: 'Wand of Cosmos', slot: 'weapon', attack: 12, defense: 0, hp: 0, mp: 70, rarity: 'epic', allowedJobs: ['Mage'], description: 'Contains a galaxy' },
+  { id: 'fist_of_buddha', name: 'Fist of Buddha', slot: 'weapon', attack: 18, defense: 5, hp: 20, mp: 20, rarity: 'epic', allowedJobs: ['Monk'], description: 'Enlightened strikes' },
+  { id: 'dragon_emperor_armor', name: 'Dragon Emperor Armor', slot: 'armor', attack: 5, defense: 20, hp: 30, mp: 0, rarity: 'epic', allowedJobs: ['Fighter'], description: 'Ultimate protection' },
+  { id: 'robe_of_archmagi', name: 'Robe of the Archmagi', slot: 'armor', attack: 6, defense: 8, hp: 15, mp: 60, rarity: 'epic', allowedJobs: ['Mage'], description: 'Worn by the greatest' },
+  { id: 'grandmaster_gi', name: 'Grandmaster Gi', slot: 'armor', attack: 8, defense: 10, hp: 25, mp: 20, rarity: 'epic', allowedJobs: ['Monk'], description: 'Ultimate martial attire' },
+  { id: 'crown_of_gods', name: 'Crown of Gods', slot: 'helmet', attack: 6, defense: 6, hp: 20, mp: 30, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Divine crown' },
+  { id: 'infinity_band', name: 'Infinity Band', slot: 'accessory', attack: 8, defense: 8, hp: 30, mp: 30, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'Infinite power' },
+  { id: 'heart_of_dragon', name: 'Heart of Dragon', slot: 'accessory', attack: 10, defense: 5, hp: 50, mp: 0, rarity: 'epic', allowedJobs: ['Fighter', 'Mage', 'Monk'], description: 'A dragons heart' },
+  { id: 'soul_gem', name: 'Soul Gem', slot: 'accessory', attack: 6, defense: 0, hp: 0, mp: 80, rarity: 'epic', allowedJobs: ['Mage'], description: 'Contains souls' },
 ];
 
 // Get equipment by ID
