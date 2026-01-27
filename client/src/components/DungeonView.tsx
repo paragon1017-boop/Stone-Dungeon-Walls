@@ -603,6 +603,30 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
       return decorSeed / 0x7fffffff;
     };
     
+    // Check if player is facing a door - skip decorations if so
+    let facingDoor = false;
+    {
+      // Cast a ray straight ahead to check what's in front
+      let checkX = Math.floor(posX);
+      let checkY = Math.floor(posY);
+      for (let step = 1; step <= 3; step++) {
+        const nextX = Math.floor(posX + dirX * step);
+        const nextY = Math.floor(posY + dirY * step);
+        if (nextX >= 0 && nextX < map[0].length && nextY >= 0 && nextY < map.length) {
+          if (map[nextY][nextX] === 2) {
+            facingDoor = true;
+            break;
+          }
+          if (map[nextY][nextX] === 1) {
+            break; // Hit a wall, stop checking
+          }
+        }
+      }
+    }
+    
+    // Skip all decorations when facing a door
+    if (!facingDoor) {
+    
     // Spider webs in corners (where ceiling meets walls)
     // Top-left corner web
     if (decorRandom() > 0.3) {
@@ -999,6 +1023,7 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
         ctx.fillRect(lightX - 50, torchY - 50, 100, 90);
       }
     }
+    } // end if (!facingDoor)
   };
 
   return (
