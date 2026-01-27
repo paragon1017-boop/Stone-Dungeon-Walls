@@ -46,7 +46,9 @@ export default function Game() {
   }>({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showEquipment, setShowEquipment] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [selectedCharForEquip, setSelectedCharForEquip] = useState(0);
+  const [selectedCharForStats, setSelectedCharForStats] = useState(0);
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   // Restore focus after combat ends
@@ -295,6 +297,18 @@ export default function Game() {
   useKey('E', () => {
     if (!combatState.active) {
       setShowEquipment(prev => !prev);
+    }
+  }, {}, [combatState.active]);
+  
+  // Toggle stats panel (C key for Character stats)
+  useKey('c', () => {
+    if (!combatState.active) {
+      setShowStats(prev => !prev);
+    }
+  }, {}, [combatState.active]);
+  useKey('C', () => {
+    if (!combatState.active) {
+      setShowStats(prev => !prev);
     }
   }, {}, [combatState.active]);
   
@@ -725,6 +739,17 @@ export default function Game() {
               <Sword className="w-4 h-4 mr-2" />
               EQUIPMENT (E)
             </RetroButton>
+            
+            {/* Stats Toggle Button */}
+            <RetroButton 
+              onClick={() => setShowStats(prev => !prev)}
+              className="w-full mt-2"
+              variant={showStats ? "default" : "ghost"}
+              data-testid="button-stats"
+            >
+              <User className="w-4 h-4 mr-2" />
+              STATS (C)
+            </RetroButton>
           </RetroCard>
           
           {/* Equipment Panel - Below Commands */}
@@ -871,6 +896,176 @@ export default function Game() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Stats Panel - Below Equipment */}
+          {showStats && (
+            <div className="w-full bg-black/95 backdrop-blur-sm border border-primary/30 rounded-lg shadow-2xl shadow-black/50 mt-2">
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-primary font-pixel text-sm">CHARACTER STATS</h3>
+                  <button 
+                    onClick={() => setShowStats(false)}
+                    className="text-muted-foreground hover:text-primary text-lg px-2"
+                    data-testid="button-close-stats"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                {/* Character Selection */}
+                <div className="flex gap-1 mb-3">
+                  {game.party.map((char, idx) => (
+                    <button
+                      key={char.id}
+                      onClick={() => setSelectedCharForStats(idx)}
+                      className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                        selectedCharForStats === idx 
+                          ? 'bg-primary/20 text-primary border border-primary/40 shadow-lg shadow-primary/10' 
+                          : 'bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10'
+                      }`}
+                      data-testid={`button-stats-char-${idx}`}
+                    >
+                      {char.name}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Selected Character's Stats */}
+                {game.party[selectedCharForStats] && (() => {
+                  const char = game.party[selectedCharForStats];
+                  const effectiveStats = getEffectiveStats(char);
+                  const xpNeeded = xpForLevel(char.level + 1);
+                  const xpProgress = Math.min(100, Math.round((char.xp / xpNeeded) * 100));
+                  
+                  return (
+                    <div className="space-y-2">
+                      {/* Basic Info */}
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-primary font-pixel text-sm">{char.name}</span>
+                          <span className="text-[10px] text-amber-400 uppercase">{char.job}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Level {char.level} | XP: {char.xp}/{xpNeeded} ({xpProgress}%)
+                        </div>
+                        <div className="w-full bg-black/50 rounded-full h-1.5 mt-1">
+                          <div 
+                            className="bg-amber-400 h-1.5 rounded-full transition-all" 
+                            style={{ width: `${xpProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* HP/MP */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                          <div className="text-[9px] text-muted-foreground mb-1">HP</div>
+                          <div className="text-sm text-green-400 font-pixel">{char.hp}/{effectiveStats.maxHp}</div>
+                          <div className="w-full bg-black/50 rounded-full h-1.5 mt-1">
+                            <div 
+                              className="bg-green-500 h-1.5 rounded-full transition-all" 
+                              style={{ width: `${Math.round((char.hp / effectiveStats.maxHp) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                          <div className="text-[9px] text-muted-foreground mb-1">MP</div>
+                          <div className="text-sm text-blue-400 font-pixel">{char.mp}/{effectiveStats.maxMp}</div>
+                          <div className="w-full bg-black/50 rounded-full h-1.5 mt-1">
+                            <div 
+                              className="bg-blue-500 h-1.5 rounded-full transition-all" 
+                              style={{ width: `${effectiveStats.maxMp > 0 ? Math.round((char.mp / effectiveStats.maxMp) * 100) : 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Combat Stats */}
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                        <div className="text-[9px] text-muted-foreground mb-2">COMBAT STATS</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex justify-between">
+                            <span className="text-[10px] text-muted-foreground">ATK:</span>
+                            <span className="text-[10px] text-red-400 font-medium">{effectiveStats.attack}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[10px] text-muted-foreground">DEF:</span>
+                            <span className="text-[10px] text-blue-400 font-medium">{effectiveStats.defense}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Base Stats vs Equipment Bonus */}
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                        <div className="text-[9px] text-muted-foreground mb-2">STAT BREAKDOWN</div>
+                        <div className="space-y-1 text-[9px]">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base ATK:</span>
+                            <span className="text-foreground">{char.attack}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Equipment ATK:</span>
+                            <span className="text-green-400">+{effectiveStats.attack - char.attack}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base DEF:</span>
+                            <span className="text-foreground">{char.defense}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Equipment DEF:</span>
+                            <span className="text-green-400">+{effectiveStats.defense - char.defense}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base HP:</span>
+                            <span className="text-foreground">{char.maxHp}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Equipment HP:</span>
+                            <span className="text-green-400">+{effectiveStats.maxHp - char.maxHp}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base MP:</span>
+                            <span className="text-foreground">{char.maxMp}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Equipment MP:</span>
+                            <span className="text-green-400">+{effectiveStats.maxMp - char.maxMp}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Equipped Items Summary */}
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                        <div className="text-[9px] text-muted-foreground mb-2">EQUIPPED</div>
+                        <div className="space-y-0.5">
+                          {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'accessory'] as const).map(slot => {
+                            const item = char.equipment[slot];
+                            return (
+                              <div key={slot} className="flex justify-between text-[9px]">
+                                <span className="text-muted-foreground capitalize">{slot}:</span>
+                                {item ? (
+                                  <span className={`${
+                                    item.rarity === 'rare' ? 'text-blue-400' : 
+                                    item.rarity === 'uncommon' ? 'text-green-400' : 
+                                    item.rarity === 'epic' ? 'text-purple-400' : 
+                                    (item.enhancement || 0) > 0 ? 'text-yellow-400' : 'text-foreground'
+                                  }`}>
+                                    {getEnhancedName(item)}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground italic">None</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
