@@ -91,6 +91,26 @@ export default function Game() {
   useKey('ArrowLeft', () => rotate('left'), {}, [game]);
   useKey('ArrowRight', () => rotate('right'), {}, [game]);
 
+  // WASD controls
+  useKey('w', () => {
+    if (!game) return;
+    if (game.dir === NORTH) move(0, -1);
+    if (game.dir === SOUTH) move(0, 1);
+    if (game.dir === EAST) move(1, 0);
+    if (game.dir === WEST) move(-1, 0);
+  }, {}, [game]);
+
+  useKey('s', () => {
+    if (!game) return;
+    if (game.dir === NORTH) move(0, 1);
+    if (game.dir === SOUTH) move(0, -1);
+    if (game.dir === EAST) move(-1, 0);
+    if (game.dir === WEST) move(1, 0);
+  }, {}, [game]);
+
+  useKey('a', () => rotate('left'), {}, [game]);
+  useKey('d', () => rotate('right'), {}, [game]);
+
   const handleSave = () => {
     if (!game) return;
     saveMutation.mutate({
