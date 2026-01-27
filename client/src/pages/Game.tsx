@@ -669,42 +669,57 @@ export default function Game() {
               {/* Always show dungeon view as background */}
               <DungeonView gameData={game} className="w-full h-full" />
               
-              {/* Mini Map in top left (toggle with M key) */}
-              {showMiniMap && (
-              <div className="absolute top-2 left-2 z-30 bg-black/70 border border-primary/50 rounded p-1">
-                <div className="grid gap-[1px]" style={{ 
-                  gridTemplateColumns: `repeat(${Math.min(game.map[0]?.length || 15, 15)}, 6px)` 
-                }}>
-                  {game.map.slice(0, 15).map((row, y) => 
-                    row.slice(0, 15).map((cell, x) => {
-                      const isPlayer = x === game.x && y === game.y;
-                      const isWall = cell === 1;
-                      const isDoor = cell === 2;
-                      return (
-                        <div
-                          key={`${x}-${y}`}
-                          className={`w-[6px] h-[6px] ${
-                            isPlayer 
-                              ? 'bg-yellow-400' 
-                              : isDoor
-                                ? 'bg-amber-700'
-                                : isWall 
-                                  ? 'bg-stone-600' 
-                                  : 'bg-stone-900'
-                          }`}
-                          style={isPlayer ? {
-                            clipPath: game.dir === 0 ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : // North
-                                      game.dir === 1 ? 'polygon(0% 0%, 100% 50%, 0% 100%)' : // East
-                                      game.dir === 2 ? 'polygon(0% 0%, 100% 0%, 50% 100%)' : // South
-                                      'polygon(100% 0%, 100% 100%, 0% 50%)', // West
-                          } : undefined}
-                        />
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-              )}
+              {/* Mini Map in top left (toggle with M key) - centered on player */}
+              {showMiniMap && (() => {
+                const mapSize = 11; // Odd number so player is always centered
+                const halfSize = Math.floor(mapSize / 2);
+                const mapHeight = game.map.length;
+                const mapWidth = game.map[0]?.length || 0;
+                
+                // Calculate view bounds centered on player
+                const startY = Math.max(0, Math.min(game.y - halfSize, mapHeight - mapSize));
+                const startX = Math.max(0, Math.min(game.x - halfSize, mapWidth - mapSize));
+                const endY = Math.min(mapHeight, startY + mapSize);
+                const endX = Math.min(mapWidth, startX + mapSize);
+                
+                return (
+                  <div className="absolute top-2 left-2 z-30 bg-black/70 border border-primary/50 rounded p-1">
+                    <div className="grid gap-[1px]" style={{ 
+                      gridTemplateColumns: `repeat(${endX - startX}, 6px)` 
+                    }}>
+                      {game.map.slice(startY, endY).map((row, viewY) => 
+                        row.slice(startX, endX).map((cell, viewX) => {
+                          const actualX = startX + viewX;
+                          const actualY = startY + viewY;
+                          const isPlayer = actualX === game.x && actualY === game.y;
+                          const isWall = cell === 1;
+                          const isDoor = cell === 2;
+                          return (
+                            <div
+                              key={`${actualX}-${actualY}`}
+                              className={`w-[6px] h-[6px] ${
+                                isPlayer 
+                                  ? 'bg-yellow-400' 
+                                  : isDoor
+                                    ? 'bg-amber-700'
+                                    : isWall 
+                                      ? 'bg-stone-600' 
+                                      : 'bg-stone-900'
+                              }`}
+                              style={isPlayer ? {
+                                clipPath: game.dir === 0 ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : // North
+                                          game.dir === 1 ? 'polygon(0% 0%, 100% 50%, 0% 100%)' : // East
+                                          game.dir === 2 ? 'polygon(0% 0%, 100% 0%, 50% 100%)' : // South
+                                          'polygon(100% 0%, 100% 100%, 0% 50%)', // West
+                              } : undefined}
+                            />
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
               
               {/* Monster overlay during combat */}
               {combatState.active && combatState.monsters.length > 0 && (
