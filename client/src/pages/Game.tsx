@@ -403,6 +403,38 @@ export default function Game() {
               {/* Always show dungeon view as background */}
               <DungeonView gameData={game} className="w-full h-full" />
               
+              {/* Mini Map in top left */}
+              <div className="absolute top-2 left-2 z-30 bg-black/70 border border-primary/50 rounded p-1">
+                <div className="grid gap-[1px]" style={{ 
+                  gridTemplateColumns: `repeat(${Math.min(game.map[0]?.length || 15, 15)}, 6px)` 
+                }}>
+                  {game.map.slice(0, 15).map((row, y) => 
+                    row.slice(0, 15).map((cell, x) => {
+                      const isPlayer = x === game.x && y === game.y;
+                      const isWall = cell === 1;
+                      return (
+                        <div
+                          key={`${x}-${y}`}
+                          className={`w-[6px] h-[6px] ${
+                            isPlayer 
+                              ? 'bg-yellow-400' 
+                              : isWall 
+                                ? 'bg-stone-600' 
+                                : 'bg-stone-900'
+                          }`}
+                          style={isPlayer ? {
+                            clipPath: game.dir === 0 ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : // North
+                                      game.dir === 1 ? 'polygon(0% 0%, 100% 50%, 0% 100%)' : // East
+                                      game.dir === 2 ? 'polygon(0% 0%, 100% 0%, 50% 100%)' : // South
+                                      'polygon(100% 0%, 100% 100%, 0% 50%)', // West
+                          } : undefined}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+              
               {/* Monster overlay during combat */}
               {combatState.active && combatState.monsters.length > 0 && (
                 <>
