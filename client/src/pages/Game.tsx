@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGameState, useSaveGame } from "@/hooks/use-game";
 import { DungeonView } from "@/components/DungeonView";
@@ -122,6 +122,9 @@ export default function Game() {
   const handleAttack = () => {
     if (!combatState.monster || !game) return;
     
+    // Blur active element to restore keyboard focus
+    (document.activeElement as HTMLElement)?.blur();
+    
     // Player Turn
     const damage = Math.max(1, Math.floor(game.party[0].attack - (combatState.monster.defense / 2)));
     const newMonsterHp = combatState.monster.hp - damage;
@@ -147,6 +150,11 @@ export default function Game() {
       log("GAME OVER");
       // Could reset game here or show modal
     }
+  };
+
+  const handleRun = () => {
+    (document.activeElement as HTMLElement)?.blur();
+    setCombatState({ active: false, turn: 0 });
   };
 
   if (isLoading || !game) {
@@ -251,7 +259,7 @@ export default function Game() {
                         <RetroButton onClick={handleAttack} className="px-4 py-2" data-testid="button-attack">
                           <Sword className="w-4 h-4 mr-1 inline" /> ATTACK
                         </RetroButton>
-                        <RetroButton onClick={() => setCombatState({ active: false, turn: 0 })} variant="ghost" className="px-4 py-2" data-testid="button-run">
+                        <RetroButton onClick={handleRun} variant="ghost" className="px-4 py-2" data-testid="button-run">
                           RUN
                         </RetroButton>
                       </div>
