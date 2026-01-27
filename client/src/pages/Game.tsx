@@ -211,8 +211,12 @@ export default function Game() {
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden">
               {combatState.active && combatState.monster ? (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
-                  <div className="text-4xl animate-bounce mb-8">
-                    <Skull className="w-24 h-24 text-red-500" />
+                  <div className="text-4xl animate-bounce mb-4">
+                    {combatState.monster.image ? (
+                      <img src={combatState.monster.image} alt={combatState.monster.name} className="w-32 h-32 object-contain pixelated" />
+                    ) : (
+                      <Skull className="w-24 h-24 text-red-500" />
+                    )}
                   </div>
                   <h2 className="font-pixel text-destructive text-xl mb-4">{combatState.monster.name}</h2>
                   <div className="w-48 mb-8">
