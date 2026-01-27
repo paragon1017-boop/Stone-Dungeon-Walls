@@ -12,7 +12,7 @@ import {
   Ability, getAbilitiesForJob, getScaledAbilityPower
 } from "@/lib/game-engine";
 import { useKey } from "react-use";
-import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp } from "lucide-react";
+import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp, ChevronDown } from "lucide-react";
 
 export default function Game() {
   const { user, logout } = useAuth();
@@ -23,11 +23,12 @@ export default function Game() {
   const [logs, setLogs] = useState<string[]>(["Welcome to the dungeon..."]);
   const [combatState, setCombatState] = useState<{ 
     active: boolean, 
-    monster?: Monster, 
+    monsters: Monster[],
+    targetIndex: number,
     turn: number,
     currentCharIndex: number,
     defending: boolean 
-  }>({ active: false, turn: 0, currentCharIndex: 0, defending: false });
+  }>({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   // Restore focus after combat ends
@@ -70,9 +71,18 @@ export default function Game() {
 
     // Random Encounter Chance (10%)
     if (Math.random() < 0.1) {
-      const monster = getRandomMonster(game.level);
-      setCombatState({ active: true, monster, turn: 0, currentCharIndex: 0, defending: false });
-      log(`A wild ${monster.name} appeared!`);
+      // Spawn 1-3 monsters
+      const monsterCount = 1 + Math.floor(Math.random() * 3);
+      const monsters: Monster[] = [];
+      for (let i = 0; i < monsterCount; i++) {
+        monsters.push(getRandomMonster(game.level));
+      }
+      setCombatState({ active: true, monsters, targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+      if (monsterCount === 1) {
+        log(`A wild ${monsters[0].name} appeared!`);
+      } else {
+        log(`${monsterCount} monsters appeared!`);
+      }
     }
   }, [game, combatState.active, log]);
 
@@ -130,7 +140,7 @@ export default function Game() {
 
   // Combat keyboard shortcuts
   useKey(' ', (e) => {
-    if (combatState.active && combatState.monster) {
+    if (combatState.active && combatState.monsters.length > 0) {
       e.preventDefault();
       handleAttack();
     }
@@ -182,31 +192,40 @@ export default function Game() {
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
   }, [game, log]);
 
-  const monsterTurn = useCallback((newMonsterHp: number, defendingActive: boolean) => {
-    if (!combatState.monster || !game) return;
+  const monsterTurn = useCallback((updatedMonsters: Monster[], defendingActive: boolean) => {
+    if (updatedMonsters.length === 0 || !game) return;
     
-    // Monster attacks a random alive party member
+    // Each alive monster attacks a random alive party member
     const aliveMembers = game.party.filter(c => c.hp > 0);
     if (aliveMembers.length === 0) {
       log("GAME OVER");
       return;
     }
     
-    const targetIdx = Math.floor(Math.random() * aliveMembers.length);
-    const target = aliveMembers[targetIdx];
-    const defenseMultiplier = defendingActive ? 2 : 1;
-    const monsterDmg = Math.max(1, Math.floor(combatState.monster.attack - (target.defense * defenseMultiplier / 2)));
+    let newParty = [...game.party];
     
-    const newParty = game.party.map(c => 
-      c.id === target.id ? { ...c, hp: Math.max(0, c.hp - monsterDmg) } : c
-    );
-    
-    log(`${combatState.monster.name} hits ${target.name} for ${monsterDmg} dmg!`);
+    for (const monster of updatedMonsters) {
+      if (monster.hp <= 0) continue;
+      
+      const aliveMembersNow = newParty.filter(c => c.hp > 0);
+      if (aliveMembersNow.length === 0) break;
+      
+      const targetIdx = Math.floor(Math.random() * aliveMembersNow.length);
+      const target = aliveMembersNow[targetIdx];
+      const defenseMultiplier = defendingActive ? 2 : 1;
+      const monsterDmg = Math.max(1, Math.floor(monster.attack - (target.defense * defenseMultiplier / 2)));
+      
+      newParty = newParty.map(c => 
+        c.id === target.id ? { ...c, hp: Math.max(0, c.hp - monsterDmg) } : c
+      );
+      
+      log(`${monster.name} hits ${target.name} for ${monsterDmg} dmg!`);
+    }
     
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
     setCombatState(prev => ({ 
       ...prev, 
-      monster: { ...prev.monster!, hp: newMonsterHp },
+      monsters: updatedMonsters,
       currentCharIndex: 0,
       defending: false
     }));
@@ -214,14 +233,15 @@ export default function Game() {
     if (newParty.every(c => c.hp <= 0)) {
       log("GAME OVER");
     }
-  }, [combatState.monster, game, log]);
+  }, [game, log]);
 
   const useAbility = (ability: Ability, charIndex: number) => {
-    if (!combatState.monster || !game) return;
+    if (combatState.monsters.length === 0 || !game) return;
     
     (document.activeElement as HTMLElement)?.blur();
     
     const char = game.party[charIndex];
+    const targetMonster = combatState.monsters[combatState.targetIndex];
     
     // Check MP cost
     if (ability.mpCost > char.mp) {
@@ -229,7 +249,7 @@ export default function Game() {
       return;
     }
     
-    let newMonsterHp = combatState.monster.hp;
+    let newMonsters = [...combatState.monsters];
     let newParty = [...game.party];
     let isDefending = combatState.defending;
     
@@ -243,9 +263,9 @@ export default function Game() {
     
     switch (ability.type) {
       case 'attack': {
-        const damage = Math.max(1, Math.floor(char.attack * scaledPower - (combatState.monster.defense / 2)));
-        newMonsterHp = combatState.monster.hp - damage;
-        log(`${char.name} uses ${ability.name}! ${damage} damage!`);
+        const damage = Math.max(1, Math.floor(char.attack * scaledPower - (targetMonster.defense / 2)));
+        newMonsters[combatState.targetIndex] = { ...targetMonster, hp: targetMonster.hp - damage };
+        log(`${char.name} uses ${ability.name} on ${targetMonster.name}! ${damage} damage!`);
         break;
       }
       case 'heal': {
@@ -274,13 +294,25 @@ export default function Game() {
     
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
     
-    // Check for victory
-    if (newMonsterHp <= 0) {
-      const xpGained = combatState.monster.xpValue;
-      log(`Defeated ${combatState.monster.name}! +${xpGained} XP`);
-      setCombatState({ active: false, turn: 0, currentCharIndex: 0, defending: false });
-      setTimeout(() => awardXP(xpGained), 100);
+    // Check if targeted monster is defeated
+    if (newMonsters[combatState.targetIndex].hp <= 0) {
+      log(`Defeated ${targetMonster.name}!`);
+    }
+    
+    // Check for total victory (all monsters defeated)
+    const aliveMonsters = newMonsters.filter(m => m.hp > 0);
+    if (aliveMonsters.length === 0) {
+      const totalXp = newMonsters.reduce((sum, m) => sum + m.xpValue, 0);
+      log(`Victory! +${totalXp} XP`);
+      setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+      setTimeout(() => awardXP(totalXp), 100);
       return;
+    }
+    
+    // Auto-target next alive monster if current target is dead
+    let newTargetIndex = combatState.targetIndex;
+    if (newMonsters[newTargetIndex].hp <= 0) {
+      newTargetIndex = newMonsters.findIndex(m => m.hp > 0);
     }
     
     // Find next alive character's turn or monster's turn
@@ -292,13 +324,14 @@ export default function Game() {
     if (nextCharIdx < game.party.length) {
       setCombatState(prev => ({ 
         ...prev, 
-        monster: { ...prev.monster!, hp: newMonsterHp },
+        monsters: newMonsters,
+        targetIndex: newTargetIndex,
         currentCharIndex: nextCharIdx,
         defending: isDefending
       }));
     } else {
-      // All party members acted, monster's turn
-      setTimeout(() => monsterTurn(newMonsterHp, isDefending), 500);
+      // All party members acted, monsters' turn
+      setTimeout(() => monsterTurn(newMonsters, isDefending), 500);
     }
   };
 
@@ -313,7 +346,7 @@ export default function Game() {
   const handleRun = () => {
     (document.activeElement as HTMLElement)?.blur();
     log("You fled from battle!");
-    setCombatState({ active: false, turn: 0, currentCharIndex: 0, defending: false });
+    setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
   };
 
   if (isLoading || !game) {
@@ -371,7 +404,7 @@ export default function Game() {
               <DungeonView gameData={game} className="w-full h-full" />
               
               {/* Monster overlay during combat */}
-              {combatState.active && combatState.monster && (
+              {combatState.active && combatState.monsters.length > 0 && (
                 <>
                   {/* Atmospheric overlay for combat - radial vignette that darkens edges */}
                   <div 
@@ -381,42 +414,76 @@ export default function Game() {
                     }}
                   />
                   
-                  {/* Monster sprite positioned lower to appear grounded */}
+                  {/* Multiple monsters positioned side by side */}
                   <div className="absolute inset-0 z-10 flex items-end justify-center pointer-events-none pb-28">
-                    <div className="animate-in fade-in zoom-in duration-300 relative">
-                      {combatState.monster.image ? (
-                        <>
-                          <TransparentMonster 
-                            src={combatState.monster.image} 
-                            alt={combatState.monster.name} 
-                            className="w-72 h-72 object-contain drop-shadow-[0_0_25px_rgba(0,0,0,0.9)]" 
-                          />
-                          {/* Ground shadow beneath monster */}
-                          <div 
-                            className="absolute bottom-0 left-1/2 w-52 h-8 rounded-[50%] bg-black/60 blur-md"
-                            style={{ transform: 'translateX(-50%) translateY(12px)' }}
-                          />
-                        </>
-                      ) : (
-                        <Skull className="w-40 h-40 text-red-500 drop-shadow-lg" />
-                      )}
+                    <div className="flex items-end justify-center gap-2 animate-in fade-in zoom-in duration-300">
+                      {combatState.monsters.map((monster, idx) => (
+                        <div 
+                          key={monster.id} 
+                          className={`relative cursor-pointer transition-all duration-200 ${
+                            monster.hp <= 0 ? 'opacity-30 grayscale' : ''
+                          } ${idx === combatState.targetIndex && monster.hp > 0 ? 'scale-105' : 'scale-95'}`}
+                          onClick={() => monster.hp > 0 && setCombatState(prev => ({ ...prev, targetIndex: idx }))}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          {/* Target indicator */}
+                          {idx === combatState.targetIndex && monster.hp > 0 && (
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-yellow-400 animate-bounce">
+                              <ChevronDown className="w-6 h-6" />
+                            </div>
+                          )}
+                          {monster.image ? (
+                            <>
+                              <TransparentMonster 
+                                src={monster.image} 
+                                alt={monster.name} 
+                                className={`object-contain drop-shadow-[0_0_25px_rgba(0,0,0,0.9)] ${
+                                  combatState.monsters.length === 1 ? 'w-72 h-72' :
+                                  combatState.monsters.length === 2 ? 'w-52 h-52' : 'w-40 h-40'
+                                }`}
+                              />
+                              {/* Ground shadow beneath monster */}
+                              <div 
+                                className={`absolute bottom-0 left-1/2 rounded-[50%] bg-black/60 blur-md ${
+                                  combatState.monsters.length === 1 ? 'w-52 h-8' :
+                                  combatState.monsters.length === 2 ? 'w-36 h-6' : 'w-28 h-5'
+                                }`}
+                                style={{ transform: 'translateX(-50%) translateY(12px)' }}
+                              />
+                            </>
+                          ) : (
+                            <Skull className={`text-red-500 drop-shadow-lg ${
+                              combatState.monsters.length === 1 ? 'w-40 h-40' :
+                              combatState.monsters.length === 2 ? 'w-28 h-28' : 'w-20 h-20'
+                            }`} />
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                   
                   {/* Combat UI overlay at bottom */}
                   <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4">
                     <div className="space-y-3">
-                      {/* Monster HP */}
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <h2 className="font-pixel text-destructive text-sm mb-1">{combatState.monster.name}</h2>
-                          <StatBar 
-                            label="HP" 
-                            current={combatState.monster.hp} 
-                            max={combatState.monster.maxHp} 
-                            color={combatState.monster.color} 
-                          />
-                        </div>
+                      {/* All Monsters HP bars */}
+                      <div className="flex flex-wrap gap-2">
+                        {combatState.monsters.map((monster, idx) => (
+                          <div 
+                            key={monster.id} 
+                            className={`flex-1 min-w-[120px] p-1 rounded border cursor-pointer transition-all ${
+                              idx === combatState.targetIndex ? 'border-yellow-400 bg-yellow-400/10' : 'border-primary/30 bg-black/40'
+                            } ${monster.hp <= 0 ? 'opacity-50' : ''}`}
+                            onClick={() => monster.hp > 0 && setCombatState(prev => ({ ...prev, targetIndex: idx }))}
+                          >
+                            <h2 className="font-pixel text-destructive text-xs mb-1 truncate">{monster.name}</h2>
+                            <StatBar 
+                              label="HP" 
+                              current={Math.max(0, monster.hp)} 
+                              max={monster.maxHp} 
+                              color={monster.color} 
+                            />
+                          </div>
+                        ))}
                       </div>
                       
                       {/* Current Character Turn */}
