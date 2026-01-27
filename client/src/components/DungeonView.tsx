@@ -10,115 +10,15 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null }>({ wall: null, floor: null });
 
-  // Load textures once - with fallback to generated textures
+  // Load textures once
   useEffect(() => {
-    // Create fallback textures programmatically
-    const createFallbackWallTexture = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 64;
-      canvas.height = 64;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-      
-      // Stone wall pattern
-      ctx.fillStyle = '#3a3a40';
-      ctx.fillRect(0, 0, 64, 64);
-      
-      // Draw stone bricks
-      ctx.strokeStyle = '#2a2a30';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < 64; y += 16) {
-        const offset = (y / 16) % 2 === 0 ? 0 : 16;
-        for (let x = offset; x < 64; x += 32) {
-          ctx.strokeRect(x, y, 32, 16);
-          // Add some variation
-          ctx.fillStyle = `rgba(${50 + Math.random() * 20}, ${50 + Math.random() * 20}, ${55 + Math.random() * 20}, 0.5)`;
-          ctx.fillRect(x + 2, y + 2, 28, 12);
-        }
-      }
-      
-      // Add moss
-      ctx.fillStyle = 'rgba(60, 80, 50, 0.3)';
-      for (let i = 0; i < 10; i++) {
-        ctx.fillRect(Math.random() * 60, Math.random() * 60, 4 + Math.random() * 8, 2);
-      }
-      
-      const img = new Image();
-      img.src = canvas.toDataURL();
-      return img;
-    };
-    
-    const createFallbackFloorTexture = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 64;
-      canvas.height = 64;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-      
-      // Cobblestone pattern
-      ctx.fillStyle = '#2a2a30';
-      ctx.fillRect(0, 0, 64, 64);
-      
-      // Draw cobblestones
-      for (let y = 0; y < 64; y += 12) {
-        for (let x = 0; x < 64; x += 12) {
-          const shade = 35 + Math.random() * 20;
-          ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade + 5})`;
-          ctx.beginPath();
-          ctx.ellipse(x + 6, y + 6, 5 + Math.random() * 2, 4 + Math.random() * 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      
-      const img = new Image();
-      img.src = canvas.toDataURL();
-      return img;
-    };
-    
-    // Try loading external textures first
     const wallImg = new Image();
+    wallImg.src = "/assets/textures/wall_stone.jpg";
     const floorImg = new Image();
-    
+    floorImg.src = "/assets/textures/floor_cobble.jpg";
+
     wallImg.onload = () => { texturesRef.current.wall = wallImg; draw(); };
-    wallImg.onerror = () => { 
-      console.log('Wall texture failed to load, using fallback');
-      const fallback = createFallbackWallTexture();
-      if (fallback) {
-        fallback.onload = () => { texturesRef.current.wall = fallback; draw(); };
-      }
-    };
-    
     floorImg.onload = () => { texturesRef.current.floor = floorImg; draw(); };
-    floorImg.onerror = () => { 
-      console.log('Floor texture failed to load, using fallback');
-      const fallback = createFallbackFloorTexture();
-      if (fallback) {
-        fallback.onload = () => { texturesRef.current.floor = fallback; draw(); };
-      }
-    };
-    
-    wallImg.src = "/assets/textures/wall_stone.png";
-    floorImg.src = "/assets/textures/floor_cobble.png";
-    
-    // Also set up fallbacks immediately in case images take time
-    const fallbackWall = createFallbackWallTexture();
-    const fallbackFloor = createFallbackFloorTexture();
-    if (fallbackWall) {
-      fallbackWall.onload = () => { 
-        if (!texturesRef.current.wall) {
-          texturesRef.current.wall = fallbackWall; 
-          draw(); 
-        }
-      };
-    }
-    if (fallbackFloor) {
-      fallbackFloor.onload = () => { 
-        if (!texturesRef.current.floor) {
-          texturesRef.current.floor = fallbackFloor; 
-          draw(); 
-        }
-      };
-    }
   }, []);
 
   // Redraw when game data changes
@@ -1130,9 +1030,9 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     <div className={className}>
       <canvas 
         ref={canvasRef} 
-        width={640} 
-        height={480} 
-        className="w-full h-full rounded-lg border-4 border-muted shadow-inner bg-black"
+        width={320} 
+        height={240} 
+        className="w-full h-full image-pixelated rounded-lg border-4 border-muted shadow-inner bg-black"
       />
       {/* Compass / Coords Overlay */}
       <div className="absolute top-4 right-4 text-primary font-pixel text-xs bg-black/50 p-2 rounded">
