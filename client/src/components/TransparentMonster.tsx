@@ -169,28 +169,28 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
             data[i + 3] = 0;
           }
         } else {
-          // Apply dungeon atmosphere color grading to non-background pixels
+          // Apply subtle dungeon atmosphere color grading to non-background pixels
           let r = data[i];
           let g = data[i + 1];
           let b = data[i + 2];
           
-          // Add warm torch-like tint (slight orange/amber shift)
-          r = Math.min(255, r * 1.05 + 8);
-          g = Math.min(255, g * 0.95);
-          b = Math.min(255, b * 0.85);
+          // Add very subtle warm torch-like tint (slight orange/amber shift)
+          r = Math.min(255, r * 1.02 + 3);
+          g = Math.min(255, g * 0.98);
+          b = Math.min(255, b * 0.94);
           
-          // Darken slightly for dungeon atmosphere
-          const darkenAmount = 0.88;
+          // Very light darkening for dungeon atmosphere - keep colors vibrant
+          const darkenAmount = 0.95;
           r *= darkenAmount;
           g *= darkenAmount;
           b *= darkenAmount;
           
-          // Add subtle vignette based on distance from center
+          // Very subtle vignette based on distance from center
           const centerX = width / 2;
           const centerY = height / 2;
           const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
           const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-          const vignette = 1 - (distFromCenter / maxDist) * 0.15;
+          const vignette = 1 - (distFromCenter / maxDist) * 0.08;
           
           r *= vignette;
           g *= vignette;
