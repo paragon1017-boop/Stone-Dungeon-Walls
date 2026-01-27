@@ -34,8 +34,12 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Detect green background (the new slime has a bright green background)
-        // Green background has high G, moderate R, and low B relative to G
+        // Detect purple background (new slime has purple/violet background)
+        // Purple has similar R and B values, with lower G
+        const isPurpleBackground = r > 80 && r < 160 && b > 80 && b < 160 && 
+                                    Math.abs(r - b) < 40 && g < r && g < b;
+        
+        // Detect green background
         const isGreenBackground = g > 130 && g > r * 0.9 && g > b * 1.2 && r > 80 && r < 200;
         
         // Also detect white/gray backgrounds
@@ -43,7 +47,7 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
         const isGrayish = Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20;
         const isWhiteBackground = brightness > 230 && isGrayish;
         
-        if (isGreenBackground || isWhiteBackground) {
+        if (isPurpleBackground || isGreenBackground || isWhiteBackground) {
           // Make background transparent
           data[i + 3] = 0;
         }
