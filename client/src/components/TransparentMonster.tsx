@@ -34,34 +34,18 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
         const g = data[i + 1];
         const b = data[i + 2];
         
+        // Detect green background (the new slime has a bright green background)
+        // Green background has high G, moderate R, and low B relative to G
+        const isGreenBackground = g > 130 && g > r * 0.9 && g > b * 1.2 && r > 80 && r < 200;
+        
+        // Also detect white/gray backgrounds
         const brightness = (r + g + b) / 3;
         const isGrayish = Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20;
+        const isWhiteBackground = brightness > 230 && isGrayish;
         
-        // Detect if pixel should be yellow (eye area - white/cream that should be yellow)
-        const isLightArea = brightness > 200 && isGrayish;
-        
-        if (isLightArea) {
-          // Check if this might be part of the eye (center region)
-          const pixelIndex = i / 4;
-          const x = pixelIndex % canvas.width;
-          const y = Math.floor(pixelIndex / canvas.width);
-          const centerX = canvas.width / 2;
-          const centerY = canvas.height / 2;
-          const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-          
-          // If near center, color it yellow (eye)
-          if (distFromCenter < canvas.width * 0.25) {
-            data[i] = 255;     // R
-            data[i + 1] = 235; // G
-            data[i + 2] = 150; // B
-            data[i + 3] = 255; // Full opacity
-          } else {
-            // Background - make transparent
-            data[i + 3] = 0;
-          }
-        }
-        else if (brightness > 180 && isGrayish) {
-          data[i + 3] = Math.floor((200 - brightness) * 12);
+        if (isGreenBackground || isWhiteBackground) {
+          // Make background transparent
+          data[i + 3] = 0;
         }
       }
       
