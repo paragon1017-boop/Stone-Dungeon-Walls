@@ -164,8 +164,10 @@ export const MONSTERS: Monster[] = [
 ];
 
 export function getRandomMonster(floor: number): Monster {
-  // Simple scaling: harder monsters available at higher floors
-  const index = Math.floor(Math.random() * Math.min(MONSTERS.length, floor + 2));
+  // All easy monsters (first 7) available on floor 1, harder ones unlock later
+  const easyMonsterCount = 7; // Cave Bat through Slime Warrior
+  const maxIndex = Math.min(MONSTERS.length, easyMonsterCount + Math.floor(floor / 2));
+  const index = Math.floor(Math.random() * maxIndex);
   const base = MONSTERS[index];
   return {
     ...base,
