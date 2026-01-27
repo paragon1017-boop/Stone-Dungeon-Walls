@@ -232,6 +232,60 @@ export default function Game() {
   // Toggle mini map
   useKey('m', () => setShowMiniMap(prev => !prev), {}, []);
   
+  // Out-of-combat Heal All skill (H key)
+  const healAllParty = useCallback(() => {
+    if (!game || combatState.active) return;
+    
+    // Find the mage in the party
+    const mageIndex = game.party.findIndex(c => c.job === 'Mage' && c.hp > 0);
+    if (mageIndex === -1) {
+      log("No Mage available to cast Heal!");
+      return;
+    }
+    
+    const mage = game.party[mageIndex];
+    const mpCost = 10; // MP cost for out-of-combat heal all
+    
+    if (mage.mp < mpCost) {
+      log(`${mage.name} doesn't have enough MP! (${mpCost} required)`);
+      return;
+    }
+    
+    // Check if anyone needs healing
+    const partyNeedsHealing = game.party.some(c => {
+      const stats = getEffectiveStats(c);
+      return c.hp > 0 && c.hp < stats.maxHp;
+    });
+    
+    if (!partyNeedsHealing) {
+      log("Everyone is already at full health!");
+      return;
+    }
+    
+    // Calculate heal amount based on mage level (base 20 + 5 per level)
+    const baseHeal = 20 + (mage.level * 5);
+    
+    // Heal all party members
+    let totalHealed = 0;
+    const newParty = game.party.map(char => {
+      if (char.hp <= 0) return char; // Can't heal dead characters
+      
+      const charStats = getEffectiveStats(char);
+      const healAmount = Math.min(baseHeal, charStats.maxHp - char.hp);
+      totalHealed += healAmount;
+      
+      return { ...char, hp: char.hp + healAmount };
+    });
+    
+    // Deduct MP from mage
+    newParty[mageIndex] = { ...newParty[mageIndex], mp: mage.mp - mpCost };
+    
+    setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
+    log(`${mage.name} casts Heal All! Party healed ${totalHealed} HP total!`);
+  }, [game, combatState.active, log]);
+  
+  useKey('h', () => healAllParty(), {}, [healAllParty]);
+  
   // Toggle equipment panel (E key) - handle both lowercase and uppercase
   useKey('e', () => {
     if (!combatState.active) {
@@ -992,7 +1046,7 @@ export default function Game() {
             </div>
             
             {/* Movement Controls */}
-            <div className="bg-black/40 backdrop-blur-sm p-4 border-t border-white/10 flex justify-center">
+            <div className="bg-black/40 backdrop-blur-sm p-4 border-t border-white/10 flex justify-center gap-8 items-center">
               <div className="grid grid-cols-3 gap-2 place-items-center">
                 <div />
                 <RetroButton onClick={() => {
@@ -1015,6 +1069,23 @@ export default function Game() {
                   <RotateCw className="w-5 h-5" />
                 </RetroButton>
               </div>
+              
+              {/* Skills Section (Non-combat) */}
+              {!combatState.active && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-muted-foreground text-center mb-1">SKILLS</div>
+                  <RetroButton 
+                    onClick={healAllParty} 
+                    className="px-4 py-2 text-sm"
+                    disabled={!game.party.some(c => c.job === 'Mage' && c.hp > 0 && c.mp >= 10)}
+                    data-testid="button-heal-all"
+                  >
+                    <span className="text-green-400">Heal All</span>
+                    <span className="ml-2 text-blue-300 text-xs">(10 MP)</span>
+                  </RetroButton>
+                  <div className="text-[10px] text-muted-foreground text-center">Press H</div>
+                </div>
+              )}
             </div>
           </RetroCard>
         </div>
