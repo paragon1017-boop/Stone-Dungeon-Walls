@@ -92,7 +92,7 @@ function generateMaze(width: number, height: number): number[][] {
 export const MONSTERS: Monster[] = [
   { id: 'm1', name: 'Slimy Ooze', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 10, color: '#2ecc71' },
   { id: 'm2', name: 'Slime Warrior', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 8, defense: 3, xpValue: 20, color: '#9b59b6', image: '/assets/monsters/slime.png' },
-  { id: 'm3', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, color: '#c0392b' },
+  { id: 'm3', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, color: '#27ae60', image: '/assets/monsters/orc.png' },
   { id: 'm4', name: 'Skeleton', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 10, defense: 4, xpValue: 25, color: '#bdc3c7' },
 ];
 

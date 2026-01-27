@@ -222,8 +222,12 @@ export default function Game() {
                         <img 
                           src={combatState.monster.image} 
                           alt={combatState.monster.name} 
-                          className="w-48 h-48 object-contain drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]" 
-                          style={{ imageRendering: 'auto' }}
+                          className="w-56 h-56 object-contain" 
+                          style={{ 
+                            imageRendering: 'auto',
+                            mixBlendMode: 'multiply',
+                            filter: 'contrast(1.1) saturate(1.2)'
+                          }}
                         />
                       ) : (
                         <Skull className="w-32 h-32 text-red-500 drop-shadow-lg" />
