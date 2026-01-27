@@ -29,28 +29,19 @@ export function TransparentMonster({ src, alt, className }: TransparentMonsterPr
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       
-      const width = canvas.width;
-      const height = canvas.height;
-      
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const i = (y * width + x) * 4;
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          const brightness = (r + g + b) / 3;
-          const isGrayish = Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && Math.abs(r - b) < 15;
-          
-          const edgeMargin = Math.min(x, y, width - x, height - y);
-          const isNearEdge = edgeMargin < 40;
-          
-          if (brightness > 230 && isGrayish && isNearEdge) {
-            data[i + 3] = 0;
-          }
-          else if (brightness > 215 && isGrayish && isNearEdge) {
-            data[i + 3] = Math.floor((230 - brightness) * 17);
-          }
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        const brightness = (r + g + b) / 3;
+        const isGrayish = Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20;
+        
+        if (brightness > 200 && isGrayish) {
+          data[i + 3] = 0;
+        }
+        else if (brightness > 180 && isGrayish) {
+          data[i + 3] = Math.floor((200 - brightness) * 12);
         }
       }
       
