@@ -9,7 +9,7 @@ import {
   NORTH, SOUTH, EAST, WEST, 
   getRandomMonster, Monster,
   xpForLevel, getLevelUpStats, Player,
-  Ability, getAbilitiesForJob
+  Ability, getAbilitiesForJob, getScaledAbilityPower
 } from "@/lib/game-engine";
 import { useKey } from "react-use";
 import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp } from "lucide-react";
@@ -238,9 +238,12 @@ export default function Game() {
       newParty[charIndex] = { ...newParty[charIndex], mp: char.mp - ability.mpCost };
     }
     
+    // Scale ability power with character level
+    const scaledPower = getScaledAbilityPower(ability, char.level);
+    
     switch (ability.type) {
       case 'attack': {
-        const damage = Math.max(1, Math.floor(char.attack * ability.power - (combatState.monster.defense / 2)));
+        const damage = Math.max(1, Math.floor(char.attack * scaledPower - (combatState.monster.defense / 2)));
         newMonsterHp = combatState.monster.hp - damage;
         log(`${char.name} uses ${ability.name}! ${damage} damage!`);
         break;
@@ -255,7 +258,9 @@ export default function Game() {
           targetIdx = newParty.reduce((minIdx, c, idx) => 
             c.hp > 0 && (c.hp / c.maxHp) < (newParty[minIdx].hp / newParty[minIdx].maxHp) ? idx : minIdx, 0);
         }
-        const healAmount = Math.min(ability.power, newParty[targetIdx].maxHp - newParty[targetIdx].hp);
+        // Scale heal amount with level (using scaledPower for heal abilities)
+        const baseHeal = ability.type === 'heal' ? scaledPower : ability.power;
+        const healAmount = Math.min(Math.floor(baseHeal), newParty[targetIdx].maxHp - newParty[targetIdx].hp);
         newParty[targetIdx] = { ...newParty[targetIdx], hp: newParty[targetIdx].hp + healAmount };
         log(`${char.name} uses ${ability.name}! ${newParty[targetIdx].name} healed ${healAmount} HP!`);
         break;

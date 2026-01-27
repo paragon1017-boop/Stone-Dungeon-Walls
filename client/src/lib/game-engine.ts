@@ -57,6 +57,13 @@ export function getAbilitiesForJob(job: string): Ability[] {
   return JOB_ABILITIES[job] || JOB_ABILITIES['Fighter'];
 }
 
+// Scale ability power based on character level
+export function getScaledAbilityPower(ability: Ability, level: number): number {
+  // Base power increases by 15% per level after level 1
+  const levelMultiplier = 1 + (level - 1) * 0.15;
+  return Math.floor(ability.power * levelMultiplier * 10) / 10;
+}
+
 // XP required for each level (exponential growth)
 export function xpForLevel(level: number): number {
   return Math.floor(100 * Math.pow(1.5, level - 1));
