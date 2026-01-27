@@ -99,33 +99,42 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
       
       // Draw wooden support beams across ceiling
       const beamCount = 5;
+      const beamSizes = [1.2, 0.8, 1.0, 0.9, 1.1]; // Variation in beam thickness
+      
       for (let i = 1; i <= beamCount; i++) {
         const beamY = Math.floor((h / 2) * (i / (beamCount + 1)));
         const p = Math.floor(h / 2) - beamY;
         const rowDistance = (h * 0.5) / p;
         
-        // Beam gets thicker as it gets closer (perspective)
-        const beamHeight = Math.max(6, Math.floor(18 / rowDistance));
+        // Beam gets thicker as it gets closer (perspective) with size variation
+        const sizeMultiplier = beamSizes[(i - 1) % beamSizes.length];
+        const beamHeight = Math.max(8, Math.floor(22 / rowDistance * sizeMultiplier));
         const darkness = Math.min(0.6, rowDistance / 8);
         
-        // Wood grain base color
-        const woodGradient = ctx.createLinearGradient(0, beamY - beamHeight/2, 0, beamY + beamHeight/2);
-        woodGradient.addColorStop(0, '#2a1a0a');
-        woodGradient.addColorStop(0.3, '#4a3520');
-        woodGradient.addColorStop(0.5, '#5a4228');
-        woodGradient.addColorStop(0.7, '#4a3520');
-        woodGradient.addColorStop(1, '#2a1a0a');
+        // Rectangular wood beam - flat top and bottom colors
+        const topColor = '#3a2815';
+        const mainColor = '#5a4228';
+        const bottomColor = '#2a1a0a';
         
-        ctx.fillStyle = woodGradient;
-        ctx.fillRect(0, beamY - beamHeight/2, w, beamHeight);
+        // Top edge highlight
+        ctx.fillStyle = topColor;
+        ctx.fillRect(0, beamY - beamHeight/2, w, 2);
         
-        // Add wood grain lines
-        ctx.strokeStyle = 'rgba(20, 10, 5, 0.4)';
+        // Main beam body (solid rectangular)
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, beamY - beamHeight/2 + 2, w, beamHeight - 4);
+        
+        // Bottom edge (darker)
+        ctx.fillStyle = bottomColor;
+        ctx.fillRect(0, beamY + beamHeight/2 - 2, w, 2);
+        
+        // Add vertical wood grain lines for texture
+        ctx.strokeStyle = 'rgba(30, 20, 10, 0.3)';
         ctx.lineWidth = 1;
-        for (let gx = 0; gx < w; gx += 12) {
+        for (let gx = 0; gx < w; gx += 8 + (i % 3) * 2) {
           ctx.beginPath();
           ctx.moveTo(gx, beamY - beamHeight/2);
-          ctx.lineTo(gx + 6, beamY + beamHeight/2);
+          ctx.lineTo(gx, beamY + beamHeight/2);
           ctx.stroke();
         }
         
@@ -133,9 +142,9 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
         ctx.fillStyle = `rgba(5, 8, 5, ${darkness})`;
         ctx.fillRect(0, beamY - beamHeight/2, w, beamHeight);
         
-        // Bottom edge shadow for depth
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, beamY + beamHeight/2 - 1, w, 2);
+        // Hard bottom shadow for depth
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, beamY + beamHeight/2, w, 3);
       }
     } else {
       // Fallback gradient ceiling
