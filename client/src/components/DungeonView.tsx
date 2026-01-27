@@ -446,6 +446,125 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
          ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
       }
     }
+    
+    // Draw wall decorations (spider webs, vines, moss) as overlay
+    // Uses player position as seed for consistent decorations per view
+    let decorSeed = Math.floor(posX * 1000 + posY * 100 + gameData.dir * 10);
+    const decorRandom = () => {
+      decorSeed = (decorSeed * 1103515245 + 12345) & 0x7fffffff;
+      return decorSeed / 0x7fffffff;
+    };
+    
+    // Spider webs in corners
+    const webCount = 2 + Math.floor(decorRandom() * 2);
+    for (let i = 0; i < webCount; i++) {
+      const webX = decorRandom() < 0.5 ? 10 + decorRandom() * 40 : w - 50 + decorRandom() * 40;
+      const webY = h / 2 - 30 - decorRandom() * 40;
+      const webSize = 20 + decorRandom() * 25;
+      const webAlpha = 0.3 + decorRandom() * 0.3;
+      
+      // Draw web strands
+      ctx.strokeStyle = `rgba(200, 200, 210, ${webAlpha})`;
+      ctx.lineWidth = 1;
+      
+      // Radial strands
+      const strandCount = 6 + Math.floor(decorRandom() * 4);
+      for (let s = 0; s < strandCount; s++) {
+        const angle = (s / strandCount) * Math.PI * 0.7 + Math.PI * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(webX, webY);
+        ctx.lineTo(webX + Math.cos(angle) * webSize, webY + Math.sin(angle) * webSize);
+        ctx.stroke();
+      }
+      
+      // Spiral threads
+      ctx.strokeStyle = `rgba(180, 180, 195, ${webAlpha * 0.7})`;
+      for (let ring = 0.3; ring < 1; ring += 0.2) {
+        ctx.beginPath();
+        for (let a = Math.PI * 0.15; a < Math.PI * 0.85; a += 0.1) {
+          const rx = webX + Math.cos(a) * webSize * ring;
+          const ry = webY + Math.sin(a) * webSize * ring;
+          if (a === Math.PI * 0.15) ctx.moveTo(rx, ry);
+          else ctx.lineTo(rx, ry);
+        }
+        ctx.stroke();
+      }
+    }
+    
+    // Hanging vines from ceiling
+    const vineCount = 3 + Math.floor(decorRandom() * 3);
+    for (let i = 0; i < vineCount; i++) {
+      const vineX = 30 + decorRandom() * (w - 60);
+      const vineStartY = h / 2 - 20 - decorRandom() * 30;
+      const vineLength = 30 + decorRandom() * 50;
+      const vineAlpha = 0.5 + decorRandom() * 0.3;
+      
+      // Main vine stem
+      ctx.strokeStyle = `rgba(40, 70, 35, ${vineAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(vineX, vineStartY);
+      
+      let vx = vineX;
+      let vy = vineStartY;
+      for (let v = 0; v < vineLength; v += 5) {
+        vx += (decorRandom() - 0.5) * 6;
+        vy += 5;
+        ctx.lineTo(vx, vy);
+      }
+      ctx.stroke();
+      
+      // Vine leaves
+      const leafCount = 2 + Math.floor(decorRandom() * 4);
+      for (let l = 0; l < leafCount; l++) {
+        const leafY = vineStartY + 10 + decorRandom() * (vineLength - 15);
+        const leafX = vineX + (decorRandom() - 0.5) * 10;
+        const leafDir = decorRandom() < 0.5 ? -1 : 1;
+        const leafSize = 4 + decorRandom() * 4;
+        
+        ctx.fillStyle = `rgba(35, 65, 30, ${vineAlpha})`;
+        ctx.beginPath();
+        ctx.ellipse(leafX + leafDir * leafSize, leafY, leafSize, leafSize * 0.5, leafDir * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Wall moss patches
+    const mossCount = 4 + Math.floor(decorRandom() * 4);
+    for (let i = 0; i < mossCount; i++) {
+      const mossX = decorRandom() * w;
+      const mossY = h / 2 + 20 + decorRandom() * 60;
+      const mossW = 15 + decorRandom() * 25;
+      const mossH = 8 + decorRandom() * 15;
+      const mossAlpha = 0.2 + decorRandom() * 0.2;
+      
+      // Fuzzy moss texture
+      for (let mx = 0; mx < mossW; mx += 3) {
+        for (let my = 0; my < mossH; my += 3) {
+          const distFromCenter = Math.sqrt(Math.pow((mx - mossW/2) / (mossW/2), 2) + Math.pow((my - mossH/2) / (mossH/2), 2));
+          if (distFromCenter < 1 && decorRandom() > 0.3) {
+            const g = 45 + Math.floor(decorRandom() * 30);
+            ctx.fillStyle = `rgba(25, ${g}, 20, ${mossAlpha * (1 - distFromCenter * 0.5)})`;
+            ctx.fillRect(mossX + mx, mossY + my, 3, 3);
+          }
+        }
+      }
+    }
+    
+    // Dripping water stains
+    const stainCount = 2 + Math.floor(decorRandom() * 3);
+    for (let i = 0; i < stainCount; i++) {
+      const stainX = 20 + decorRandom() * (w - 40);
+      const stainY = h / 2 - 10;
+      const stainLen = 40 + decorRandom() * 60;
+      
+      ctx.strokeStyle = `rgba(60, 70, 65, 0.25)`;
+      ctx.lineWidth = 3 + decorRandom() * 3;
+      ctx.beginPath();
+      ctx.moveTo(stainX, stainY);
+      ctx.lineTo(stainX + (decorRandom() - 0.5) * 8, stainY + stainLen);
+      ctx.stroke();
+    }
   };
 
   return (
