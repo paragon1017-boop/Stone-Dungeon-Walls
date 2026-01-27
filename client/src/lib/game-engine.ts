@@ -1,5 +1,11 @@
 // Types and Logic for the Dungeon Crawler
 
+// Monster sprite imports
+import monsterSprite1 from "@assets/monster_1769475097834.png";
+import monsterSprite2 from "@assets/Gemini_Generated_Image_hh4ty0hh4ty0hh4t_1769480026370.png";
+import monsterSprite3 from "@assets/Gemini_Generated_Image_9m08ir9m08ir9m08_1769477546772.png";
+import monsterSprite4 from "@assets/Gemini_Generated_Image_ajrqjcajrqjcajrq_1769480414565.png";
+
 export type Direction = 0 | 1 | 2 | 3; // N, E, S, W
 export const NORTH = 0;
 export const EAST = 1;
@@ -793,6 +799,7 @@ export function getLevelUpStats(job: string): { hp: number, mp: number, attack: 
 export interface Monster extends Entity {
   xpValue: number;
   goldValue: number;
+  image?: string; // Optional sprite image URL
 }
 
 export interface Tile {
@@ -1025,43 +1032,46 @@ function generateMaze(width: number, height: number, floor: number = 1): number[
 }
 
 // Combat Logic Helpers
+// Monster sprites array for cycling through available images
+const MONSTER_SPRITES = [monsterSprite1, monsterSprite2, monsterSprite3, monsterSprite4];
+
 export const MONSTERS: Monster[] = [
   // === EARLY FLOOR MONSTERS (Floors 1-2) ===
-  { id: 'm1', name: 'Cave Bat', hp: 12, maxHp: 12, mp: 0, maxMp: 0, attack: 3, defense: 1, xpValue: 6, goldValue: 2, color: '#4a0080' },
-  { id: 'm2', name: 'Giant Rat', hp: 15, maxHp: 15, mp: 0, maxMp: 0, attack: 4, defense: 1, xpValue: 8, goldValue: 3, color: '#8B4513' },
-  { id: 'm3', name: 'Poison Mushroom', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 4, defense: 2, xpValue: 9, goldValue: 4, color: '#e74c3c' },
-  { id: 'm4', name: 'Slimy Ooze', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 10, goldValue: 5, color: '#2ecc71' },
-  { id: 'm5', name: 'Giant Beetle', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 5, defense: 3, xpValue: 10, goldValue: 5, color: '#1a1a2e' },
-  { id: 'm6', name: 'Cave Crawler', hp: 16, maxHp: 16, mp: 0, maxMp: 0, attack: 6, defense: 1, xpValue: 9, goldValue: 4, color: '#5d4e37' },
-  { id: 'm7', name: 'Kobold', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 11, goldValue: 6, color: '#8b6914' },
-  { id: 'm8', name: 'Fire Imp', hp: 14, maxHp: 14, mp: 10, maxMp: 10, attack: 7, defense: 1, xpValue: 12, goldValue: 8, color: '#ff4500' },
-  { id: 'm9', name: 'Shadow Wisp', hp: 10, maxHp: 10, mp: 15, maxMp: 15, attack: 8, defense: 0, xpValue: 11, goldValue: 7, color: '#2c2c54' },
+  { id: 'm1', name: 'Cave Bat', hp: 12, maxHp: 12, mp: 0, maxMp: 0, attack: 3, defense: 1, xpValue: 6, goldValue: 2, color: '#4a0080', image: MONSTER_SPRITES[0] },
+  { id: 'm2', name: 'Giant Rat', hp: 15, maxHp: 15, mp: 0, maxMp: 0, attack: 4, defense: 1, xpValue: 8, goldValue: 3, color: '#8B4513', image: MONSTER_SPRITES[1] },
+  { id: 'm3', name: 'Poison Mushroom', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 4, defense: 2, xpValue: 9, goldValue: 4, color: '#e74c3c', image: MONSTER_SPRITES[2] },
+  { id: 'm4', name: 'Slimy Ooze', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 10, goldValue: 5, color: '#2ecc71', image: MONSTER_SPRITES[3] },
+  { id: 'm5', name: 'Giant Beetle', hp: 18, maxHp: 18, mp: 0, maxMp: 0, attack: 5, defense: 3, xpValue: 10, goldValue: 5, color: '#1a1a2e', image: MONSTER_SPRITES[0] },
+  { id: 'm6', name: 'Cave Crawler', hp: 16, maxHp: 16, mp: 0, maxMp: 0, attack: 6, defense: 1, xpValue: 9, goldValue: 4, color: '#5d4e37', image: MONSTER_SPRITES[1] },
+  { id: 'm7', name: 'Kobold', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 5, defense: 2, xpValue: 11, goldValue: 6, color: '#8b6914', image: MONSTER_SPRITES[2] },
+  { id: 'm8', name: 'Fire Imp', hp: 14, maxHp: 14, mp: 10, maxMp: 10, attack: 7, defense: 1, xpValue: 12, goldValue: 8, color: '#ff4500', image: MONSTER_SPRITES[3] },
+  { id: 'm9', name: 'Shadow Wisp', hp: 10, maxHp: 10, mp: 15, maxMp: 15, attack: 8, defense: 0, xpValue: 11, goldValue: 7, color: '#2c2c54', image: MONSTER_SPRITES[0] },
   
   // === MID FLOOR MONSTERS (Floors 3-5) ===
-  { id: 'm10', name: 'Dungeon Spider', hp: 22, maxHp: 22, mp: 0, maxMp: 0, attack: 6, defense: 2, xpValue: 12, goldValue: 7, color: '#2c3e50' },
-  { id: 'm11', name: 'Small Goblin', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 6, defense: 3, xpValue: 14, goldValue: 10, color: '#27ae60' },
-  { id: 'm12', name: 'Zombie', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 7, defense: 2, xpValue: 16, goldValue: 8, color: '#556b2f' },
-  { id: 'm13', name: 'Slime Warrior', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 8, defense: 3, xpValue: 20, goldValue: 15, color: '#9b59b6' },
-  { id: 'm14', name: 'Skeleton', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 10, defense: 4, xpValue: 25, goldValue: 20, color: '#bdc3c7' },
-  { id: 'm15', name: 'Harpy', hp: 30, maxHp: 30, mp: 5, maxMp: 5, attack: 9, defense: 2, xpValue: 22, goldValue: 18, color: '#daa520' },
-  { id: 'm16', name: 'Mummy', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 8, defense: 5, xpValue: 28, goldValue: 22, color: '#d2b48c' },
-  { id: 'm17', name: 'Werewolf', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 12, defense: 4, xpValue: 32, goldValue: 28, color: '#4a4a4a' },
+  { id: 'm10', name: 'Dungeon Spider', hp: 22, maxHp: 22, mp: 0, maxMp: 0, attack: 6, defense: 2, xpValue: 12, goldValue: 7, color: '#2c3e50', image: MONSTER_SPRITES[1] },
+  { id: 'm11', name: 'Small Goblin', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 6, defense: 3, xpValue: 14, goldValue: 10, color: '#27ae60', image: MONSTER_SPRITES[2] },
+  { id: 'm12', name: 'Zombie', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 7, defense: 2, xpValue: 16, goldValue: 8, color: '#556b2f', image: MONSTER_SPRITES[3] },
+  { id: 'm13', name: 'Slime Warrior', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 8, defense: 3, xpValue: 20, goldValue: 15, color: '#9b59b6', image: MONSTER_SPRITES[0] },
+  { id: 'm14', name: 'Skeleton', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 10, defense: 4, xpValue: 25, goldValue: 20, color: '#bdc3c7', image: MONSTER_SPRITES[1] },
+  { id: 'm15', name: 'Harpy', hp: 30, maxHp: 30, mp: 5, maxMp: 5, attack: 9, defense: 2, xpValue: 22, goldValue: 18, color: '#daa520', image: MONSTER_SPRITES[2] },
+  { id: 'm16', name: 'Mummy', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 8, defense: 5, xpValue: 28, goldValue: 22, color: '#d2b48c', image: MONSTER_SPRITES[3] },
+  { id: 'm17', name: 'Werewolf', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 12, defense: 4, xpValue: 32, goldValue: 28, color: '#4a4a4a', image: MONSTER_SPRITES[0] },
   
   // === DEEP FLOOR MONSTERS (Floors 6-8) ===
-  { id: 'm18', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, goldValue: 35, color: '#2d5a27' },
-  { id: 'm19', name: 'Troll', hp: 80, maxHp: 80, mp: 0, maxMp: 0, attack: 14, defense: 6, xpValue: 50, goldValue: 45, color: '#3d5c3a' },
-  { id: 'm20', name: 'Dark Knight', hp: 70, maxHp: 70, mp: 10, maxMp: 10, attack: 16, defense: 8, xpValue: 55, goldValue: 50, color: '#1a1a2e' },
-  { id: 'm21', name: 'Gargoyle', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 13, defense: 10, xpValue: 48, goldValue: 42, color: '#696969' },
-  { id: 'm22', name: 'Minotaur', hp: 90, maxHp: 90, mp: 0, maxMp: 0, attack: 18, defense: 6, xpValue: 60, goldValue: 55, color: '#8b4513' },
-  { id: 'm23', name: 'Wraith', hp: 45, maxHp: 45, mp: 30, maxMp: 30, attack: 15, defense: 3, xpValue: 52, goldValue: 48, color: '#483d8b' },
+  { id: 'm18', name: 'Orc Warrior', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 5, xpValue: 40, goldValue: 35, color: '#2d5a27', image: MONSTER_SPRITES[1] },
+  { id: 'm19', name: 'Troll', hp: 80, maxHp: 80, mp: 0, maxMp: 0, attack: 14, defense: 6, xpValue: 50, goldValue: 45, color: '#3d5c3a', image: MONSTER_SPRITES[2] },
+  { id: 'm20', name: 'Dark Knight', hp: 70, maxHp: 70, mp: 10, maxMp: 10, attack: 16, defense: 8, xpValue: 55, goldValue: 50, color: '#1a1a2e', image: MONSTER_SPRITES[3] },
+  { id: 'm21', name: 'Gargoyle', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 13, defense: 10, xpValue: 48, goldValue: 42, color: '#696969', image: MONSTER_SPRITES[0] },
+  { id: 'm22', name: 'Minotaur', hp: 90, maxHp: 90, mp: 0, maxMp: 0, attack: 18, defense: 6, xpValue: 60, goldValue: 55, color: '#8b4513', image: MONSTER_SPRITES[1] },
+  { id: 'm23', name: 'Wraith', hp: 45, maxHp: 45, mp: 30, maxMp: 30, attack: 15, defense: 3, xpValue: 52, goldValue: 48, color: '#483d8b', image: MONSTER_SPRITES[2] },
   
   // === BOSS-TIER MONSTERS (Floors 9+) ===
-  { id: 'm24', name: 'Golem', hp: 120, maxHp: 120, mp: 0, maxMp: 0, attack: 20, defense: 12, xpValue: 80, goldValue: 75, color: '#708090' },
-  { id: 'm25', name: 'Basilisk', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 22, defense: 8, xpValue: 85, goldValue: 80, color: '#228b22' },
-  { id: 'm26', name: 'Death Knight', hp: 100, maxHp: 100, mp: 20, maxMp: 20, attack: 24, defense: 10, xpValue: 95, goldValue: 90, color: '#2f0f3d' },
-  { id: 'm27', name: 'Lich', hp: 70, maxHp: 70, mp: 50, maxMp: 50, attack: 20, defense: 5, xpValue: 100, goldValue: 100, color: '#4b0082' },
-  { id: 'm28', name: 'Demon', hp: 110, maxHp: 110, mp: 25, maxMp: 25, attack: 26, defense: 9, xpValue: 110, goldValue: 110, color: '#8b0000' },
-  { id: 'm29', name: 'Dragon', hp: 150, maxHp: 150, mp: 30, maxMp: 30, attack: 30, defense: 12, xpValue: 150, goldValue: 150, color: '#b22222' },
+  { id: 'm24', name: 'Golem', hp: 120, maxHp: 120, mp: 0, maxMp: 0, attack: 20, defense: 12, xpValue: 80, goldValue: 75, color: '#708090', image: MONSTER_SPRITES[3] },
+  { id: 'm25', name: 'Basilisk', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 22, defense: 8, xpValue: 85, goldValue: 80, color: '#228b22', image: MONSTER_SPRITES[0] },
+  { id: 'm26', name: 'Death Knight', hp: 100, maxHp: 100, mp: 20, maxMp: 20, attack: 24, defense: 10, xpValue: 95, goldValue: 90, color: '#2f0f3d', image: MONSTER_SPRITES[1] },
+  { id: 'm27', name: 'Lich', hp: 70, maxHp: 70, mp: 50, maxMp: 50, attack: 20, defense: 5, xpValue: 100, goldValue: 100, color: '#4b0082', image: MONSTER_SPRITES[2] },
+  { id: 'm28', name: 'Demon', hp: 110, maxHp: 110, mp: 25, maxMp: 25, attack: 26, defense: 9, xpValue: 110, goldValue: 110, color: '#8b0000', image: MONSTER_SPRITES[3] },
+  { id: 'm29', name: 'Dragon', hp: 150, maxHp: 150, mp: 30, maxMp: 30, attack: 30, defense: 12, xpValue: 150, goldValue: 150, color: '#b22222', image: MONSTER_SPRITES[0] },
 ];
 
 export function getRandomMonster(floor: number): Monster {
