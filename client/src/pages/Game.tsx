@@ -513,19 +513,6 @@ export default function Game() {
       <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-5xl w-full relative z-10 space-y-4">
-        {/* TOP: Player Health Bars */}
-        <div className="bg-gradient-to-r from-card/90 via-card/80 to-card/90 backdrop-blur-sm rounded-xl border border-white/10 p-4 flex justify-around gap-4 shadow-xl">
-          {game.party.map((char) => (
-            <div key={char.id} className="flex-1 max-w-48">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-sm text-primary">{char.name}</span>
-                <span className="text-xs text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full">Lv.{char.level}</span>
-              </div>
-              <StatBar label="HP" current={char.hp} max={getEffectiveStats(char).maxHp} color={char.color} />
-            </div>
-          ))}
-        </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* LEFT COLUMN: Commands & Equipment */}
