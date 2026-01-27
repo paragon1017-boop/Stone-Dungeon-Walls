@@ -768,16 +768,16 @@ export default function Game() {
             </RetroButton>
           </RetroCard>
           
-          {/* Equipment Panel */}
+          {/* Equipment Panel - Compact */}
           {showEquipment && (
-            <RetroCard title="EQUIPMENT" className="mt-4">
+            <RetroCard title="EQUIPMENT" className="mt-2">
               {/* Character Selection */}
-              <div className="flex gap-1 mb-3">
+              <div className="flex gap-1 mb-2">
                 {game.party.map((char, idx) => (
                   <button
                     key={char.id}
                     onClick={() => setSelectedCharForEquip(idx)}
-                    className={`flex-1 px-2 py-1 text-xs font-pixel rounded border transition-colors ${
+                    className={`flex-1 px-1 py-0.5 text-[10px] font-pixel rounded border transition-colors ${
                       selectedCharForEquip === idx 
                         ? 'border-primary bg-primary/20 text-primary' 
                         : 'border-border bg-black/40 text-muted-foreground hover:bg-black/60'
@@ -791,23 +791,18 @@ export default function Game() {
               
               {/* Selected Character's Equipment Slots */}
               {game.party[selectedCharForEquip] && (
-                <div className="space-y-2">
-                  <div className="text-xs font-pixel text-muted-foreground mb-2">
-                    {game.party[selectedCharForEquip].name}'s Gear
-                  </div>
-                  
+                <div className="space-y-1">
                   {(['weapon', 'armor', 'helmet', 'accessory'] as const).map(slot => {
                     const item = game.party[selectedCharForEquip].equipment[slot];
-                    const effectiveStats = getEffectiveStats(game.party[selectedCharForEquip]);
                     return (
                       <div 
                         key={slot} 
-                        className="flex items-center justify-between bg-black/40 p-2 rounded border border-border/50"
+                        className="flex items-center justify-between bg-black/40 px-1.5 py-1 rounded border border-border/50"
                       >
-                        <div className="flex-1">
-                          <span className="text-xs font-retro text-muted-foreground capitalize">{slot}:</span>
+                        <div className="flex-1 truncate">
+                          <span className="text-[10px] font-retro text-muted-foreground capitalize">{slot}:</span>
                           {item ? (
-                            <span className={`ml-2 text-xs font-pixel ${
+                            <span className={`ml-1 text-[10px] font-pixel ${
                               item.rarity === 'rare' ? 'text-blue-400' : 
                               item.rarity === 'uncommon' ? 'text-green-400' : 
                               item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
@@ -815,13 +810,13 @@ export default function Game() {
                               {item.name}
                             </span>
                           ) : (
-                            <span className="ml-2 text-xs text-muted-foreground italic">Empty</span>
+                            <span className="ml-1 text-[10px] text-muted-foreground italic">-</span>
                           )}
                         </div>
                         {item && (
                           <button
                             onClick={() => unequipItem(selectedCharForEquip, slot)}
-                            className="text-xs px-2 py-1 bg-destructive/20 text-destructive hover:bg-destructive/40 rounded"
+                            className="text-[10px] px-1 bg-destructive/20 text-destructive hover:bg-destructive/40 rounded ml-1"
                             data-testid={`button-unequip-${slot}`}
                           >
                             X
@@ -831,61 +826,57 @@ export default function Game() {
                     );
                   })}
                   
-                  {/* Show effective stats */}
-                  <div className="mt-3 pt-2 border-t border-border/50">
-                    <div className="text-xs font-pixel text-primary mb-1">Total Stats:</div>
-                    <div className="grid grid-cols-2 gap-1 text-xs font-retro">
-                      <span>ATK: {getEffectiveStats(game.party[selectedCharForEquip]).attack}</span>
-                      <span>DEF: {getEffectiveStats(game.party[selectedCharForEquip]).defense}</span>
-                      <span>HP: {getEffectiveStats(game.party[selectedCharForEquip]).maxHp}</span>
-                      <span>MP: {getEffectiveStats(game.party[selectedCharForEquip]).maxMp}</span>
-                    </div>
+                  {/* Show effective stats - inline */}
+                  <div className="flex gap-2 text-[10px] font-retro text-muted-foreground pt-1">
+                    <span>ATK:{getEffectiveStats(game.party[selectedCharForEquip]).attack}</span>
+                    <span>DEF:{getEffectiveStats(game.party[selectedCharForEquip]).defense}</span>
+                    <span>HP:{getEffectiveStats(game.party[selectedCharForEquip]).maxHp}</span>
+                    <span>MP:{getEffectiveStats(game.party[selectedCharForEquip]).maxMp}</span>
                   </div>
                 </div>
               )}
               
-              {/* Equipment Inventory */}
-              <div className="mt-4 pt-3 border-t border-border">
-                <div className="text-xs font-pixel text-muted-foreground mb-2">
-                  Inventory ({game.equipmentInventory.length} items)
+              {/* Equipment Inventory - Compact */}
+              <div className="mt-2 pt-2 border-t border-border">
+                <div className="text-[10px] font-pixel text-muted-foreground mb-1">
+                  Bag ({game.equipmentInventory.length})
                 </div>
                 {game.equipmentInventory.length === 0 ? (
-                  <div className="text-xs text-muted-foreground italic text-center py-2">
-                    No unequipped items
+                  <div className="text-[10px] text-muted-foreground italic text-center py-1">
+                    Empty
                   </div>
                 ) : (
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                  <div className="space-y-0.5 max-h-24 overflow-y-auto">
                     {game.equipmentInventory.map((item, idx) => {
                       const char = game.party[selectedCharForEquip];
                       const canEquipThis = canEquip(char, item);
                       return (
                         <div 
                           key={`${item.id}-${idx}`}
-                          className={`flex items-center justify-between bg-black/40 p-2 rounded border border-border/50 ${
+                          className={`flex items-center justify-between bg-black/40 px-1.5 py-0.5 rounded border border-border/50 ${
                             !canEquipThis ? 'opacity-50' : ''
                           }`}
                         >
-                          <div className="flex-1">
-                            <span className={`text-xs font-pixel ${
+                          <div className="flex-1 truncate">
+                            <span className={`text-[10px] font-pixel ${
                               item.rarity === 'rare' ? 'text-blue-400' : 
                               item.rarity === 'uncommon' ? 'text-green-400' : 
                               item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
                             }`}>
                               {item.name}
                             </span>
-                            <span className="text-xs text-muted-foreground ml-1 capitalize">({item.slot})</span>
                           </div>
                           <button
                             onClick={() => equipItem(selectedCharForEquip, item)}
                             disabled={!canEquipThis}
-                            className={`text-xs px-2 py-1 rounded ${
+                            className={`text-[10px] px-1.5 py-0.5 rounded ml-1 ${
                               canEquipThis 
                                 ? 'bg-primary/20 text-primary hover:bg-primary/40' 
                                 : 'bg-muted text-muted-foreground cursor-not-allowed'
                             }`}
                             data-testid={`button-equip-${item.id}`}
                           >
-                            Equip
+                            +
                           </button>
                         </div>
                       );
