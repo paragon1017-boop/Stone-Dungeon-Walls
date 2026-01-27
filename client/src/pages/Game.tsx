@@ -12,6 +12,7 @@ import {
   xpForLevel, getLevelUpStats, Player,
   Ability, getAbilitiesForJob, getScaledAbilityPower,
   getEffectiveStats, Equipment, getRandomEquipmentDrop, canEquip,
+  getEnhancedName, getEnhancedStats,
   TILE_FLOOR, TILE_WALL, TILE_DOOR, TILE_LADDER_DOWN, TILE_LADDER_UP,
   generateFloorMap
 } from "@/lib/game-engine";
@@ -19,11 +20,12 @@ import { useKey } from "react-use";
 import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp, ChevronDown } from "lucide-react";
 
 function formatEquipmentStats(item: Equipment): string {
+  const stats = getEnhancedStats(item);
   const parts: string[] = [];
-  if (item.attack > 0) parts.push(`+${item.attack} ATK`);
-  if (item.defense > 0) parts.push(`+${item.defense} DEF`);
-  if (item.hp > 0) parts.push(`+${item.hp} HP`);
-  if (item.mp > 0) parts.push(`+${item.mp} MP`);
+  if (stats.attack > 0) parts.push(`+${stats.attack} ATK`);
+  if (stats.defense > 0) parts.push(`+${stats.defense} DEF`);
+  if (stats.hp > 0) parts.push(`+${stats.hp} HP`);
+  if (stats.mp > 0) parts.push(`+${stats.mp} MP`);
   return parts.join(' ');
 }
 
@@ -247,7 +249,7 @@ export default function Game() {
     if (!game) return;
     const char = game.party[charIndex];
     if (!canEquip(char, item)) {
-      log(`${char.name} cannot equip ${item.name}!`);
+      log(`${char.name} cannot equip ${getEnhancedName(item)}!`);
       return;
     }
     
@@ -276,7 +278,7 @@ export default function Game() {
     }
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} equipped ${item.name}!`);
+    log(`${char.name} equipped ${getEnhancedName(item)}!`);
   }, [game, log]);
   
   // Unequip an item to inventory
@@ -305,7 +307,7 @@ export default function Game() {
     const newEquipInv = [...game.equipmentInventory, item];
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} unequipped ${item.name}.`);
+    log(`${char.name} unequipped ${getEnhancedName(item)}.`);
   }, [game, log]);
 
   // Combat keyboard shortcuts and ladder interaction
@@ -502,7 +504,7 @@ export default function Game() {
       
       if (droppedEquipment.length > 0) {
         droppedEquipment.forEach(item => {
-          log(`Found ${item.name}!`);
+          log(`Found ${getEnhancedName(item)}!`);
         });
         // Add dropped equipment to inventory
         setGame(prev => prev ? ({
@@ -698,9 +700,10 @@ export default function Game() {
                               <span className={`text-xs font-medium truncate ${
                                 item.rarity === 'rare' ? 'text-blue-400' : 
                                 item.rarity === 'uncommon' ? 'text-green-400' : 
-                                item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
+                                item.rarity === 'epic' ? 'text-purple-400' : 
+                                (item.enhancement || 0) > 0 ? 'text-yellow-400' : 'text-foreground'
                               }`}>
-                                {item.name}
+                                {getEnhancedName(item)}
                               </span>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Empty</span>
@@ -760,9 +763,10 @@ export default function Game() {
                             <span className={`text-xs font-medium ${
                               item.rarity === 'rare' ? 'text-blue-400' : 
                               item.rarity === 'uncommon' ? 'text-green-400' : 
-                              item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
+                              item.rarity === 'epic' ? 'text-purple-400' : 
+                              (item.enhancement || 0) > 0 ? 'text-yellow-400' : 'text-foreground'
                             }`}>
-                              {item.name}
+                              {getEnhancedName(item)}
                             </span>
                             <div className="text-[10px] text-amber-400/80">
                               {formatEquipmentStats(item)}

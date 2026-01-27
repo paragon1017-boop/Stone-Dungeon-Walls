@@ -42,6 +42,43 @@ export interface Equipment {
   rarity: 'common' | 'uncommon' | 'rare' | 'epic';
   allowedJobs: string[]; // Which jobs can equip this
   description: string;
+  enhancement?: number; // 0-4, each level provides bigger stat boosts
+}
+
+// Enhancement bonus multipliers: +1 = 10%, +2 = 25%, +3 = 50%, +4 = 100%
+export const ENHANCEMENT_MULTIPLIERS = [0, 0.10, 0.25, 0.50, 1.00];
+
+// Get display name with enhancement level
+export function getEnhancedName(item: Equipment): string {
+  const enhancement = item.enhancement || 0;
+  return enhancement > 0 ? `${item.name} +${enhancement}` : item.name;
+}
+
+// Calculate enhanced stats for an item
+export function getEnhancedStats(item: Equipment): { attack: number; defense: number; hp: number; mp: number } {
+  const enhancement = item.enhancement || 0;
+  const multiplier = 1 + ENHANCEMENT_MULTIPLIERS[enhancement];
+  
+  return {
+    attack: Math.floor(item.attack * multiplier),
+    defense: Math.floor(item.defense * multiplier),
+    hp: Math.floor(item.hp * multiplier),
+    mp: Math.floor(item.mp * multiplier)
+  };
+}
+
+// Roll enhancement level for dropped equipment (higher levels are rarer)
+export function rollEnhancement(floor: number): number {
+  const roll = Math.random() * 100;
+  const floorBonus = Math.min(floor * 2, 20); // Up to 20% bonus from floor
+  
+  // Base chances: +0 = 60%, +1 = 25%, +2 = 10%, +3 = 4%, +4 = 1%
+  // Floor bonus increases chances of higher enhancements
+  if (roll < 1 + floorBonus * 0.5) return 4;      // +4: 1% base, up to 11%
+  if (roll < 5 + floorBonus * 0.5) return 3;      // +3: 4% base, up to 14%
+  if (roll < 15 + floorBonus * 0.3) return 2;     // +2: 10% base, up to 16%
+  if (roll < 40 + floorBonus * 0.2) return 1;     // +1: 25% base, up to 29%
+  return 0;                                        // +0: remainder
 }
 
 export interface PlayerEquipment {
@@ -641,7 +678,7 @@ export function canEquip(player: Player, equipment: Equipment): boolean {
   return equipment.allowedJobs.includes(player.job);
 }
 
-// Calculate total stats including equipment bonuses
+// Calculate total stats including equipment bonuses (with enhancement)
 export function getEffectiveStats(player: Player): { attack: number; defense: number; maxHp: number; maxMp: number } {
   let attack = player.attack;
   let defense = player.defense;
@@ -652,10 +689,11 @@ export function getEffectiveStats(player: Player): { attack: number; defense: nu
   for (const slot of slots) {
     const item = player.equipment[slot];
     if (item) {
-      attack += item.attack;
-      defense += item.defense;
-      maxHp += item.hp;
-      maxMp += item.mp;
+      const enhanced = getEnhancedStats(item);
+      attack += enhanced.attack;
+      defense += enhanced.defense;
+      maxHp += enhanced.hp;
+      maxMp += enhanced.mp;
     }
   }
   
@@ -685,7 +723,12 @@ export function getRandomEquipmentDrop(floor: number): Equipment | null {
   const possibleDrops = EQUIPMENT_DATABASE.filter(e => e.rarity === targetRarity);
   if (possibleDrops.length === 0) return null;
   
-  return possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+  // Select random item and add enhancement level
+  const baseItem = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+  const enhancement = rollEnhancement(floor);
+  
+  // Return a copy with enhancement
+  return { ...baseItem, enhancement };
 }
 
 // Default empty equipment
