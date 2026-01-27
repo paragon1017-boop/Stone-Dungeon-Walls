@@ -122,29 +122,88 @@ export function createInitialState(): GameData {
   };
 }
 
-// Simple Recursive Backtracker Maze Generation
+// Improved Maze Generation - ensures connectivity and proper starting area
 function generateMaze(width: number, height: number): number[][] {
   const map = Array(height).fill(0).map(() => Array(width).fill(1)); // Fill with walls
-
-  function carve(x: number, y: number) {
-    const directions = [
-      [0, -2], [0, 2], [-2, 0], [2, 0] // N, S, W, E
-    ].sort(() => Math.random() - 0.5);
-
-    directions.forEach(([dx, dy]) => {
-      const nx = x + dx;
-      const ny = y + dy;
-
-      if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && map[ny][nx] === 1) {
+  
+  // Use iterative approach with explicit stack to avoid recursion issues
+  function carveIterative(startX: number, startY: number) {
+    const stack: [number, number][] = [[startX, startY]];
+    map[startY][startX] = 0;
+    
+    while (stack.length > 0) {
+      const [x, y] = stack[stack.length - 1];
+      
+      // Get unvisited neighbors (2 cells away to create corridors)
+      const directions = [
+        [0, -2], [0, 2], [-2, 0], [2, 0] // N, S, W, E
+      ].filter(([dx, dy]) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        return nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && map[ny][nx] === 1;
+      });
+      
+      if (directions.length > 0) {
+        // Pick a random direction
+        const [dx, dy] = directions[Math.floor(Math.random() * directions.length)];
+        const nx = x + dx;
+        const ny = y + dy;
+        
+        // Carve the passage
         map[ny][nx] = 0;
         map[y + dy / 2][x + dx / 2] = 0;
-        carve(nx, ny);
+        
+        stack.push([nx, ny]);
+      } else {
+        // Backtrack
+        stack.pop();
       }
-    });
+    }
   }
-
-  map[1][1] = 0;
-  carve(1, 1);
+  
+  // Start carving from position (3, 1) to ensure room for starting area
+  // First, ensure starting area is clear
+  map[1][1] = 0; // Player start position
+  map[1][2] = 0; // Path forward (east)
+  map[1][3] = 0; // Continue east corridor
+  
+  // Carve maze from a point connected to start
+  carveIterative(3, 1);
+  
+  // Add additional connections to ensure the maze is more open and connected
+  // Create some extra passages to avoid dead ends near start
+  for (let y = 1; y < height - 1; y += 2) {
+    for (let x = 1; x < width - 1; x += 2) {
+      if (map[y][x] === 0) {
+        // Occasionally add extra connections (10% chance)
+        if (Math.random() < 0.1) {
+          const neighbors = [
+            [0, 2], [0, -2], [2, 0], [-2, 0]
+          ].filter(([dx, dy]) => {
+            const nx = x + dx;
+            const ny = y + dy;
+            return nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && map[ny][nx] === 0;
+          });
+          
+          if (neighbors.length > 0) {
+            const [dx, dy] = neighbors[Math.floor(Math.random() * neighbors.length)];
+            map[y + dy / 2][x + dx / 2] = 0; // Create extra passage
+          }
+        }
+      }
+    }
+  }
+  
+  // Ensure starting area has a door/entrance behind (west wall at x=0 is the "entrance")
+  // Mark position (0, 1) as a special "door" tile (value 2)
+  map[1][0] = 2; // Door behind player at start
+  
+  // Make sure player isn't boxed in - verify path exists to the east
+  // The carving algorithm guarantees connectivity, but double-check
+  if (map[1][2] === 1) {
+    map[1][2] = 0; // Ensure path to the east
+  }
+  
   return map;
 }
 

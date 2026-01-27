@@ -417,15 +417,18 @@ export default function Game() {
                     row.slice(0, 15).map((cell, x) => {
                       const isPlayer = x === game.x && y === game.y;
                       const isWall = cell === 1;
+                      const isDoor = cell === 2;
                       return (
                         <div
                           key={`${x}-${y}`}
                           className={`w-[6px] h-[6px] ${
                             isPlayer 
                               ? 'bg-yellow-400' 
-                              : isWall 
-                                ? 'bg-stone-600' 
-                                : 'bg-stone-900'
+                              : isDoor
+                                ? 'bg-amber-700'
+                                : isWall 
+                                  ? 'bg-stone-600' 
+                                  : 'bg-stone-900'
                           }`}
                           style={isPlayer ? {
                             clipPath: game.dir === 0 ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : // North

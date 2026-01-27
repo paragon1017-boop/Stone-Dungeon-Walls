@@ -450,9 +450,11 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
         if (mapY < 0 || mapX < 0 || mapY >= map.length || mapX >= map[0].length) {
           hit = 1; perpWallDist = 100; // Infinity
         } else if (map[mapY][mapX] > 0) {
-          hit = 1;
+          hit = map[mapY][mapX]; // 1 = wall, 2 = door
         }
       }
+      
+      const isDoor = hit === 2;
 
       if (side === 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
       else           perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
@@ -478,20 +480,77 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
          // Distance fog
          const fog = Math.min(1, 4.0 / perpWallDist); 
          
-         // Draw slice
-         ctx.drawImage(
-            texturesRef.current.wall, 
-            texX, 0, 1, texturesRef.current.wall.height,
-            x, drawStart, 2, drawEnd - drawStart // Width 2 because loop step is 2
-         );
+         if (isDoor) {
+           // Draw wooden door with arched top
+           const doorHeight = drawEnd - drawStart;
+           const doorWidth = 2;
+           
+           // Base wood color (darker brown)
+           const woodBaseR = side === 1 ? 80 : 100;
+           const woodBaseG = side === 1 ? 50 : 65;
+           const woodBaseB = side === 1 ? 30 : 40;
+           
+           // Draw wood grain pattern
+           for (let dy = 0; dy < doorHeight; dy++) {
+             const worldY = drawStart + dy;
+             const grainOffset = Math.sin(dy * 0.3 + wallX * 20) * 10;
+             const r = Math.min(255, Math.max(0, woodBaseR + grainOffset));
+             const g = Math.min(255, Math.max(0, woodBaseG + grainOffset * 0.5));
+             const b = Math.min(255, Math.max(0, woodBaseB + grainOffset * 0.3));
+             
+             ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+             ctx.fillRect(x, worldY, doorWidth, 1);
+           }
+           
+           // Vertical planks (3 planks on door)
+           const plankPos = wallX * 3;
+           const plankEdge = plankPos - Math.floor(plankPos);
+           if (plankEdge < 0.08 || plankEdge > 0.92) {
+             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+             ctx.fillRect(x, drawStart, doorWidth, doorHeight);
+           }
+           
+           // Horizontal iron bands (3 bands)
+           const bandSpacing = doorHeight / 4;
+           for (let band = 1; band <= 3; band++) {
+             const bandY = drawStart + band * bandSpacing;
+             ctx.fillStyle = '#333';
+             ctx.fillRect(x, bandY - 2, doorWidth, 4);
+             ctx.fillStyle = '#555';
+             ctx.fillRect(x, bandY - 1, doorWidth, 2);
+           }
+           
+           // Door handle (if in center of door)
+           if (wallX > 0.7 && wallX < 0.8) {
+             const handleY = drawStart + doorHeight * 0.5;
+             ctx.fillStyle = '#8B7355';
+             ctx.fillRect(x, handleY - 4, doorWidth, 8);
+             ctx.fillStyle = '#B8860B';
+             ctx.fillRect(x, handleY - 2, doorWidth, 4);
+           }
+           
+           // Apply fog to door
+           ctx.globalAlpha = 1 - fog;
+           ctx.fillStyle = "#000";
+           ctx.fillRect(x, drawStart, doorWidth, doorHeight);
+           ctx.globalAlpha = 1.0;
+         } else {
+           // Draw regular wall slice
+           ctx.drawImage(
+              texturesRef.current.wall, 
+              texX, 0, 1, texturesRef.current.wall.height,
+              x, drawStart, 2, drawEnd - drawStart // Width 2 because loop step is 2
+           );
+           
+           // Apply fog (draw black rect with opacity over it)
+           ctx.globalAlpha = 1 - fog;
+           ctx.fillStyle = "#000";
+           ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
+           ctx.globalAlpha = 1.0;
+         }
          
-         // Apply fog (draw black rect with opacity over it)
-         ctx.globalAlpha = 1 - fog;
-         ctx.fillStyle = "#000";
-         ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
-         ctx.globalAlpha = 1.0;
-         
-         // Draw stone baseboard at bottom of wall (matching floor texture)
+         // Draw stone baseboard at bottom of wall (matching floor texture) - skip for doors
+         if (!isDoor) {
          const baseboardHeight = Math.max(3, Math.floor(lineHeight * 0.06));
          const baseboardTop = drawEnd - baseboardHeight;
          
@@ -527,6 +586,7 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
          ctx.fillStyle = "#000";
          ctx.fillRect(x, baseboardTop, 2, baseboardHeight);
          ctx.globalAlpha = 1.0;
+         } // end if !isDoor for baseboard
       } else {
          // Fallback color
          const color = side === 1 ? '#555' : '#777';
