@@ -19,10 +19,42 @@ export interface Entity {
   color: string;
 }
 
+export interface Ability {
+  id: string;
+  name: string;
+  mpCost: number;
+  type: 'attack' | 'heal' | 'buff';
+  power: number; // multiplier or base value
+  description: string;
+}
+
 export interface Player extends Entity {
   job: string;
   xp: number;
   level: number;
+}
+
+// Combat abilities for each job
+export const JOB_ABILITIES: Record<string, Ability[]> = {
+  Fighter: [
+    { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
+    { id: 'power_strike', name: 'Power Strike', mpCost: 0, type: 'attack', power: 2.0, description: 'Powerful attack (2x damage)' },
+    { id: 'defend', name: 'Defend', mpCost: 0, type: 'buff', power: 0.5, description: 'Reduce incoming damage' },
+  ],
+  Mage: [
+    { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
+    { id: 'fireball', name: 'Fireball', mpCost: 8, type: 'attack', power: 3.0, description: 'Powerful fire spell (3x damage)' },
+    { id: 'heal', name: 'Heal', mpCost: 6, type: 'heal', power: 25, description: 'Restore 25 HP to a party member' },
+  ],
+  Monk: [
+    { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
+    { id: 'chi_strike', name: 'Chi Strike', mpCost: 4, type: 'attack', power: 1.8, description: 'Focused strike (1.8x damage)' },
+    { id: 'meditate', name: 'Meditate', mpCost: 0, type: 'heal', power: 15, description: 'Restore 15 HP to self' },
+  ],
+};
+
+export function getAbilitiesForJob(job: string): Ability[] {
+  return JOB_ABILITIES[job] || JOB_ABILITIES['Fighter'];
 }
 
 // XP required for each level (exponential growth)

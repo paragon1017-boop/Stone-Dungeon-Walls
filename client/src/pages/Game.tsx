@@ -8,7 +8,8 @@ import {
   GameData, createInitialState, 
   NORTH, SOUTH, EAST, WEST, 
   getRandomMonster, Monster,
-  xpForLevel, getLevelUpStats, Player
+  xpForLevel, getLevelUpStats, Player,
+  Ability, getAbilitiesForJob
 } from "@/lib/game-engine";
 import { useKey } from "react-use";
 import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp } from "lucide-react";
@@ -20,7 +21,13 @@ export default function Game() {
 
   const [game, setGame] = useState<GameData | null>(null);
   const [logs, setLogs] = useState<string[]>(["Welcome to the dungeon..."]);
-  const [combatState, setCombatState] = useState<{ active: boolean, monster?: Monster, turn: number }>({ active: false, turn: 0 });
+  const [combatState, setCombatState] = useState<{ 
+    active: boolean, 
+    monster?: Monster, 
+    turn: number,
+    currentCharIndex: number,
+    defending: boolean 
+  }>({ active: false, turn: 0, currentCharIndex: 0, defending: false });
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   // Restore focus after combat ends
@@ -64,7 +71,7 @@ export default function Game() {
     // Random Encounter Chance (10%)
     if (Math.random() < 0.1) {
       const monster = getRandomMonster(game.level);
-      setCombatState({ active: true, monster, turn: 0 });
+      setCombatState({ active: true, monster, turn: 0, currentCharIndex: 0, defending: false });
       log(`A wild ${monster.name} appeared!`);
     }
   }, [game, combatState.active, log]);
@@ -161,7 +168,7 @@ export default function Game() {
           level: newLevel,
           xp: newXp - xpNeeded,
           maxHp: char.maxHp + stats.hp,
-          hp: Math.min(char.hp + stats.hp, char.maxHp + stats.hp), // Heal on level up
+          hp: Math.min(char.hp + stats.hp, char.maxHp + stats.hp),
           maxMp: char.maxMp + stats.mp,
           mp: Math.min(char.mp + stats.mp, char.maxMp + stats.mp),
           attack: char.attack + stats.attack,
@@ -175,46 +182,133 @@ export default function Game() {
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
   }, [game, log]);
 
-  const handleAttack = () => {
+  const monsterTurn = useCallback((newMonsterHp: number, defendingActive: boolean) => {
     if (!combatState.monster || !game) return;
     
-    // Blur active element to restore keyboard focus
+    // Monster attacks a random alive party member
+    const aliveMembers = game.party.filter(c => c.hp > 0);
+    if (aliveMembers.length === 0) {
+      log("GAME OVER");
+      return;
+    }
+    
+    const targetIdx = Math.floor(Math.random() * aliveMembers.length);
+    const target = aliveMembers[targetIdx];
+    const defenseMultiplier = defendingActive ? 2 : 1;
+    const monsterDmg = Math.max(1, Math.floor(combatState.monster.attack - (target.defense * defenseMultiplier / 2)));
+    
+    const newParty = game.party.map(c => 
+      c.id === target.id ? { ...c, hp: Math.max(0, c.hp - monsterDmg) } : c
+    );
+    
+    log(`${combatState.monster.name} hits ${target.name} for ${monsterDmg} dmg!`);
+    
+    setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
+    setCombatState(prev => ({ 
+      ...prev, 
+      monster: { ...prev.monster!, hp: newMonsterHp },
+      currentCharIndex: 0,
+      defending: false
+    }));
+    
+    if (newParty.every(c => c.hp <= 0)) {
+      log("GAME OVER");
+    }
+  }, [combatState.monster, game, log]);
+
+  const useAbility = (ability: Ability, charIndex: number) => {
+    if (!combatState.monster || !game) return;
+    
     (document.activeElement as HTMLElement)?.blur();
     
-    // Player Turn
-    const damage = Math.max(1, Math.floor(game.party[0].attack - (combatState.monster.defense / 2)));
-    const newMonsterHp = combatState.monster.hp - damage;
-    log(`You hit ${combatState.monster.name} for ${damage} dmg!`);
-
+    const char = game.party[charIndex];
+    
+    // Check MP cost
+    if (ability.mpCost > char.mp) {
+      log(`${char.name} doesn't have enough MP!`);
+      return;
+    }
+    
+    let newMonsterHp = combatState.monster.hp;
+    let newParty = [...game.party];
+    let isDefending = combatState.defending;
+    
+    // Deduct MP
+    if (ability.mpCost > 0) {
+      newParty[charIndex] = { ...newParty[charIndex], mp: char.mp - ability.mpCost };
+    }
+    
+    switch (ability.type) {
+      case 'attack': {
+        const damage = Math.max(1, Math.floor(char.attack * ability.power - (combatState.monster.defense / 2)));
+        newMonsterHp = combatState.monster.hp - damage;
+        log(`${char.name} uses ${ability.name}! ${damage} damage!`);
+        break;
+      }
+      case 'heal': {
+        // Meditate heals self, other heals heal the most injured party member
+        let targetIdx: number;
+        if (ability.id === 'meditate') {
+          targetIdx = charIndex;
+        } else {
+          // Heal the most injured party member
+          targetIdx = newParty.reduce((minIdx, c, idx) => 
+            c.hp > 0 && (c.hp / c.maxHp) < (newParty[minIdx].hp / newParty[minIdx].maxHp) ? idx : minIdx, 0);
+        }
+        const healAmount = Math.min(ability.power, newParty[targetIdx].maxHp - newParty[targetIdx].hp);
+        newParty[targetIdx] = { ...newParty[targetIdx], hp: newParty[targetIdx].hp + healAmount };
+        log(`${char.name} uses ${ability.name}! ${newParty[targetIdx].name} healed ${healAmount} HP!`);
+        break;
+      }
+      case 'buff': {
+        isDefending = true;
+        log(`${char.name} takes a defensive stance!`);
+        break;
+      }
+    }
+    
+    setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
+    
+    // Check for victory
     if (newMonsterHp <= 0) {
-      // Victory - award XP to all party members
       const xpGained = combatState.monster.xpValue;
       log(`Defeated ${combatState.monster.name}! +${xpGained} XP`);
-      setCombatState({ active: false, turn: 0 });
-      
-      // Award XP after a brief delay so victory message shows first
+      setCombatState({ active: false, turn: 0, currentCharIndex: 0, defending: false });
       setTimeout(() => awardXP(xpGained), 100);
       return;
     }
+    
+    // Find next alive character's turn or monster's turn
+    let nextCharIdx = charIndex + 1;
+    while (nextCharIdx < game.party.length && game.party[nextCharIdx].hp <= 0) {
+      nextCharIdx++;
+    }
+    
+    if (nextCharIdx < game.party.length) {
+      setCombatState(prev => ({ 
+        ...prev, 
+        monster: { ...prev.monster!, hp: newMonsterHp },
+        currentCharIndex: nextCharIdx,
+        defending: isDefending
+      }));
+    } else {
+      // All party members acted, monster's turn
+      setTimeout(() => monsterTurn(newMonsterHp, isDefending), 500);
+    }
+  };
 
-    // Monster Turn
-    const monsterDmg = Math.max(1, Math.floor(combatState.monster.attack - (game.party[0].defense / 2)));
-    const newParty = [...game.party];
-    newParty[0].hp = Math.max(0, newParty[0].hp - monsterDmg);
-    log(`${combatState.monster.name} hits you for ${monsterDmg} dmg!`);
-
-    setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
-    setCombatState(prev => ({ ...prev, monster: { ...prev.monster!, hp: newMonsterHp } }));
-
-    if (newParty[0].hp <= 0) {
-      log("GAME OVER");
-      // Could reset game here or show modal
+  const handleAttack = () => {
+    const abilities = getAbilitiesForJob(game?.party[combatState.currentCharIndex]?.job || 'Fighter');
+    const attackAbility = abilities.find(a => a.id === 'attack');
+    if (attackAbility) {
+      useAbility(attackAbility, combatState.currentCharIndex);
     }
   };
 
   const handleRun = () => {
     (document.activeElement as HTMLElement)?.blur();
-    setCombatState({ active: false, turn: 0 });
+    log("You fled from battle!");
+    setCombatState({ active: false, turn: 0, currentCharIndex: 0, defending: false });
   };
 
   if (isLoading || !game) {
@@ -291,24 +385,50 @@ export default function Game() {
                   
                   {/* Combat UI overlay at bottom */}
                   <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <h2 className="font-pixel text-destructive text-sm mb-1">{combatState.monster.name}</h2>
-                        <StatBar 
-                          label="HP" 
-                          current={combatState.monster.hp} 
-                          max={combatState.monster.maxHp} 
-                          color={combatState.monster.color} 
-                        />
+                    <div className="space-y-3">
+                      {/* Monster HP */}
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <h2 className="font-pixel text-destructive text-sm mb-1">{combatState.monster.name}</h2>
+                          <StatBar 
+                            label="HP" 
+                            current={combatState.monster.hp} 
+                            max={combatState.monster.maxHp} 
+                            color={combatState.monster.color} 
+                          />
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <RetroButton onClick={handleAttack} className="px-4 py-2" data-testid="button-attack">
-                          <Sword className="w-4 h-4 mr-1 inline" /> ATTACK
-                        </RetroButton>
-                        <RetroButton onClick={handleRun} variant="ghost" className="px-4 py-2" data-testid="button-run">
-                          RUN
-                        </RetroButton>
-                      </div>
+                      
+                      {/* Current Character Turn */}
+                      {game.party[combatState.currentCharIndex] && game.party[combatState.currentCharIndex].hp > 0 && (
+                        <div className="bg-black/60 p-2 rounded border border-primary/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-pixel text-xs text-primary">
+                              {game.party[combatState.currentCharIndex].name}'s Turn
+                            </span>
+                            <span className="font-retro text-xs text-blue-400">
+                              MP: {game.party[combatState.currentCharIndex].mp}/{game.party[combatState.currentCharIndex].maxMp}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {getAbilitiesForJob(game.party[combatState.currentCharIndex].job).map((ability) => (
+                              <RetroButton 
+                                key={ability.id}
+                                onClick={() => useAbility(ability, combatState.currentCharIndex)} 
+                                className="px-3 py-1 text-xs"
+                                disabled={ability.mpCost > game.party[combatState.currentCharIndex].mp}
+                                data-testid={`button-${ability.id}`}
+                              >
+                                {ability.name}
+                                {ability.mpCost > 0 && <span className="ml-1 text-blue-300">({ability.mpCost})</span>}
+                              </RetroButton>
+                            ))}
+                            <RetroButton onClick={handleRun} variant="ghost" className="px-3 py-1 text-xs" data-testid="button-run">
+                              RUN
+                            </RetroButton>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
