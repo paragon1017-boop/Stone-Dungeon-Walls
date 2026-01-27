@@ -15,6 +15,15 @@ import {
 import { useKey } from "react-use";
 import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp, ChevronDown } from "lucide-react";
 
+function formatEquipmentStats(item: Equipment): string {
+  const parts: string[] = [];
+  if (item.attack > 0) parts.push(`+${item.attack} ATK`);
+  if (item.defense > 0) parts.push(`+${item.defense} DEF`);
+  if (item.hp > 0) parts.push(`+${item.hp} HP`);
+  if (item.mp > 0) parts.push(`+${item.mp} MP`);
+  return parts.join(' ');
+}
+
 export default function Game() {
   const { user, logout } = useAuth();
   const { data: serverState, isLoading } = useGameState();
@@ -573,18 +582,25 @@ export default function Game() {
                         key={slot} 
                         className="flex items-center justify-between bg-black/40 px-1.5 py-1 rounded border border-border/50"
                       >
-                        <div className="flex-1 truncate">
-                          <span className="text-[10px] font-retro text-muted-foreground capitalize">{slot}:</span>
-                          {item ? (
-                            <span className={`ml-1 text-[10px] font-pixel ${
-                              item.rarity === 'rare' ? 'text-blue-400' : 
-                              item.rarity === 'uncommon' ? 'text-green-400' : 
-                              item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
-                            }`}>
-                              {item.name}
-                            </span>
-                          ) : (
-                            <span className="ml-1 text-[10px] text-muted-foreground italic">-</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-retro text-muted-foreground capitalize">{slot}:</span>
+                            {item ? (
+                              <span className={`text-[10px] font-pixel truncate ${
+                                item.rarity === 'rare' ? 'text-blue-400' : 
+                                item.rarity === 'uncommon' ? 'text-green-400' : 
+                                item.rarity === 'epic' ? 'text-purple-400' : 'text-foreground'
+                              }`}>
+                                {item.name}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground italic">-</span>
+                            )}
+                          </div>
+                          {item && (
+                            <div className="text-[8px] text-amber-400/80 font-pixel">
+                              {formatEquipmentStats(item)}
+                            </div>
                           )}
                         </div>
                         {item && (
@@ -620,7 +636,7 @@ export default function Game() {
                     Empty
                   </div>
                 ) : (
-                  <div className="space-y-0.5 max-h-24 overflow-y-auto">
+                  <div className="space-y-0.5 max-h-32 overflow-y-auto">
                     {game.equipmentInventory.map((item, idx) => {
                       const char = game.party[selectedCharForEquip];
                       const canEquipThis = canEquip(char, item);
@@ -631,7 +647,7 @@ export default function Game() {
                             !canEquipThis ? 'opacity-50' : ''
                           }`}
                         >
-                          <div className="flex-1 truncate">
+                          <div className="flex-1 min-w-0">
                             <span className={`text-[10px] font-pixel ${
                               item.rarity === 'rare' ? 'text-blue-400' : 
                               item.rarity === 'uncommon' ? 'text-green-400' : 
@@ -639,11 +655,14 @@ export default function Game() {
                             }`}>
                               {item.name}
                             </span>
+                            <div className="text-[8px] text-amber-400/80 font-pixel">
+                              {formatEquipmentStats(item)}
+                            </div>
                           </div>
                           <button
                             onClick={() => equipItem(selectedCharForEquip, item)}
                             disabled={!canEquipThis}
-                            className={`text-[10px] px-1.5 py-0.5 rounded ml-1 ${
+                            className={`text-[10px] px-1.5 py-0.5 rounded ml-1 flex-shrink-0 ${
                               canEquipThis 
                                 ? 'bg-primary/20 text-primary hover:bg-primary/40' 
                                 : 'bg-muted text-muted-foreground cursor-not-allowed'
