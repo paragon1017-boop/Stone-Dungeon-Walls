@@ -43,8 +43,10 @@ export default function Game() {
     targetIndex: number,
     turn: number,
     currentCharIndex: number,
+    turnOrder: number[],  // Party member indices sorted by speed (highest first)
+    turnOrderPosition: number,  // Current position in turnOrder
     defending: boolean 
-  }>({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+  }>({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showEquipment, setShowEquipment] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -138,7 +140,25 @@ export default function Game() {
       for (let i = 0; i < monsterCount; i++) {
         monsters.push(getRandomMonster(game.level));
       }
-      setCombatState({ active: true, monsters, targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+      
+      // Calculate turn order based on speed (highest speed goes first)
+      const partyWithSpeed = game.party
+        .map((char, idx) => ({ idx, speed: char.hp > 0 ? getEffectiveStats(char).speed : -1 }))
+        .filter(c => c.speed > 0)
+        .sort((a, b) => b.speed - a.speed);
+      const turnOrder = partyWithSpeed.map(c => c.idx);
+      const firstCharIdx = turnOrder.length > 0 ? turnOrder[0] : 0;
+      
+      setCombatState({ 
+        active: true, 
+        monsters, 
+        targetIndex: 0, 
+        turn: 0, 
+        currentCharIndex: firstCharIdx,
+        turnOrder,
+        turnOrderPosition: 0,
+        defending: false 
+      });
       if (monsterCount === 1) {
         log(`A wild ${monsters[0].name} appeared!`);
       } else {
@@ -507,6 +527,7 @@ export default function Game() {
           mp: Math.min(char.mp + stats.mp, char.maxMp + stats.mp),
           attack: char.attack + stats.attack,
           defense: char.defense + stats.defense,
+          speed: char.speed + stats.speed,
         };
       }
       
@@ -519,7 +540,7 @@ export default function Game() {
   const monsterTurn = useCallback((updatedMonsters: Monster[], defendingActive: boolean) => {
     if (updatedMonsters.length === 0 || !game) return;
     
-    // Each alive monster attacks a random alive party member
+    // Each alive monster attacks a random alive party member (sorted by speed)
     const aliveMembers = game.party.filter(c => c.hp > 0);
     if (aliveMembers.length === 0) {
       log("GAME OVER");
@@ -528,9 +549,10 @@ export default function Game() {
     
     let newParty = [...game.party];
     
-    for (const monster of updatedMonsters) {
-      if (monster.hp <= 0) continue;
-      
+    // Sort alive monsters by speed (fastest attacks first)
+    const sortedMonsters = [...updatedMonsters].filter(m => m.hp > 0).sort((a, b) => b.speed - a.speed);
+    
+    for (const monster of sortedMonsters) {
       const aliveMembersNow = newParty.filter(c => c.hp > 0);
       if (aliveMembersNow.length === 0) break;
       
@@ -548,10 +570,21 @@ export default function Game() {
     }
     
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
+    
+    // Recalculate turn order for next round (based on current party speed)
+    const partyWithSpeed = newParty
+      .map((char, idx) => ({ idx, speed: char.hp > 0 ? getEffectiveStats(char).speed : -1 }))
+      .filter(c => c.speed > 0)
+      .sort((a, b) => b.speed - a.speed);
+    const newTurnOrder = partyWithSpeed.map(c => c.idx);
+    const firstCharIdx = newTurnOrder.length > 0 ? newTurnOrder[0] : 0;
+    
     setCombatState(prev => ({ 
       ...prev, 
       monsters: updatedMonsters,
-      currentCharIndex: 0,
+      currentCharIndex: firstCharIdx,
+      turnOrder: newTurnOrder,
+      turnOrderPosition: 0,
       defending: false
     }));
     
@@ -682,7 +715,7 @@ export default function Game() {
         }) : null);
       }
       
-      setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+      setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setTimeout(() => awardXP(totalXp), 100);
       return;
     }
@@ -693,22 +726,25 @@ export default function Game() {
       newTargetIndex = newMonsters.findIndex(m => m.hp > 0);
     }
     
-    // Find next alive character's turn or monster's turn
-    let nextCharIdx = charIndex + 1;
-    while (nextCharIdx < game.party.length && game.party[nextCharIdx].hp <= 0) {
-      nextCharIdx++;
+    // Find next character in speed-based turn order
+    let nextTurnPos = combatState.turnOrderPosition + 1;
+    // Skip dead characters
+    while (nextTurnPos < combatState.turnOrder.length && game.party[combatState.turnOrder[nextTurnPos]]?.hp <= 0) {
+      nextTurnPos++;
     }
     
-    if (nextCharIdx < game.party.length) {
+    if (nextTurnPos < combatState.turnOrder.length) {
+      const nextCharIdx = combatState.turnOrder[nextTurnPos];
       setCombatState(prev => ({ 
         ...prev, 
         monsters: newMonsters,
         targetIndex: newTargetIndex,
         currentCharIndex: nextCharIdx,
+        turnOrderPosition: nextTurnPos,
         defending: isDefending
       }));
     } else {
-      // All party members acted, monsters' turn
+      // All party members acted, monsters' turn (sorted by speed)
       setTimeout(() => monsterTurn(newMonsters, isDefending), 500);
     }
   };
@@ -724,7 +760,7 @@ export default function Game() {
   const handleRun = () => {
     (document.activeElement as HTMLElement)?.blur();
     log("You fled from battle!");
-    setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, defending: false });
+    setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
   };
 
   if (isLoading || !game) {
@@ -1087,7 +1123,7 @@ export default function Game() {
                       {/* Combat Stats */}
                       <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                         <div className="text-[9px] text-muted-foreground mb-2">COMBAT STATS</div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div className="flex justify-between">
                             <span className="text-[10px] text-muted-foreground">ATK:</span>
                             <span className="text-[10px] text-red-400 font-medium">{effectiveStats.attack}</span>
@@ -1095,6 +1131,10 @@ export default function Game() {
                           <div className="flex justify-between">
                             <span className="text-[10px] text-muted-foreground">DEF:</span>
                             <span className="text-[10px] text-blue-400 font-medium">{effectiveStats.defense}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[10px] text-muted-foreground">SPD:</span>
+                            <span className="text-[10px] text-yellow-400 font-medium">{effectiveStats.speed}</span>
                           </div>
                         </div>
                       </div>
@@ -1134,6 +1174,14 @@ export default function Game() {
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Equipment MP:</span>
                             <span className="text-green-400">+{effectiveStats.maxMp - char.maxMp}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base SPD:</span>
+                            <span className="text-foreground">{char.speed}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Equipment SPD:</span>
+                            <span className="text-green-400">+{effectiveStats.speed - char.speed}</span>
                           </div>
                         </div>
                       </div>

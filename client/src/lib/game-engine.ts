@@ -145,7 +145,7 @@ export function getEnhancedName(item: Equipment): string {
 }
 
 // Calculate enhanced stats for an item
-export function getEnhancedStats(item: Equipment): { attack: number; defense: number; hp: number; mp: number } {
+export function getEnhancedStats(item: Equipment): { attack: number; defense: number; hp: number; mp: number; speed: number } {
   const enhancement = item.enhancement || 0;
   const multiplier = 1 + ENHANCEMENT_MULTIPLIERS[enhancement];
   
@@ -153,7 +153,8 @@ export function getEnhancedStats(item: Equipment): { attack: number; defense: nu
     attack: Math.floor(item.attack * multiplier),
     defense: Math.floor(item.defense * multiplier),
     hp: Math.floor(item.hp * multiplier),
-    mp: Math.floor(item.mp * multiplier)
+    mp: Math.floor(item.mp * multiplier),
+    speed: Math.floor(item.speed * multiplier)
   };
 }
 
@@ -769,11 +770,12 @@ export function canEquip(player: Player, equipment: Equipment): boolean {
 }
 
 // Calculate total stats including equipment bonuses (with enhancement)
-export function getEffectiveStats(player: Player): { attack: number; defense: number; maxHp: number; maxMp: number } {
+export function getEffectiveStats(player: Player): { attack: number; defense: number; maxHp: number; maxMp: number; speed: number } {
   let attack = player.attack;
   let defense = player.defense;
   let maxHp = player.maxHp;
   let maxMp = player.maxMp;
+  let speed = player.speed;
   
   const slots: EquipmentSlot[] = ['weapon', 'shield', 'armor', 'helmet', 'gloves', 'accessory'];
   for (const slot of slots) {
@@ -784,10 +786,11 @@ export function getEffectiveStats(player: Player): { attack: number; defense: nu
       defense += enhanced.defense;
       maxHp += enhanced.hp;
       maxMp += enhanced.mp;
+      speed += enhanced.speed;
     }
   }
   
-  return { attack, defense, maxHp, maxMp };
+  return { attack, defense, maxHp, maxMp, speed };
 }
 
 // Get equipment that can drop from monsters (based on rarity chances)
@@ -869,16 +872,16 @@ export function xpForLevel(level: number): number {
 }
 
 // Calculate stat bonuses per level
-export function getLevelUpStats(job: string): { hp: number, mp: number, attack: number, defense: number } {
+export function getLevelUpStats(job: string): { hp: number, mp: number, attack: number, defense: number, speed: number } {
   switch (job) {
     case 'Fighter':
-      return { hp: 10, mp: 0, attack: 3, defense: 2 };
+      return { hp: 10, mp: 0, attack: 3, defense: 2, speed: 1 };
     case 'Mage':
-      return { hp: 4, mp: 8, attack: 1, defense: 1 };
+      return { hp: 4, mp: 8, attack: 1, defense: 1, speed: 1 };
     case 'Monk':
-      return { hp: 8, mp: 2, attack: 2, defense: 1 };
+      return { hp: 8, mp: 2, attack: 2, defense: 1, speed: 2 };
     default:
-      return { hp: 6, mp: 2, attack: 2, defense: 1 };
+      return { hp: 6, mp: 2, attack: 2, defense: 1, speed: 1 };
   }
 }
 
