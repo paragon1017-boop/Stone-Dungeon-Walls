@@ -59,23 +59,351 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     const w = canvas.width;
     const h = canvas.height;
 
-    // Draw Ceiling with gradient fog (optimized for performance)
-    const ceilingGradient = ctx.createLinearGradient(0, 0, 0, h / 2);
-    ceilingGradient.addColorStop(0, "#050403");    // Nearly black at top
-    ceilingGradient.addColorStop(0.3, "#0a0806");  // Very dark
-    ceilingGradient.addColorStop(0.7, "#121010");  // Slightly lighter
-    ceilingGradient.addColorStop(1, "#1a1510");    // Transition to walls
-    ctx.fillStyle = ceilingGradient;
-    ctx.fillRect(0, 0, w, h / 2);
+    // Draw Ceiling with perspective texture (matching floor but darker with moss)
+    const ceilingTex = texturesRef.current.floor; // Use same texture as floor
+    if (ceilingTex) {
+      const texW = ceilingTex.width;
+      const texH = ceilingTex.height;
+      const texScale = 128;
+      
+      // Ceiling casting - mirror of floor casting
+      for (let y = 0; y < Math.floor(h / 2); y++) {
+        const p = Math.floor(h / 2) - y;
+        const rowDistance = (h * 0.5) / p;
+        
+        const ceilStepX = rowDistance * (planeX * 2) / w;
+        const ceilStepY = rowDistance * (planeY * 2) / w;
+        
+        let ceilX = posX + rowDistance * (dirX - planeX);
+        let ceilY = posY + rowDistance * (dirY - planeY);
+        
+        for (let x = 0; x < w; x += 2) {
+          const tx = Math.floor(Math.abs(ceilX * texScale) % texW);
+          const ty = Math.floor(Math.abs(ceilY * texScale) % texH);
+          
+          ctx.drawImage(
+            ceilingTex,
+            tx, ty, 2, 2,
+            x, y, 2, 1
+          );
+          
+          ceilX += ceilStepX * 2;
+          ceilY += ceilStepY * 2;
+        }
+      }
+      
+      // Apply jagged stone texture with color variations to ceiling
+      const stoneColors = [
+        { r: 45, g: 42, b: 38 },   // Dark brown-gray
+        { r: 55, g: 50, b: 45 },   // Medium gray-brown
+        { r: 38, g: 45, b: 40 },   // Dark green-gray
+        { r: 50, g: 48, b: 52 },   // Purple-gray
+        { r: 42, g: 40, b: 35 },   // Warm dark gray
+      ];
+      
+      // Seed for consistent random pattern
+      let seed = 12345;
+      const seededRandom = () => {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed / 0x7fffffff;
+      };
+      
+      for (let y = 0; y < Math.floor(h / 2); y += 2) {
+        const p = Math.floor(h / 2) - y;
+        const rowDistance = (h * 0.5) / p;
+        const darkness = Math.min(0.75, 0.4 + rowDistance / 15);
+        
+        // Add jagged stone blocks with color variation
+        for (let x = 0; x < w; x += 6 + Math.floor(seededRandom() * 8)) {
+          const blockWidth = 4 + Math.floor(seededRandom() * 10);
+          const colorIdx = Math.floor(seededRandom() * stoneColors.length);
+          const color = stoneColors[colorIdx];
+          
+          // Vary brightness slightly for each block
+          const brightVar = 0.85 + seededRandom() * 0.3;
+          const r = Math.floor(color.r * brightVar);
+          const g = Math.floor(color.g * brightVar);
+          const b = Math.floor(color.b * brightVar);
+          
+          // Add jagged edge effect
+          const jaggedOffset = Math.floor(seededRandom() * 2) - 1;
+          
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.3 + seededRandom() * 0.2})`;
+          ctx.fillRect(x, y + jaggedOffset, blockWidth, 3);
+        }
+        
+        // Dark mossy overlay
+        ctx.fillStyle = `rgba(5, 12, 8, ${darkness})`;
+        ctx.fillRect(0, y, w, 2);
+      }
+      
+      // Draw wooden support beams across ceiling
+      const beamCount = 5;
+      const beamSizes = [1.2, 0.8, 1.0, 0.9, 1.1]; // Variation in beam thickness
+      
+      // Seeded random for consistent wood details
+      let woodSeed = 54321;
+      const woodRandom = () => {
+        woodSeed = (woodSeed * 1103515245 + 12345) & 0x7fffffff;
+        return woodSeed / 0x7fffffff;
+      };
+      
+      for (let i = 1; i <= beamCount; i++) {
+        const beamY = Math.floor((h / 2) * (i / (beamCount + 1)));
+        const p = Math.floor(h / 2) - beamY;
+        const rowDistance = (h * 0.5) / p;
+        
+        // Beam gets thicker as it gets closer (perspective) with size variation
+        const sizeMultiplier = beamSizes[(i - 1) % beamSizes.length];
+        const beamHeight = Math.max(8, Math.floor(22 / rowDistance * sizeMultiplier));
+        const darkness = Math.min(0.6, rowDistance / 8);
+        const beamTop = beamY - beamHeight/2;
+        const beamBottom = beamY + beamHeight/2;
+        
+        // Base wood colors with slight variation per beam
+        const baseR = 90 + Math.floor(woodRandom() * 20);
+        const baseG = 66 + Math.floor(woodRandom() * 15);
+        const baseB = 40 + Math.floor(woodRandom() * 10);
+        
+        // Top edge highlight
+        ctx.fillStyle = `rgb(${baseR - 32}, ${baseG - 26}, ${baseB - 22})`;
+        ctx.fillRect(0, beamTop, w, 2);
+        
+        // Main beam body with wood grain texture
+        for (let bx = 0; bx < w; bx += 2) {
+          // Vertical color variation (lighter in middle, darker at edges)
+          for (let by = beamTop + 2; by < beamBottom - 2; by += 2) {
+            const distFromCenter = Math.abs(by - beamY) / (beamHeight / 2);
+            const edgeDarken = distFromCenter * 0.3;
+            
+            // Horizontal grain streaks
+            const grainOffset = Math.sin(bx * 0.1 + i * 10) * 8;
+            const grainBrightness = 0.85 + Math.sin((bx + grainOffset) * 0.05 + by * 0.2) * 0.15;
+            
+            const r = Math.floor((baseR - edgeDarken * 40) * grainBrightness);
+            const g = Math.floor((baseG - edgeDarken * 30) * grainBrightness);
+            const b = Math.floor((baseB - edgeDarken * 20) * grainBrightness);
+            
+            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(bx, by, 2, 2);
+          }
+        }
+        
+        // Add detailed wood grain lines with slight waviness
+        ctx.lineWidth = 1;
+        const grainSpacing = Math.max(2, Math.floor(beamHeight / 5));
+        for (let gy = beamTop + grainSpacing; gy < beamBottom - 2; gy += grainSpacing) {
+          ctx.strokeStyle = `rgba(30, 20, 10, ${0.2 + woodRandom() * 0.2})`;
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          for (let gx = 0; gx < w; gx += 10) {
+            const waveY = gy + Math.sin(gx * 0.03 + i) * 1.5;
+            ctx.lineTo(gx, waveY);
+          }
+          ctx.stroke();
+        }
+        
+        // Add wood knots (darker oval spots)
+        const knotCount = 2 + Math.floor(woodRandom() * 3);
+        for (let k = 0; k < knotCount; k++) {
+          const knotX = Math.floor(woodRandom() * w);
+          const knotY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
+          const knotW = 3 + Math.floor(woodRandom() * 4);
+          const knotH = 2 + Math.floor(woodRandom() * 3);
+          
+          // Knot center (dark)
+          ctx.fillStyle = `rgba(25, 18, 10, ${0.6 + woodRandom() * 0.3})`;
+          ctx.beginPath();
+          ctx.ellipse(knotX, knotY, knotW, knotH, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Knot ring (slightly lighter)
+          ctx.strokeStyle = `rgba(45, 32, 20, 0.5)`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(knotX, knotY, knotW + 1, knotH + 1, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        
+        // Add lighter streaks (weathered wood highlights)
+        for (let s = 0; s < 3; s++) {
+          const streakY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
+          const streakStart = Math.floor(woodRandom() * w * 0.5);
+          const streakLen = 20 + Math.floor(woodRandom() * 60);
+          ctx.fillStyle = `rgba(140, 115, 80, ${0.15 + woodRandom() * 0.15})`;
+          ctx.fillRect(streakStart, streakY, streakLen, 1);
+        }
+        
+        // Add darker cracks/age lines
+        for (let c = 0; c < 2; c++) {
+          const crackY = beamTop + 2 + Math.floor(woodRandom() * (beamHeight - 4));
+          const crackStart = Math.floor(woodRandom() * w * 0.7);
+          const crackLen = 10 + Math.floor(woodRandom() * 30);
+          ctx.fillStyle = `rgba(20, 12, 5, ${0.3 + woodRandom() * 0.2})`;
+          ctx.fillRect(crackStart, crackY, crackLen, 1);
+        }
+        
+        // Bottom edge (darker)
+        ctx.fillStyle = `rgb(${baseR - 48}, ${baseG - 40}, ${baseB - 30})`;
+        ctx.fillRect(0, beamBottom - 2, w, 2);
+        
+        // Darken distant beams
+        ctx.fillStyle = `rgba(5, 8, 5, ${darkness})`;
+        ctx.fillRect(0, beamTop, w, beamHeight);
+        
+        // Hard bottom shadow for depth
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, beamBottom, w, 3);
+      }
+    } else {
+      // Fallback gradient ceiling
+      const ceilingGradient = ctx.createLinearGradient(0, 0, 0, h / 2);
+      ceilingGradient.addColorStop(0, "#0a0806");
+      ceilingGradient.addColorStop(1, "#1a1510");
+      ctx.fillStyle = ceilingGradient;
+      ctx.fillRect(0, 0, w, h / 2);
+    }
     
-    // Draw Floor with gradient fog (optimized for performance)
-    const floorGradient = ctx.createLinearGradient(0, h / 2, 0, h);
-    floorGradient.addColorStop(0, "#2a2520");     // Near the horizon - lighter
-    floorGradient.addColorStop(0.3, "#3d3528");   // Mid-ground - warmer stone
-    floorGradient.addColorStop(0.7, "#2a2218");   // Farther - darker
-    floorGradient.addColorStop(1, "#1a1510");     // Edge - fog fades to dark
-    ctx.fillStyle = floorGradient;
-    ctx.fillRect(0, h / 2, w, h / 2);
+    // Stone boulder fascia at ceiling/wall transition
+    const fasciaY = Math.floor(h / 2) - 8;
+    const fasciaHeight = 12;
+    
+    // Seeded random for consistent boulder pattern
+    let fasciaSeed = 98765;
+    const fasciaRandom = () => {
+      fasciaSeed = (fasciaSeed * 1103515245 + 12345) & 0x7fffffff;
+      return fasciaSeed / 0x7fffffff;
+    };
+    
+    // Draw stone boulders across the fascia
+    let boulderX = 0;
+    while (boulderX < w) {
+      const boulderW = 12 + Math.floor(fasciaRandom() * 18);
+      const boulderH = 8 + Math.floor(fasciaRandom() * 5);
+      const boulderYOffset = Math.floor(fasciaRandom() * 3) - 1;
+      
+      // Boulder base color with variation
+      const baseGray = 65 + Math.floor(fasciaRandom() * 25);
+      const rVar = Math.floor(fasciaRandom() * 15) - 7;
+      const gVar = Math.floor(fasciaRandom() * 10) - 5;
+      const bVar = Math.floor(fasciaRandom() * 10) - 5;
+      
+      const r = baseGray + rVar;
+      const g = baseGray + gVar - 3;
+      const b = baseGray + bVar - 5;
+      
+      // Main boulder body
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 2, fasciaY + boulderYOffset);
+      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset);
+      ctx.lineTo(boulderX + boulderW, fasciaY + boulderYOffset + 3);
+      ctx.lineTo(boulderX + boulderW - 1, fasciaY + boulderYOffset + boulderH - 2);
+      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + boulderH);
+      ctx.lineTo(boulderX + 3, fasciaY + boulderYOffset + boulderH);
+      ctx.lineTo(boulderX, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.lineTo(boulderX + 1, fasciaY + boulderYOffset + 2);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Boulder top highlight
+      ctx.fillStyle = `rgb(${r + 20}, ${g + 18}, ${b + 15})`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 3, fasciaY + boulderYOffset + 1);
+      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + 1);
+      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + 3);
+      ctx.lineTo(boulderX + 4, fasciaY + boulderYOffset + 3);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Boulder bottom shadow
+      ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
+      ctx.beginPath();
+      ctx.moveTo(boulderX + 4, fasciaY + boulderYOffset + boulderH - 1);
+      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + boulderH - 1);
+      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.lineTo(boulderX + 2, fasciaY + boulderYOffset + boulderH - 3);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Cracks and texture on boulder
+      if (fasciaRandom() > 0.4) {
+        ctx.strokeStyle = `rgba(30, 28, 25, 0.5)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const crackStartX = boulderX + 3 + Math.floor(fasciaRandom() * (boulderW - 6));
+        ctx.moveTo(crackStartX, fasciaY + boulderYOffset + 2);
+        ctx.lineTo(crackStartX + (fasciaRandom() - 0.5) * 4, fasciaY + boulderYOffset + boulderH - 2);
+        ctx.stroke();
+      }
+      
+      // Mortar/gap between boulders
+      ctx.fillStyle = 'rgba(20, 18, 15, 0.7)';
+      ctx.fillRect(boulderX + boulderW - 1, fasciaY, 2, fasciaHeight);
+      
+      boulderX += boulderW + 1;
+    }
+    
+    // Shadow below fascia (transition to wall)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, fasciaY + fasciaHeight - 2, w, 3);
+    
+    // Dark line at very top of fascia (ceiling shadow)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(0, fasciaY - 1, w, 2);
+
+    // Draw Floor with perspective floor casting (cobblestone walkway effect)
+    const floorTex = texturesRef.current.floor;
+    if (floorTex) {
+      const texW = floorTex.width;
+      const texH = floorTex.height;
+      const texScale = 128; // Larger = bigger visible cobblestones
+      
+      // Floor casting - draw every scanline for maximum sharpness
+      for (let y = Math.floor(h / 2) + 1; y < h; y++) {
+        const p = y - h / 2;
+        const rowDistance = (h * 0.5) / p;
+        
+        const floorStepX = rowDistance * (planeX * 2) / w;
+        const floorStepY = rowDistance * (planeY * 2) / w;
+        
+        let floorX = posX + rowDistance * (dirX - planeX);
+        let floorY = posY + rowDistance * (dirY - planeY);
+        
+        // Draw each pixel for sharp cobblestone texture
+        for (let x = 0; x < w; x += 2) {
+          const tx = Math.floor(Math.abs(floorX * texScale) % texW);
+          const ty = Math.floor(Math.abs(floorY * texScale) % texH);
+          
+          ctx.drawImage(
+            floorTex,
+            tx, ty, 2, 2,
+            x, y, 2, 1
+          );
+          
+          floorX += floorStepX * 2;
+          floorY += floorStepY * 2;
+        }
+      }
+      
+      // Apply mossy green-tinted fog overlay for atmosphere
+      for (let y = Math.floor(h / 2) + 1; y < h; y += 2) {
+        const p = y - h / 2;
+        const rowDistance = (h * 0.5) / p;
+        const fog = Math.min(0.6, rowDistance / 12);
+        // Green-tinted fog for mossy dungeon atmosphere
+        ctx.fillStyle = `rgba(8, 15, 10, ${fog})`;
+        ctx.fillRect(0, y, w, 2);
+      }
+    } else {
+      // Fallback gradient floor
+      const floorGradient = ctx.createLinearGradient(0, h / 2, 0, h);
+      floorGradient.addColorStop(0, "#2a2520");
+      floorGradient.addColorStop(0.5, "#3d3528");
+      floorGradient.addColorStop(1, "#1a1510");
+      ctx.fillStyle = floorGradient;
+      ctx.fillRect(0, h / 2, w, h / 2);
+    }
 
     // Raycasting Loop
     for (let x = 0; x < w; x+=2) { // Optimization: Step by 2 pixels
