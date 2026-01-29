@@ -18,7 +18,15 @@ import {
   Potion, getRandomPotionDrop
 } from "@/lib/game-engine";
 import { useKey } from "react-use";
-import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp, ChevronDown, Backpack } from "lucide-react";
+import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp, ChevronDown, Backpack, Settings } from "lucide-react";
+
+// Graphics resolution presets
+type GraphicsQuality = 'high' | 'medium' | 'low';
+const RESOLUTION_PRESETS: Record<GraphicsQuality, { width: number; height: number; label: string }> = {
+  high: { width: 800, height: 600, label: 'High (800x600)' },
+  medium: { width: 640, height: 480, label: 'Medium (640x480)' },
+  low: { width: 400, height: 300, label: 'Low (400x300)' }
+};
 
 function formatEquipmentStats(item: Equipment): string {
   const stats = getEnhancedStats(item);
@@ -66,6 +74,8 @@ export default function Game() {
   const [showEquipment, setShowEquipment] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
+  const [graphicsQuality, setGraphicsQuality] = useState<GraphicsQuality>('high');
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedCharForEquip, setSelectedCharForEquip] = useState(0);
   const [selectedCharForStats, setSelectedCharForStats] = useState(0);
   const [selectedCharForPotion, setSelectedCharForPotion] = useState(0);
@@ -1384,7 +1394,12 @@ export default function Game() {
           <RetroCard className="p-1">
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden rounded-lg">
               {/* Always show dungeon view as background */}
-              <DungeonView gameData={game} className="w-full h-full" />
+              <DungeonView 
+                gameData={game} 
+                className="w-full h-full" 
+                renderWidth={RESOLUTION_PRESETS[graphicsQuality].width}
+                renderHeight={RESOLUTION_PRESETS[graphicsQuality].height}
+              />
               
               {/* Mini Map in top left (toggle with M key) - centered on player */}
               {showMiniMap && (() => {
@@ -1447,6 +1462,41 @@ export default function Game() {
                   </div>
                 );
               })()}
+              
+              {/* Settings button - top right */}
+              <div className="absolute top-3 right-3 z-30">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="bg-black/70 hover:bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors"
+                  data-testid="button-settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+                
+                {showSettings && (
+                  <div className="absolute top-full right-0 mt-2 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg p-3 min-w-[180px] shadow-xl">
+                    <div className="text-xs text-amber-400 font-bold mb-2 tracking-wider">GRAPHICS</div>
+                    {(['high', 'medium', 'low'] as GraphicsQuality[]).map((quality) => (
+                      <button
+                        key={quality}
+                        onClick={() => {
+                          setGraphicsQuality(quality);
+                          setShowSettings(false);
+                        }}
+                        className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
+                          graphicsQuality === quality 
+                            ? 'bg-amber-600/50 text-amber-200' 
+                            : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                        }`}
+                        data-testid={`button-quality-${quality}`}
+                      >
+                        {RESOLUTION_PRESETS[quality].label}
+                        {graphicsQuality === quality && <span className="ml-2 text-amber-400">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               {/* Monster overlay during combat */}
               {combatState.active && combatState.monsters.length > 0 && (

@@ -4,9 +4,11 @@ import { GameData, NORTH, EAST, SOUTH, WEST } from "@/lib/game-engine";
 interface DungeonViewProps {
   gameData: GameData;
   className?: string;
+  renderWidth?: number;
+  renderHeight?: number;
 }
 
-export function DungeonView({ gameData, className }: DungeonViewProps) {
+export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600 }: DungeonViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; door: HTMLImageElement | null }>({ wall: null, floor: null, door: null });
 
@@ -24,10 +26,10 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     doorImg.onload = () => { texturesRef.current.door = doorImg; draw(); };
   }, []);
 
-  // Redraw when game data changes
+  // Redraw when game data or resolution changes
   useEffect(() => {
     draw();
-  }, [gameData]);
+  }, [gameData, renderWidth, renderHeight]);
 
   const draw = () => {
     const canvas = canvasRef.current;
@@ -1070,8 +1072,8 @@ export function DungeonView({ gameData, className }: DungeonViewProps) {
     <div className={className}>
       <canvas 
         ref={canvasRef} 
-        width={800} 
-        height={600} 
+        width={renderWidth} 
+        height={renderHeight} 
         className="w-full h-full image-pixelated rounded-lg border-4 border-muted shadow-inner bg-black"
       />
       {/* Compass / Coords Overlay */}
