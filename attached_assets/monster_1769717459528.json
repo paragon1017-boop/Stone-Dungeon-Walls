@@ -1,0 +1,289 @@
+// Add these to your existing MONSTERS array or create a new array
+
+export const ADDITIONAL_MONSTERS: Monster[] = [
+  // === FOREST/EARTH ELEMENTAL MONSTERS ===
+  { id: 'm30', name: 'Treant Sapling', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 6, defense: 4, speed: 3, xpValue: 15, goldValue: 12, color: '#228B22', image: 'treant_sapling.png' },
+  { id: 'm31', name: 'Mossback Turtle', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 5, defense: 8, speed: 2, xpValue: 18, goldValue: 15, color: '#556B2F', image: 'mossback_turtle.png' },
+  { id: 'm32', name: 'Vine Lurker', hp: 25, maxHp: 25, mp: 5, maxMp: 5, attack: 7, defense: 2, speed: 8, xpValue: 14, goldValue: 10, color: '#32CD32', image: 'vine_lurker.png' },
+  { id: 'm33', name: 'Willow Wisps', hp: 20, maxHp: 20, mp: 15, maxMp: 15, attack: 4, defense: 1, speed: 12, xpValue: 16, goldValue: 14, color: '#98FB98', image: 'willow_wisps.png' },
+  { id: 'm34', name: 'Stone Golem Jr.', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 10, defense: 10, speed: 2, xpValue: 25, goldValue: 20, color: '#808080', image: 'stone_golem_jr.png' },
+  { id: 'm35', name: 'Fungal Spore', hp: 15, maxHp: 15, mp: 0, maxMp: 0, attack: 3, defense: 0, speed: 5, xpValue: 8, goldValue: 5, color: '#FF69B4', image: 'fungal_spore.png' },
+  { id: 'm36', name: 'Bramble Beast', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 8, defense: 5, speed: 6, xpValue: 22, goldValue: 18, color: '#8B4513', image: 'bramble_beast.png' },
+  { id: 'm37', name: 'Leaf Sprite', hp: 18, maxHp: 18, mp: 8, maxMp: 8, attack: 5, defense: 1, speed: 10, xpValue: 12, goldValue: 8, color: '#00FF00', image: 'leaf_sprite.png' },
+  { id: 'm38', name: 'Root Crawler', hp: 30, maxHp: 30, mp: 0, maxMp: 0, attack: 6, defense: 3, speed: 4, xpValue: 16, goldValue: 12, color: '#654321', image: 'root_crawler.png' },
+  { id: 'm39', name: 'Forest Guardian', hp: 75, maxHp: 75, mp: 20, maxMp: 20, attack: 12, defense: 7, speed: 5, xpValue: 40, goldValue: 35, color: '#006400', image: 'forest_guardian.png' },
+
+  // === WATER/AQUATIC MONSTERS ===
+  { id: 'm40', name: 'River Serpent', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 9, defense: 3, speed: 9, xpValue: 24, goldValue: 20, color: '#4682B4', image: 'river_serpent.png' },
+  { id: 'm41', name: 'Coral Crab', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 7, defense: 6, speed: 4, xpValue: 20, goldValue: 16, color: '#FF6B6B', image: 'coral_crab.png' },
+  { id: 'm42', name: 'Deep Sea Angler', hp: 55, maxHp: 55, mp: 10, maxMp: 10, attack: 11, defense: 4, speed: 6, xpValue: 30, goldValue: 25, color: '#00008B', image: 'deep_sea_angler.png' },
+  { id: 'm43', name: 'Water Elemental', hp: 40, maxHp: 40, mp: 25, maxMp: 25, attack: 8, defense: 2, speed: 7, xpValue: 28, goldValue: 22, color: '#00CED1', image: 'water_elemental.png' },
+  { id: 'm44', name: 'Siren', hp: 50, maxHp: 50, mp: 30, maxMp: 30, attack: 9, defense: 3, speed: 8, xpValue: 35, goldValue: 30, color: '#87CEEB', image: 'siren.png' },
+  { id: 'm45', name: 'Kraken Tentacle', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 13, defense: 5, speed: 5, xpValue: 38, goldValue: 32, color: '#483D8B', image: 'kraken_tentacle.png' },
+  { id: 'm46', name: 'Frost Puffer', hp: 30, maxHp: 30, mp: 0, maxMp: 0, attack: 5, defense: 8, speed: 3, xpValue: 18, goldValue: 15, color: '#AFEEEE', image: 'frost_puffer.png' },
+  { id: 'm47', name: 'Abyssal Horror', hp: 80, maxHp: 80, mp: 15, maxMp: 15, attack: 16, defense: 6, speed: 4, xpValue: 45, goldValue: 40, color: '#191970', image: 'abyssal_horror.png' },
+  { id: 'm48', name: 'Tidal Mage', hp: 45, maxHp: 45, mp: 40, maxMp: 40, attack: 7, defense: 3, speed: 6, xpValue: 32, goldValue: 28, color: '#4169E1', image: 'tidal_mage.png' },
+  { id: 'm49', name: 'Pearl Ooze', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 4, defense: 10, speed: 2, xpValue: 15, goldValue: 25, color: '#F0F8FF', image: 'pearl_ooze.png' },
+
+  // === FIRE/VOLCANIC MONSTERS ===
+  { id: 'm50', name: 'Magma Slug', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 8, defense: 4, speed: 2, xpValue: 20, goldValue: 16, color: '#FF4500', image: 'magma_slug.png' },
+  { id: 'm51', name: 'Ash Phoenix', hp: 60, maxHp: 60, mp: 20, maxMp: 20, attack: 14, defense: 5, speed: 11, xpValue: 42, goldValue: 38, color: '#DC143C', image: 'ash_phoenix.png' },
+  { id: 'm52', name: 'Lava Golem', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 18, defense: 9, speed: 3, xpValue: 55, goldValue: 45, color: '#FF6347', image: 'lava_golem.png' },
+  { id: 'm53', name: 'Fire Salamander', hp: 35, maxHp: 35, mp: 5, maxMp: 5, attack: 10, defense: 2, speed: 9, xpValue: 22, goldValue: 18, color: '#FF8C00', image: 'fire_salamander.png' },
+  { id: 'm54', name: 'Cinder Imp', hp: 25, maxHp: 25, mp: 15, maxMp: 15, attack: 7, defense: 1, speed: 13, xpValue: 18, goldValue: 15, color: '#FFD700', image: 'cinder_imp.png' },
+  { id: 'm55', name: 'Molten Core', hp: 100, maxHp: 100, mp: 0, maxMp: 0, attack: 20, defense: 12, speed: 1, xpValue: 65, goldValue: 55, color: '#B22222', image: 'molten_core.png' },
+  { id: 'm56', name: 'Ember Wolf', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 12, defense: 4, speed: 10, xpValue: 35, goldValue: 30, color: '#CD5C5C', image: 'ember_wolf.png' },
+  { id: 'm57', name: 'Pyroclast', hp: 45, maxHp: 45, mp: 25, maxMp: 25, attack: 9, defense: 3, speed: 7, xpValue: 30, goldValue: 25, color: '#FF7F50', image: 'pyroclast.png' },
+  { id: 'm58', name: 'Blaze Drake', hp: 70, maxHp: 70, mp: 10, maxMp: 10, attack: 16, defense: 7, speed: 8, xpValue: 48, goldValue: 42, color: '#FF4500', image: 'blaze_drake.png' },
+  { id: 'm59', name: 'Inferno Wisp', hp: 20, maxHp: 20, mp: 20, maxMp: 20, attack: 6, defense: 0, speed: 14, xpValue: 16, goldValue: 12, color: '#FF0000', image: 'inferno_wisp.png' },
+
+  // === AIR/WIND MONSTERS ===
+  { id: 'm60', name: 'Storm Crow', hp: 30, maxHp: 30, mp: 5, maxMp: 5, attack: 7, defense: 2, speed: 15, xpValue: 20, goldValue: 16, color: '#2F4F4F', image: 'storm_crow.png' },
+  { id: 'm61', name: 'Zephyr Falcon', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 9, defense: 1, speed: 18, xpValue: 25, goldValue: 20, color: '#778899', image: 'zephyr_falcon.png' },
+  { id: 'm62', name: 'Tempest Spirit', hp: 50, maxHp: 50, mp: 30, maxMp: 30, attack: 8, defense: 3, speed: 12, xpValue: 35, goldValue: 30, color: '#87CEEB', image: 'tempest_spirit.png' },
+  { id: 'm63', name: 'Thunderbird', hp: 65, maxHp: 65, mp: 15, maxMp: 15, attack: 14, defense: 4, speed: 14, xpValue: 45, goldValue: 40, color: '#1E90FF', image: 'thunderbird.png' },
+  { id: 'm64', name: 'Gale Serpent', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 11, defense: 3, speed: 16, xpValue: 38, goldValue: 32, color: '#4682B4', image: 'gale_serpent.png' },
+  { id: 'm65', name: 'Whirlwind', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 6, defense: 0, speed: 20, xpValue: 22, goldValue: 18, color: '#F0F8FF', image: 'whirlwind.png' },
+  { id: 'm66', name: 'Cloud Giant', hp: 90, maxHp: 90, mp: 20, maxMp: 20, attack: 17, defense: 8, speed: 6, xpValue: 60, goldValue: 50, color: '#FFFFFF', image: 'cloud_giant.png' },
+  { id: 'm67', name: 'Mist Wraith', hp: 45, maxHp: 45, mp: 25, maxMp: 25, attack: 7, defense: 2, speed: 10, xpValue: 30, goldValue: 25, color: '#DCDCDC', image: 'mist_wraith.png' },
+  { id: 'm68', name: 'Sky Ray', hp: 60, maxHp: 60, mp: 10, maxMp: 10, attack: 13, defense: 5, speed: 11, xpValue: 42, goldValue: 36, color: '#E6E6FA', image: 'sky_ray.png' },
+  { id: 'm69', name: 'Aerial Jellyfish', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 5, defense: 8, speed: 7, xpValue: 18, goldValue: 15, color: '#E0B0FF', image: 'aerial_jellyfish.png' },
+
+  // === ICE/COLD MONSTERS ===
+  { id: 'm70', name: 'Frostbite Spider', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 8, defense: 4, speed: 8, xpValue: 22, goldValue: 18, color: '#AFEEEE', image: 'frostbite_spider.png' },
+  { id: 'm71', name: 'Ice Golem', hp: 70, maxHp: 70, mp: 0, maxMp: 0, attack: 12, defense: 12, speed: 3, xpValue: 40, goldValue: 35, color: '#B0E0E6', image: 'ice_golem.png' },
+  { id: 'm72', name: 'Snow Yeti', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 16, defense: 7, speed: 6, xpValue: 55, goldValue: 45, color: '#F0F8FF', image: 'snow_yeti.png' },
+  { id: 'm73', name: 'Glacier Worm', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 11, defense: 6, speed: 4, xpValue: 35, goldValue: 30, color: '#ADD8E6', image: 'glacier_worm.png' },
+  { id: 'm74', name: 'Frozen Shade', hp: 45, maxHp: 45, mp: 20, maxMp: 20, attack: 9, defense: 3, speed: 9, xpValue: 30, goldValue: 25, color: '#87CEEB', image: 'frozen_shade.png' },
+  { id: 'm75', name: 'Cryo Hydra', hp: 95, maxHp: 95, mp: 15, maxMp: 15, attack: 19, defense: 8, speed: 5, xpValue: 65, goldValue: 55, color: '#00BFFF', image: 'cryo_hydra.png' },
+  { id: 'm76', name: 'Hailstorm', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 7, defense: 0, speed: 12, xpValue: 28, goldValue: 22, color: '#FFFFFF', image: 'hailstorm.png' },
+  { id: 'm77', name: 'Permafrost Drake', hp: 80, maxHp: 80, mp: 10, maxMp: 10, attack: 17, defense: 9, speed: 7, xpValue: 52, goldValue: 46, color: '#1E90FF', image: 'permafrost_drake.png' },
+  { id: 'm78', name: 'Ice Shard', hp: 20, maxHp: 20, mp: 5, maxMp: 5, attack: 6, defense: 10, speed: 5, xpValue: 15, goldValue: 20, color: '#E6F7FF', image: 'ice_shard.png' },
+  { id: 'm79', name: 'Winter Wolf', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 14, defense: 5, speed: 10, xpValue: 42, goldValue: 36, color: '#F0FFFF', image: 'winter_wolf.png' },
+
+  // === ELECTRIC/LIGHTNING MONSTERS ===
+  { id: 'm80', name: 'Spark Elemental', hp: 25, maxHp: 25, mp: 10, maxMp: 10, attack: 8, defense: 1, speed: 16, xpValue: 20, goldValue: 16, color: '#FFFF00', image: 'spark_elemental.png' },
+  { id: 'm81', name: 'Stormcaller', hp: 55, maxHp: 55, mp: 40, maxMp: 40, attack: 10, defense: 3, speed: 8, xpValue: 38, goldValue: 32, color: '#9370DB', image: 'stormcaller.png' },
+  { id: 'm82', name: 'Lightning Cat', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 12, defense: 2, speed: 20, xpValue: 32, goldValue: 28, color: '#FFD700', image: 'lightning_cat.png' },
+  { id: 'm83', name: 'Tesla Coil', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 9, defense: 8, speed: 3, xpValue: 25, goldValue: 22, color: '#00FFFF', image: 'tesla_coil.png' },
+  { id: 'm84', name: 'Thunder Ram', hp: 75, maxHp: 75, mp: 0, maxMp: 0, attack: 15, defense: 6, speed: 12, xpValue: 50, goldValue: 42, color: '#4B0082', image: 'thunder_ram.png' },
+  { id: 'm85', name: 'Volt Beetle', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 7, defense: 5, speed: 9, xpValue: 22, goldValue: 18, color: '#FF4500', image: 'volt_beetle.png' },
+  { id: 'm86', name: 'Electro Jelly', hp: 50, maxHp: 50, mp: 15, maxMp: 15, attack: 11, defense: 4, speed: 6, xpValue: 35, goldValue: 30, color: '#FF00FF', image: 'electro_jelly.png' },
+  { id: 'm87', name: 'Storm Giant', hp: 95, maxHp: 95, mp: 25, maxMp: 25, attack: 18, defense: 9, speed: 7, xpValue: 65, goldValue: 55, color: '#483D8B', image: 'storm_giant.png' },
+  { id: 'm88', name: 'Arc Wraith', hp: 60, maxHp: 60, mp: 30, maxMp: 30, attack: 13, defense: 3, speed: 11, xpValue: 42, goldValue: 36, color: '#8A2BE2', image: 'arc_wraith.png' },
+  { id: 'm89', name: 'Plasma Mite', hp: 15, maxHp: 15, mp: 5, maxMp: 5, attack: 5, defense: 0, speed: 18, xpValue: 12, goldValue: 10, color: '#FF1493', image: 'plasma_mite.png' },
+
+  // === POISON/TOXIC MONSTERS ===
+  { id: 'm90', name: 'Venomous Creeper', hp: 30, maxHp: 30, mp: 0, maxMp: 0, attack: 6, defense: 2, speed: 7, xpValue: 18, goldValue: 14, color: '#32CD32', image: 'venomous_creeper.png' },
+  { id: 'm91', name: 'Toxic Ooze', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 7, defense: 3, speed: 4, xpValue: 25, goldValue: 20, color: '#00FF00', image: 'toxic_ooze.png' },
+  { id: 'm92', name: 'Plague Rat', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 5, defense: 1, speed: 10, xpValue: 15, goldValue: 12, color: '#556B2F', image: 'plague_rat.png' },
+  { id: 'm93', name: 'Acid Spitter', hp: 40, maxHp: 40, mp: 5, maxMp: 5, attack: 9, defense: 2, speed: 8, xpValue: 24, goldValue: 20, color: '#7CFC00', image: 'acid_spitter.png' },
+  { id: 'm94', name: 'Blighted Treant', hp: 70, maxHp: 70, mp: 10, maxMp: 10, attack: 13, defense: 6, speed: 3, xpValue: 42, goldValue: 36, color: '#8FBC8F', image: 'blighted_treant.png' },
+  { id: 'm95', name: 'Noxious Gas', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 5, defense: 0, speed: 12, xpValue: 20, goldValue: 16, color: '#90EE90', image: 'noxious_gas.png' },
+  { id: 'm96', name: 'Corrosive Slime', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 10, defense: 4, speed: 5, xpValue: 32, goldValue: 28, color: '#00FA9A', image: 'corrosive_slime.png' },
+  { id: 'm97', name: 'Poison Dart Frog', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 8, defense: 0, speed: 14, xpValue: 16, goldValue: 12, color: '#FF00FF', image: 'poison_dart_frog.png' },
+  { id: 'm98', name: 'Toxin Mephit', hp: 50, maxHp: 50, mp: 15, maxMp: 15, attack: 11, defense: 3, speed: 9, xpValue: 35, goldValue: 30, color: '#DA70D6', image: 'toxin_mephit.png' },
+  { id: 'm99', name: 'Venom Drake', hp: 80, maxHp: 80, mp: 0, maxMp: 0, attack: 16, defense: 7, speed: 8, xpValue: 52, goldValue: 46, color: '#8B008B', image: 'venom_drake.png' },
+
+  // === HOLY/LIGHT MONSTERS ===
+  { id: 'm100', name: 'Light Sprite', hp: 25, maxHp: 25, mp: 20, maxMp: 20, attack: 6, defense: 1, speed: 14, xpValue: 20, goldValue: 18, color: '#FFFFE0', image: 'light_sprite.png' },
+  { id: 'm101', name: 'Celestial Guardian', hp: 75, maxHp: 75, mp: 30, maxMp: 30, attack: 14, defense: 8, speed: 7, xpValue: 48, goldValue: 42, color: '#F0E68C', image: 'celestial_guardian.png' },
+  { id: 'm102', name: 'Sunbeam Seraph', hp: 60, maxHp: 60, mp: 40, maxMp: 40, attack: 10, defense: 4, speed: 10, xpValue: 42, goldValue: 38, color: '#FFD700', image: 'sunbeam_seraph.png' },
+  { id: 'm103', name: 'Holy Lion', hp: 85, maxHp: 85, mp: 15, maxMp: 15, attack: 18, defense: 6, speed: 9, xpValue: 58, goldValue: 50, color: '#FFE4B5', image: 'holy_lion.png' },
+  { id: 'm104', name: 'Radiant Golem', hp: 95, maxHp: 95, mp: 0, maxMp: 0, attack: 16, defense: 12, speed: 4, xpValue: 62, goldValue: 54, color: '#FFFAF0', image: 'radiant_golem.png' },
+  { id: 'm105', name: 'Angel of Light', hp: 70, maxHp: 70, mp: 50, maxMp: 50, attack: 12, defense: 5, speed: 12, xpValue: 52, goldValue: 48, color: '#FFFFFF', image: 'angel_of_light.png' },
+  { id: 'm106', name: 'Golden Phoenix', hp: 90, maxHp: 90, mp: 25, maxMp: 25, attack: 20, defense: 7, speed: 11, xpValue: 68, goldValue: 60, color: '#FFD700', image: 'golden_phoenix.png' },
+  { id: 'm107', name: 'Blessed Unicorn', hp: 65, maxHp: 65, mp: 20, maxMp: 20, attack: 15, defense: 5, speed: 15, xpValue: 45, goldValue: 40, color: '#F8F8FF', image: 'blessed_unicorn.png' },
+  { id: 'm108', name: 'Solar Flare', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 8, defense: 0, speed: 18, xpValue: 28, goldValue: 24, color: '#FF4500', image: 'solar_flare.png' },
+  { id: 'm109', name: 'Divine Judge', hp: 100, maxHp: 100, mp: 35, maxMp: 35, attack: 22, defense: 9, speed: 8, xpValue: 75, goldValue: 65, color: '#FFE4E1', image: 'divine_judge.png' },
+
+  // === SHADOW/DARKNESS MONSTERS ===
+  { id: 'm110', name: 'Shadow Stalker', hp: 55, maxHp: 55, mp: 10, maxMp: 10, attack: 12, defense: 3, speed: 13, xpValue: 38, goldValue: 32, color: '#2F4F4F', image: 'shadow_stalker.png' },
+  { id: 'm111', name: 'Void Walker', hp: 65, maxHp: 65, mp: 30, maxMp: 30, attack: 14, defense: 4, speed: 9, xpValue: 45, goldValue: 38, color: '#000000', image: 'void_walker.png' },
+  { id: 'm112', name: 'Nightmare Steed', hp: 80, maxHp: 80, mp: 15, maxMp: 15, attack: 17, defense: 6, speed: 14, xpValue: 58, goldValue: 50, color: '#191970', image: 'nightmare_steed.png' },
+  { id: 'm113', name: 'Abyssal Slime', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 9, defense: 5, speed: 5, xpValue: 32, goldValue: 28, color: '#483D8B', image: 'abyssal_slime.png' },
+  { id: 'm114', name: 'Darkling', hp: 30, maxHp: 30, mp: 5, maxMp: 5, attack: 7, defense: 2, speed: 11, xpValue: 22, goldValue: 18, color: '#696969', image: 'darkling.png' },
+  { id: 'm115', name: 'Umbra Dragon', hp: 110, maxHp: 110, mp: 25, maxMp: 25, attack: 24, defense: 10, speed: 10, xpValue: 82, goldValue: 75, color: '#00008B', image: 'umbra_dragon.png' },
+  { id: 'm116', name: 'Gloom Wisp', hp: 20, maxHp: 20, mp: 15, maxMp: 15, attack: 5, defense: 0, speed: 16, xpValue: 16, goldValue: 14, color: '#4B0082', image: 'gloom_wisp.png' },
+  { id: 'm117', name: 'Eclipse Beast', hp: 95, maxHp: 95, mp: 20, maxMp: 20, attack: 20, defense: 8, speed: 8, xpValue: 68, goldValue: 60, color: '#2F4F4F', image: 'eclipse_beast.png' },
+  { id: 'm118', name: 'Tenebrous Knight', hp: 75, maxHp: 75, mp: 15, maxMp: 15, attack: 16, defense: 9, speed: 7, xpValue: 52, goldValue: 46, color: '#000000', image: 'tenebrous_knight.png' },
+  { id: 'm119', name: 'Shadowmancer', hp: 60, maxHp: 60, mp: 40, maxMp: 40, attack: 11, defense: 3, speed: 9, xpValue: 45, goldValue: 40, color: '#8B0000', image: 'shadowmancer.png' },
+
+  // === CRYSTAL/GEM MONSTERS ===
+  { id: 'm120', name: 'Crystal Spider', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 8, defense: 6, speed: 7, xpValue: 25, goldValue: 22, color: '#E6E6FA', image: 'crystal_spider.png' },
+  { id: 'm121', name: 'Diamond Golem', hp: 90, maxHp: 90, mp: 0, maxMp: 0, attack: 15, defense: 15, speed: 3, xpValue: 60, goldValue: 55, color: '#B9F2FF', image: 'diamond_golem.png' },
+  { id: 'm122', name: 'Ruby Salamander', hp: 55, maxHp: 55, mp: 10, maxMp: 10, attack: 13, defense: 4, speed: 8, xpValue: 38, goldValue: 35, color: '#E0115F', image: 'ruby_salamander.png' },
+  { id: 'm123', name: 'Emerald Basilisk', hp: 70, maxHp: 70, mp: 0, maxMp: 0, attack: 16, defense: 7, speed: 6, xpValue: 48, goldValue: 45, color: '#50C878', image: 'emerald_basilisk.png' },
+  { id: 'm124', name: 'Sapphire Drake', hp: 85, maxHp: 85, mp: 15, maxMp: 15, attack: 18, defense: 8, speed: 9, xpValue: 62, goldValue: 58, color: '#0F52BA', image: 'sapphire_drake.png' },
+  { id: 'm125', name: 'Amethyst Shard', hp: 25, maxHp: 25, mp: 20, maxMp: 20, attack: 7, defense: 10, speed: 4, xpValue: 22, goldValue: 25, color: '#9966CC', image: 'amethyst_shard.png' },
+  { id: 'm126', name: 'Topaz Guardian', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 14, defense: 9, speed: 5, xpValue: 45, goldValue: 42, color: '#FFC87C', image: 'topaz_guardian.png' },
+  { id: 'm127', name: 'Opal Serpent', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 6, speed: 10, xpValue: 42, goldValue: 40, color: '#A8C3BC', image: 'opal_serpent.png' },
+  { id: 'm128', name: 'Crystalized Ooze', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 9, defense: 8, speed: 3, xpValue: 35, goldValue: 32, color: '#B7C9E2', image: 'crystalized_ooze.png' },
+  { id: 'm129', name: 'Prism Elemental', hp: 75, maxHp: 75, mp: 30, maxMp: 30, attack: 15, defense: 5, speed: 8, xpValue: 55, goldValue: 52, color: '#FF6EC7', image: 'prism_elemental.png' },
+
+  // === MECHANICAL/CONSTRUCT MONSTERS ===
+  { id: 'm130', name: 'Clockwork Soldier', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 9, defense: 6, speed: 5, xpValue: 28, goldValue: 25, color: '#A9A9A9', image: 'clockwork_soldier.png' },
+  { id: 'm131', name: 'Gear Golem', hp: 80, maxHp: 80, mp: 0, maxMp: 0, attack: 14, defense: 12, speed: 3, xpValue: 52, goldValue: 48, color: '#808080', image: 'gear_golem.png' },
+  { id: 'm132', name: 'Automaton', hp: 65, maxHp: 65, mp: 10, maxMp: 10, attack: 12, defense: 8, speed: 6, xpValue: 42, goldValue: 38, color: '#C0C0C0', image: 'automaton.png' },
+  { id: 'm133', name: 'Steam Powered', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 11, defense: 7, speed: 4, xpValue: 38, goldValue: 35, color: '#D3D3D3', image: 'steam_powered.png' },
+  { id: 'm134', name: 'Tesla Turret', hp: 40, maxHp: 40, mp: 15, maxMp: 15, attack: 10, defense: 10, speed: 2, xpValue: 30, goldValue: 28, color: '#FFFF00', image: 'tesla_turret.png' },
+  { id: 'm135', name: 'Mechanical Spider', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 9, defense: 9, speed: 8, xpValue: 35, goldValue: 32, color: '#696969', image: 'mechanical_spider.png' },
+  { id: 'm136', name: 'Forged Guardian', hp: 95, maxHp: 95, mp: 0, maxMp: 0, attack: 18, defense: 14, speed: 4, xpValue: 68, goldValue: 62, color: '#B8860B', image: 'forged_guardian.png' },
+  { id: 'm137', name: 'Piston Pummeler', hp: 70, maxHp: 70, mp: 0, maxMp: 0, attack: 16, defense: 10, speed: 5, xpValue: 50, goldValue: 45, color: '#8B4513', image: 'piston_pummeler.png' },
+  { id: 'm138', name: 'Springbot', hp: 30, maxHp: 30, mp: 0, maxMp: 0, attack: 7, defense: 3, speed: 12, xpValue: 22, goldValue: 20, color: '#FFD700', image: 'springbot.png' },
+  { id: 'm139', name: 'Cogwork Harpy', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 13, defense: 6, speed: 9, xpValue: 42, goldValue: 38, color: '#A0522D', image: 'cogwork_harpy.png' },
+
+  // === UNDEAD/SPIRIT MONSTERS ===
+  { id: 'm140', name: 'Phantom', hp: 35, maxHp: 35, mp: 20, maxMp: 20, attack: 8, defense: 0, speed: 15, xpValue: 25, goldValue: 22, color: '#F8F8FF', image: 'phantom.png' },
+  { id: 'm141', name: 'Bone Colossus', hp: 100, maxHp: 100, mp: 0, maxMp: 0, attack: 20, defense: 10, speed: 4, xpValue: 70, goldValue: 65, color: '#F5F5DC', image: 'bone_colossus.png' },
+  { id: 'm142', name: 'Ghast', hp: 50, maxHp: 50, mp: 25, maxMp: 25, attack: 11, defense: 2, speed: 10, xpValue: 35, goldValue: 32, color: '#808080', image: 'ghast.png' },
+  { id: 'm143', name: 'Wight', hp: 65, maxHp: 65, mp: 15, maxMp: 15, attack: 14, defense: 5, speed: 7, xpValue: 45, goldValue: 40, color: '#2F4F4F', image: 'wight.png' },
+  { id: 'm144', name: 'Spectral Knight', hp: 80, maxHp: 80, mp: 20, maxMp: 20, attack: 17, defense: 8, speed: 8, xpValue: 58, goldValue: 52, color: '#708090', image: 'spectral_knight.png' },
+  { id: 'm145', name: 'Grave Hag', hp: 55, maxHp: 55, mp: 30, maxMp: 30, attack: 12, defense: 3, speed: 9, xpValue: 40, goldValue: 36, color: '#8B0000', image: 'grave_hag.png' },
+  { id: 'm146', name: 'Rotting Corpse', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 9, defense: 4, speed: 3, xpValue: 28, goldValue: 24, color: '#556B2F', image: 'rotting_corpse.png' },
+  { id: 'm147', name: 'Banshee', hp: 40, maxHp: 40, mp: 40, maxMp: 40, attack: 8, defense: 1, speed: 11, xpValue: 32, goldValue: 30, color: '#9370DB', image: 'banshee.png' },
+  { id: 'm148', name: 'Death Worm', hp: 75, maxHp: 75, mp: 0, maxMp: 0, attack: 15, defense: 7, speed: 5, xpValue: 52, goldValue: 48, color: '#8B4513', image: 'death_worm.png' },
+  { id: 'm149', name: 'Poltergeist', hp: 30, maxHp: 30, mp: 15, maxMp: 15, attack: 6, defense: 0, speed: 18, xpValue: 22, goldValue: 20, color: '#D3D3D3', image: 'poltergeist.png' },
+
+  // === MYTHICAL/LEGENDARY MONSTERS ===
+  { id: 'm150', name: 'Griffin Cub', hp: 60, maxHp: 60, mp: 0, maxMp: 0, attack: 12, defense: 6, speed: 11, xpValue: 42, goldValue: 38, color: '#DAA520', image: 'griffin_cub.png' },
+  { id: 'm151', name: 'Phoenix Hatchling', hp: 55, maxHp: 55, mp: 20, maxMp: 20, attack: 11, defense: 4, speed: 13, xpValue: 40, goldValue: 36, color: '#FF4500', image: 'phoenix_hatchling.png' },
+  { id: 'm152', name: 'Baby Hydra', hp: 70, maxHp: 70, mp: 0, maxMp: 0, attack: 14, defense: 5, speed: 7, xpValue: 48, goldValue: 45, color: '#228B22', image: 'baby_hydra.png' },
+  { id: 'm153', name: 'Young Cerberus', hp: 85, maxHp: 85, mp: 10, maxMp: 10, attack: 17, defense: 7, speed: 9, xpValue: 62, goldValue: 58, color: '#000000', image: 'young_cerberus.png' },
+  { id: 'm154', name: 'Lesser Sphinx', hp: 75, maxHp: 75, mp: 30, maxMp: 30, attack: 15, defense: 8, speed: 8, xpValue: 55, goldValue: 52, color: '#F0E68C', image: 'lesser_sphinx.png' },
+  { id: 'm155', name: 'Pegasus Foal', hp: 65, maxHp: 65, mp: 15, maxMp: 15, attack: 13, defense: 5, speed: 16, xpValue: 48, goldValue: 45, color: '#FFFFFF', image: 'pegasus_foal.png' },
+  { id: 'm156', name: 'Kirin Calf', hp: 80, maxHp: 80, mp: 25, maxMp: 25, attack: 16, defense: 7, speed: 12, xpValue: 60, goldValue: 55, color: '#FFD700', image: 'kirin_calf.png' },
+  { id: 'm157', name: 'Basilisk Hatchling', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 12, defense: 6, speed: 6, xpValue: 38, goldValue: 35, color: '#006400', image: 'basilisk_hatchling.png' },
+  { id: 'm158', name: 'Cockatrice Chick', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 10, defense: 4, speed: 10, xpValue: 35, goldValue: 32, color: '#B8860B', image: 'cockatrice_chick.png' },
+  { id: 'm159', name: 'Wyvern Whelp', hp: 70, maxHp: 70, mp: 5, maxMp: 5, attack: 15, defense: 6, speed: 11, xpValue: 52, goldValue: 48, color: '#2E8B57', image: 'wyvern_whelp.png' },
+
+  // === INSECTOID/BUG MONSTERS ===
+  { id: 'm160', name: 'Giant Ant', hp: 25, maxHp: 25, mp: 0, maxMp: 0, attack: 5, defense: 4, speed: 9, xpValue: 15, goldValue: 12, color: '#8B4513', image: 'giant_ant.png' },
+  { id: 'm161', name: 'Hornet Swarm', hp: 35, maxHp: 35, mp: 0, maxMp: 0, attack: 7, defense: 1, speed: 14, xpValue: 22, goldValue: 18, color: '#FFD700', image: 'hornet_swarm.png' },
+  { id: 'm162', name: 'Mantis Warrior', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 11, defense: 5, speed: 12, xpValue: 35, goldValue: 30, color: '#32CD32', image: 'mantis_warrior.png' },
+  { id: 'm163', name: 'Scorpion Tail', hp: 40, maxHp: 40, mp: 0, maxMp: 0, attack: 9, defense: 6, speed: 7, xpValue: 28, goldValue: 24, color: '#B22222', image: 'scorpion_tail.png' },
+  { id: 'm164', name: 'Beetle Tank', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 10, defense: 12, speed: 3, xpValue: 42, goldValue: 38, color: '#1a1a2e', image: 'beetle_tank.png' },
+  { id: 'm165', name: 'Butterfly Faerie', hp: 30, maxHp: 30, mp: 15, maxMp: 15, attack: 6, defense: 2, speed: 13, xpValue: 25, goldValue: 22, color: '#FF69B4', image: 'butterfly_faerie.png' },
+  { id: 'm166', name: 'Locust Plague', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 8, defense: 3, speed: 11, xpValue: 32, goldValue: 28, color: '#9ACD32', image: 'locust_plague.png' },
+  { id: 'm167', name: 'Spider Queen', hp: 80, maxHp: 80, mp: 20, maxMp: 20, attack: 16, defense: 8, speed: 8, xpValue: 58, goldValue: 52, color: '#2c3e50', image: 'spider_queen.png' },
+  { id: 'm168', name: 'Centipede Crawler', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 12, defense: 7, speed: 10, xpValue: 40, goldValue: 36, color: '#8B0000', image: 'centipede_crawler.png' },
+  { id: 'm169', name: 'Firefly Swarm', hp: 20, maxHp: 20, mp: 0, maxMp: 0, attack: 4, defense: 0, speed: 16, xpValue: 16, goldValue: 14, color: '#FFD700', image: 'firefly_swarm.png' },
+
+  // === PLANT/FUNGAL MONSTERS ===
+  { id: 'm170', name: 'Sunflower Sentinel', hp: 40, maxHp: 40, mp: 10, maxMp: 10, attack: 7, defense: 5, speed: 4, xpValue: 25, goldValue: 22, color: '#FFD700', image: 'sunflower_sentinel.png' },
+  { id: 'm171', name: 'Carnivorous Plant', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 11, defense: 4, speed: 5, xpValue: 35, goldValue: 30, color: '#228B22', image: 'carnivorous_plant.png' },
+  { id: 'm172', name: 'Spore Cloud', hp: 30, maxHp: 30, mp: 0, maxMp: 0, attack: 5, defense: 0, speed: 12, xpValue: 20, goldValue: 16, color: '#98FB98', image: 'spore_cloud.png' },
+  { id: 'm173', name: 'Vine Behemoth', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 17, defense: 9, speed: 3, xpValue: 60, goldValue: 55, color: '#006400', image: 'vine_behemoth.png' },
+  { id: 'm174', name: 'Mushroom King', hp: 70, maxHp: 70, mp: 25, maxMp: 25, attack: 14, defense: 6, speed: 6, xpValue: 50, goldValue: 45, color: '#FF69B4', image: 'mushroom_king.png' },
+  { id: 'm175', name: 'Thorn Bush', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 8, defense: 8, speed: 2, xpValue: 30, goldValue: 28, color: '#8B4513', image: 'thorn_bush.png' },
+  { id: 'm176', name: 'Lotus Guardian', hp: 60, maxHp: 60, mp: 20, maxMp: 20, attack: 12, defense: 7, speed: 7, xpValue: 42, goldValue: 38, color: '#DA70D6', image: 'lotus_guardian.png' },
+  { id: 'm177', name: 'Cactus Sprite', hp: 35, maxHp: 35, mp: 5, maxMp: 5, attack: 9, defense: 10, speed: 8, xpValue: 28, goldValue: 25, color: '#32CD32', image: 'cactus_sprite.png' },
+  { id: 'm178', name: 'Root Guardian', hp: 75, maxHp: 75, mp: 0, maxMp: 0, attack: 15, defense: 11, speed: 4, xpValue: 55, goldValue: 50, color: '#654321', image: 'root_guardian.png' },
+  { id: 'm179', name: 'Bloom Wisp', hp: 25, maxHp: 25, mp: 15, maxMp: 15, attack: 6, defense: 1, speed: 10, xpValue: 22, goldValue: 20, color: '#FFB6C1', image: 'bloom_wisp.png' },
+
+  // === HYBRID/CHIMERA MONSTERS ===
+  { id: 'm180', name: 'Griffowl', hp: 55, maxHp: 55, mp: 0, maxMp: 0, attack: 12, defense: 5, speed: 11, xpValue: 38, goldValue: 35, color: '#DAA520', image: 'griffowl.png' },
+  { id: 'm181', name: 'Serpent Drake', hp: 70, maxHp: 70, mp: 10, maxMp: 10, attack: 15, defense: 6, speed: 9, xpValue: 50, goldValue: 45, color: '#228B22', image: 'serpent_drake.png' },
+  { id: 'm182', name: 'Bearowl', hp: 80, maxHp: 80, mp: 0, maxMp: 0, attack: 16, defense: 8, speed: 7, xpValue: 58, goldValue: 52, color: '#8B4513', image: 'bearowl.png' },
+  { id: 'm183', name: 'Turtle Dragon', hp: 95, maxHp: 95, mp: 15, maxMp: 15, attack: 18, defense: 12, speed: 4, xpValue: 68, goldValue: 62, color: '#556B2F', image: 'turtle_dragon.png' },
+  { id: 'm184', name: 'Manticub', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 14, defense: 7, speed: 10, xpValue: 48, goldValue: 42, color: '#B22222', image: 'manticub.png' },
+  { id: 'm185', name: 'Wolf Hawk', hp: 60, maxHp: 60, mp: 5, maxMp: 5, attack: 13, defense: 5, speed: 14, xpValue: 45, goldValue: 40, color: '#4a4a4a', image: 'wolf_hawk.png' },
+  { id: 'm186', name: 'Goat Serpent', hp: 75, maxHp: 75, mp: 10, maxMp: 10, attack: 15, defense: 6, speed: 8, xpValue: 55, goldValue: 50, color: '#696969', image: 'goat_serpent.png' },
+  { id: 'm187', name: 'Fish Lion', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 17, defense: 9, speed: 6, xpValue: 62, goldValue: 58, color: '#4682B4', image: 'fish_lion.png' },
+  { id: 'm188', name: 'Crab Scorpion', hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 11, defense: 10, speed: 5, xpValue: 38, goldValue: 35, color: '#FF6B6B', image: 'crab_scorpion.png' },
+  { id: 'm189', name: 'Spider Bat', hp: 45, maxHp: 45, mp: 0, maxMp: 0, attack: 10, defense: 4, speed: 12, xpValue: 35, goldValue: 32, color: '#2c3e50', image: 'spider_bat.png' },
+
+  // === CELESTIAL/SPACE MONSTERS ===
+  { id: 'm190', name: 'Star Sprite', hp: 30, maxHp: 30, mp: 25, maxMp: 25, attack: 7, defense: 2, speed: 15, xpValue: 28, goldValue: 25, color: '#F0F8FF', image: 'star_sprite.png' },
+  { id: 'm191', name: 'Comet Beast', hp: 65, maxHp: 65, mp: 0, maxMp: 0, attack: 14, defense: 5, speed: 16, xpValue: 48, goldValue: 42, color: '#87CEEB', image: 'comet_beast.png' },
+  { id: 'm192', name: 'Nebula Cloud', hp: 55, maxHp: 55, mp: 30, maxMp: 30, attack: 12, defense: 3, speed: 9, xpValue: 42, goldValue: 38, color: '#9370DB', image: 'nebula_cloud.png' },
+  { id: 'm193', name: 'Solar Flare Dragon', hp: 90, maxHp: 90, mp: 20, maxMp: 20, attack: 20, defense: 8, speed: 10, xpValue: 68, goldValue: 62, color: '#FF4500', image: 'solar_flare_dragon.png' },
+  { id: 'm194', name: 'Moon Rabbit', hp: 40, maxHp: 40, mp: 15, maxMp: 15, attack: 9, defense: 4, speed: 13, xpValue: 32, goldValue: 30, color: '#F0F8FF', image: 'moon_rabbit.png' },
+  { id: 'm195', name: 'Galaxy Wyrm', hp: 100, maxHp: 100, mp: 35, maxMp: 35, attack: 22, defense: 9, speed: 8, xpValue: 75, goldValue: 70, color: '#4B0082', image: 'galaxy_wyrm.png' },
+  { id: 'm196', name: 'Planetoid', hp: 120, maxHp: 120, mp: 0, maxMp: 0, attack: 18, defense: 15, speed: 2, xpValue: 80, goldValue: 75, color: '#696969', image: 'planetoid.png' },
+  { id: 'm197', name: 'Asteroid Golem', hp: 85, maxHp: 85, mp: 0, maxMp: 0, attack: 17, defense: 12, speed: 4, xpValue: 62, goldValue: 58, color: '#808080', image: 'asteroid_golem.png' },
+  { id: 'm198', name: 'Black Hole', hp: 70, maxHp: 70, mp: 40, maxMp: 40, attack: 16, defense: 0, speed: 7, xpValue: 55, goldValue: 52, color: '#000000', image: 'black_hole.png' },
+  { id: 'm199', name: 'Constellation', hp: 60, maxHp: 60, mp: 45, maxMp: 45, attack: 13, defense: 2, speed: 11, xpValue: 50, goldValue: 48, color: '#1E90FF', image: 'constellation.png' },
+
+  // === BOSS/ELITE MONSTERS ===
+  { id: 'm200', name: 'Ancient Wyrm', hp: 150, maxHp: 150, mp: 50, maxMp: 50, attack: 30, defense: 15, speed: 10, xpValue: 120, goldValue: 100, color: '#8B4513', image: 'ancient_wyrm.png' },
+  { id: 'm201', name: 'Titan of the Deep', hp: 180, maxHp: 180, mp: 30, maxMp: 30, attack: 35, defense: 18, speed: 6, xpValue: 140, goldValue: 120, color: '#191970', image: 'titan_of_the_deep.png' },
+  { id: 'm202', name: 'Volcano Lord', hp: 160, maxHp: 160, mp: 40, maxMp: 40, attack: 32, defense: 16, speed: 8, xpValue: 130, goldValue: 110, color: '#FF4500', image: 'volcano_lord.png' },
+  { id: 'm203', name: 'Storm Emperor', hp: 140, maxHp: 140, mp: 60, maxMp: 60, attack: 28, defense: 12, speed: 14, xpValue: 125, goldValue: 105, color: '#483D8B', image: 'storm_emperor.png' },
+  { id: 'm204', name: 'Frost Monarch', hp: 170, maxHp: 170, mp: 35, maxMp: 35, attack: 33, defense: 17, speed: 7, xpValue: 135, goldValue: 115, color: '#AFEEEE', image: 'frost_monarch.png' },
+  { id: 'm205', name: 'Plague King', hp: 155, maxHp: 155, mp: 45, maxMp: 45, attack: 31, defense: 14, speed: 9, xpValue: 128, goldValue: 108, color: '#32CD32', image: 'plague_king.png' },
+  { id: 'm206', name: 'Solar Deity', hp: 190, maxHp: 190, mp: 70, maxMp: 70, attack: 38, defense: 20, speed: 12, xpValue: 150, goldValue: 130, color: '#FFD700', image: 'solar_deity.png' },
+  { id: 'm207', name: 'Shadow Overlord', hp: 165, maxHp: 165, mp: 55, maxMp: 55, attack: 34, defense: 15, speed: 11, xpValue: 138, goldValue: 118, color: '#000000', image: 'shadow_overlord.png' },
+  { id: 'm208', name: 'Crystal Emperor', hp: 175, maxHp: 175, mp: 25, maxMp: 25, attack: 36, defense: 22, speed: 5, xpValue: 145, goldValue: 125, color: '#E6E6FA', image: 'crystal_emperor.png' },
+  { id: 'm209', name: 'Mechanical God', hp: 185, maxHp: 185, mp: 40, maxMp: 40, attack: 37, defense: 19, speed: 8, xpValue: 148, goldValue: 128, color: '#A9A9A9', image: 'mechanical_god.png' },
+  { id: 'm210', name: 'Undead Emperor', hp: 155, maxHp: 155, mp: 50, maxMp: 50, attack: 32, defense: 13, speed: 10, xpValue: 132, goldValue: 112, color: '#2F4F4F', image: 'undead_emperor.png' },
+  { id: 'm211', name: 'Mythical Behemoth', hp: 200, maxHp: 200, mp: 65, maxMp: 65, attack: 40, defense: 25, speed: 9, xpValue: 160, goldValue: 140, color: '#DAA520', image: 'mythical_behemoth.png' },
+  { id: 'm212', name: 'Insect Queen', hp: 145, maxHp: 145, mp: 30, maxMp: 30, attack: 29, defense: 16, speed: 13, xpValue: 126, goldValue: 106, color: '#8B4513', image: 'insect_queen.png' },
+  { id: 'm213', name: 'Plant Overgrowth', hp: 180, maxHp: 180, mp: 35, maxMp: 35, attack: 35, defense: 18, speed: 4, xpValue: 142, goldValue: 122, color: '#006400', image: 'plant_overgrowth.png' },
+  { id: 'm214', name: 'Chimera Prime', hp: 195, maxHp: 195, mp: 45, maxMp: 45, attack: 39, defense: 21, speed: 11, xpValue: 155, goldValue: 135, color: '#B22222', image: 'chimera_prime.png' },
+  { id: 'm215', name: 'Cosmic Entity', hp: 210, maxHp: 210, mp: 80, maxMp: 80, attack: 42, defense: 24, speed: 15, xpValue: 170, goldValue: 150, color: '#4B0082', image: 'cosmic_entity.png' },
+  { id: 'm216', name: 'Elemental Fusion', hp: 190, maxHp: 190, mp: 75, maxMp: 75, attack: 38, defense: 20, speed: 10, xpValue: 152, goldValue: 132, color: '#FF4500', image: 'elemental_fusion.png' },
+  { id: 'm217', name: 'Time Warden', hp: 175, maxHp: 175, mp: 90, maxMp: 90, attack: 34, defense: 16, speed: 18, xpValue: 148, goldValue: 128, color: '#9370DB', image: 'time_warden.png' },
+  { id: 'm218', name: 'Space Leviathan', hp: 220, maxHp: 220, mp: 50, maxMp: 50, attack: 45, defense: 26, speed: 7, xpValue: 180, goldValue: 160, color: '#00008B', image: 'space_leviathan.png' },
+  { id: 'm219', name: 'Reality Weaver', hp: 165, maxHp: 165, mp: 100, maxMp: 100, attack: 32, defense: 14, speed: 16, xpValue: 142, goldValue: 122, color: '#8A2BE2', image: 'reality_weaver.png' },
+  { id: 'm220', name: 'Omnipotent Being', hp: 250, maxHp: 250, mp: 120, maxMp: 120, attack: 50, defense: 30, speed: 20, xpValue: 200, goldValue: 180, color: '#FFFFFF', image: 'omnipotent_being.png' },
+  { id: 'm221', name: 'Void Titan', hp: 230, maxHp: 230, mp: 40, maxMp: 40, attack: 48, defense: 28, speed: 9, xpValue: 185, goldValue: 165, color: '#000000', image: 'void_titan.png' },
+  { id: 'm222', name: 'Light Bringer', hp: 210, maxHp: 210, mp: 110, maxMp: 110, attack: 44, defense: 25, speed: 17, xpValue: 175, goldValue: 155, color: '#FFFFE0', image: 'light_bringer.png' },
+  { id: 'm223', name: 'Darkness Incarnate', hp: 240, maxHp: 240, mp: 60, maxMp: 60, attack: 52, defense: 29, speed: 13, xpValue: 195, goldValue: 175, color: '#2F4F4F', image: 'darkness_incarnate.png' },
+  { id: 'm224', name: 'Balance Keeper', hp: 225, maxHp: 225, mp: 85, maxMp: 85, attack: 46, defense: 27, speed: 14, xpValue: 190, goldValue: 170, color: '#808080', image: 'balance_keeper.png' },
+  { id: 'm225', name: 'Chaos Spawn', hp: 260, maxHp: 260, mp: 30, maxMp: 30, attack: 55, defense: 22, speed: 19, xpValue: 210, goldValue: 190, color: '#FF00FF', image: 'chaos_spawn.png' },
+  { id: 'm226', name: 'Order Enforcer', hp: 235, maxHp: 235, mp: 95, maxMp: 95, attack: 49, defense: 31, speed: 12, xpValue: 198, goldValue: 178, color: '#F0F8FF', image: 'order_enforcer.png' },
+  { id: 'm227', name: 'Life Giver', hp: 200, maxHp: 200, mp: 150, maxMp: 150, attack: 42, defense: 20, speed: 21, xpValue: 185, goldValue: 165, color: '#98FB98', image: 'life_giver.png' },
+  { id: 'm228', name: 'Death Herald', hp: 245, maxHp: 245, mp: 70, maxMp: 70, attack: 53, defense: 32, speed: 15, xpValue: 205, goldValue: 185, color: '#000000', image: 'death_herald.png' },
+  { id: 'm229', name: 'Creation Forge', hp: 280, maxHp: 280, mp: 200, maxMp: 200, attack: 60, defense: 35, speed: 8, xpValue: 230, goldValue: 210, color: '#FFD700', image: 'creation_forge.png' },
+  { id: 'm230', name: 'Destruction End', hp: 300, maxHp: 300, mp: 0, maxMp: 0, attack: 65, defense: 40, speed: 22, xpValue: 250, goldValue: 230, color: '#8B0000', image: 'destruction_end.png' },
+];
+
+// Combined monster array
+export const ALL_MONSTERS = [...MONSTERS, ...ADDITIONAL_MONSTERS];
+
+// Updated getRandomMonster function to include all monsters
+export function getRandomMonsterEnhanced(floor: number): Monster {
+  // Monster tiers unlock based on floor depth with more gradual progression:
+  // Floor 1-2: Early monsters only (indices 0-8)
+  // Floor 3-5: + Early additional monsters (indices 9-39) - Forest/Water monsters
+  // Floor 6-8: + Mid-tier monsters (indices 40-89) - Fire/Air/Ice/Electric monsters
+  // Floor 9-12: + Advanced monsters (indices 90-149) - Poison/Holy/Shadow/Crystal/Mechanical/Undead
+  // Floor 13-16: + Mythical monsters (indices 150-199) - Mythical/Insectoid/Plant/Hybrid
+  // Floor 17+: All monsters including bosses (indices 200-230)
+  
+  let maxIndex: number;
+  if (floor <= 2) {
+    maxIndex = 9;  // Original early monsters only
+  } else if (floor <= 5) {
+    maxIndex = 40; // + Forest/Water monsters
+  } else if (floor <= 8) {
+    maxIndex = 90; // + Fire/Air/Ice/Electric
+  } else if (floor <= 12) {
+    maxIndex = 150; // + Poison/Holy/Shadow/Crystal/Mechanical/Undead
+  } else if (floor <= 16) {
+    maxIndex = 200; // + Mythical/Insectoid/Plant/Hybrid/Celestial
+  } else {
+    maxIndex = ALL_MONSTERS.length; // All monsters including bosses
+  }
+  
+  const index = Math.floor(Math.random() * maxIndex);
+  const base = ALL_MONSTERS[index];
+  
+  // Scale stats based on floor (more aggressive scaling for higher floors)
+  const floorMultiplier = 1 + (floor * 0.15); // 15% increase per floor
+  const hpMultiplier = 1 + (floor * 0.2); // 20% HP increase per floor
+  const goldMultiplier = 1 + (floor * 0.25); // 25% more gold per floor
+  
+  return {
+    ...base,
+    id: crypto.randomUUID(),
+    hp: Math.floor(base.hp * hpMultiplier),
+    maxHp: Math.floor(base.maxHp * hpMultiplier),
+    attack: Math.floor(base.attack * floorMultiplier),
+    defense: Math.floor(base.defense * floorMultiplier),
+    speed: Math.floor(base.speed * (1 + (floor * 0.05))), // Slight speed increase
+    goldValue: Math.floor(base.goldValue * goldMultiplier),
+    xpValue: Math.floor(base.xpValue * (1 + (floor * 0.2))), // 20% more XP per floor
+  };
+}

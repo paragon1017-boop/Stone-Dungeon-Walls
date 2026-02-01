@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Crawler - WebGL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        #gameContainer {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stats-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a8c;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .player-stat {
+            background: rgba(30, 30, 60, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .player-stat.mage {
+            border-left-color: #9b59b6;
+        }
+        
+        .player-stat.monk {
+            border-left-color: #f1c40f;
+        }
+        
+        .stat-name {
+            font-weight: bold;
+            color: #aaa;
+            font-size: 12px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .health-bar {
+            height: 6px;
+            background: #c0392b;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s ease;
+        }
+        
+        .mana-bar {
+            height: 4px;
+            background: #2980b9;
+            border-radius: 2px;
+            margin-top: 5px;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a8c;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            pointer-events: all;
+        }
+        
+        .control-btn:hover {
+            background: rgba(74, 74, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .control-label {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+        
+        #gameInfo {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a8c;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 300px;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-label {
+            color: #aaa;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        #messageLog {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a8c;
+            border-radius: 10px;
+            padding: 15px;
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        
+        .message:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .combat-message {
+            color: #e74c3c;
+        }
+        
+        .item-message {
+            color: #f1c40f;
+        }
+        
+        .system-message {
+            color: #3498db;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="uiOverlay">
+            <div class="stats-panel">
+                <div class="player-stats" id="playerStats">
+                    <!-- Player stats will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div id="messageLog">
+                <div class="message system-message">Welcome to the Dungeon!</div>
+                <div class="message system-message">Use WASD or arrow keys to move</div>
+                <div class="message system-message">Press SPACE to attack/interact</div>
+            </div>
+            
+            <div id="controls">
+                <div class="control-group">
+                    <div class="control-row">
+                        <button class="control-btn" id="btnUp">↑</button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" id="btnLeft">←</button>
+                        <button class="control-btn" id="btnDown">↓</button>
+                        <button class="control-btn" id="btnRight">→</button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" id="btnAttack">⚔</button>
+                        <button class="control-btn" id="btnInventory">🎒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="gameInfo">
+                <div class="info-item">
+                    <span class="info-label">Floor:</span>
+                    <span class="info-value" id="floorLevel">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gold:</span>
+                    <span class="info-value" id="goldAmount">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Position:</span>
+                    <span class="info-value" id="playerPosition">1, 1</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Actions:</span>
+                    <span class="info-value" id="actionCount">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading">Loading Game...</div>
+    </div>
+    
+    <script type="module" src="./dist/main.js"></script>
+</body>
+</html>
