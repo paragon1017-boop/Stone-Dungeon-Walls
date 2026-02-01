@@ -83,6 +83,19 @@ export default function Game() {
   const [selectedCharForStats, setSelectedCharForStats] = useState(0);
   const [selectedCharForPotion, setSelectedCharForPotion] = useState(0);
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Refs to access current state in keyboard handlers without re-registering hooks
+  const gameRef = useRef<GameData | null>(null);
+  const combatActiveRef = useRef(false);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    gameRef.current = game;
+  }, [game]);
+  
+  useEffect(() => {
+    combatActiveRef.current = combatState.active;
+  }, [combatState.active]);
 
   // Restore focus after combat ends
   useEffect(() => {
@@ -163,18 +176,19 @@ export default function Game() {
   }, []);
 
   const move = useCallback((dx: number, dy: number) => {
-    if (!game || combatState.active) return;
+    const currentGame = gameRef.current;
+    if (!currentGame || combatActiveRef.current) return;
     
-    const nx = game.x + dx;
-    const ny = game.y + dy;
+    const nx = currentGame.x + dx;
+    const ny = currentGame.y + dy;
 
     // Check bounds
-    if (ny < 0 || ny >= game.map.length || nx < 0 || nx >= game.map[0].length) {
+    if (ny < 0 || ny >= currentGame.map.length || nx < 0 || nx >= currentGame.map[0].length) {
       log("Blocked.");
       return;
     }
 
-    const tile = game.map[ny][nx];
+    const tile = currentGame.map[ny][nx];
     // Wall/door collision (1 = wall, 2 = door) - can walk on floor, ladder down, ladder up
     if (tile === TILE_WALL || tile === TILE_DOOR) {
       log("Blocked.");
@@ -186,7 +200,7 @@ export default function Game() {
     // Check for ladder tiles and show prompt
     if (tile === TILE_LADDER_DOWN) {
       log("A ladder leading deeper! Press SPACE to descend.");
-    } else if (tile === TILE_LADDER_UP && game.level > 1) {
+    } else if (tile === TILE_LADDER_UP && currentGame.level > 1) {
       log("A ladder leading up! Press SPACE to climb.");
     }
 
@@ -194,15 +208,15 @@ export default function Game() {
     if (tile === TILE_FLOOR && Math.random() < 0.1) {
       // Spawn 1-3 monsters, more likely to have multiple on deeper floors
       const baseCount = 1 + Math.floor(Math.random() * 2);
-      const bonusMonsters = Math.floor(game.level / 2);
+      const bonusMonsters = Math.floor(currentGame.level / 2);
       const monsterCount = Math.min(4, baseCount + (Math.random() < 0.3 ? bonusMonsters : 0));
       const monsters: Monster[] = [];
       for (let i = 0; i < monsterCount; i++) {
-        monsters.push(getRandomMonster(game.level));
+        monsters.push(getRandomMonster(currentGame.level));
       }
       
       // Calculate turn order based on speed (highest speed goes first)
-      const partyWithSpeed = game.party
+      const partyWithSpeed = currentGame.party
         .map((char, idx) => ({ idx, speed: char.hp > 0 ? getEffectiveStats(char).speed : -1 }))
         .filter(c => c.speed >= 0)
         .sort((a, b) => b.speed - a.speed);
@@ -233,7 +247,7 @@ export default function Game() {
         log(`${monsterCount} monsters appeared!`);
       }
     }
-  }, [game, combatState.active, log]);
+  }, [log]);
 
   // Ladder climbing function
   const useLadder = useCallback(() => {
@@ -272,7 +286,7 @@ export default function Game() {
   }, [game, combatState.active, log]);
 
   const rotate = useCallback((dir: 'left' | 'right') => {
-    if (!game || combatState.active) return;
+    if (!gameRef.current || combatActiveRef.current) return;
     setGame(prev => {
       if (!prev) return null;
       let newDir = prev.dir;
@@ -280,48 +294,95 @@ export default function Game() {
       if (dir === 'right') newDir = (prev.dir + 1) % 4 as any;
       return { ...prev, dir: newDir };
     });
-  }, [game, combatState.active]);
+  }, []);
 
-  // Controls
-  useKey('ArrowUp', () => {
-    if (!game) return;
-    if (game.dir === NORTH) move(0, -1);
-    if (game.dir === SOUTH) move(0, 1);
-    if (game.dir === EAST) move(1, 0);
-    if (game.dir === WEST) move(-1, 0);
-  }, {}, [game]);
-
-  useKey('ArrowDown', () => {
-    if (!game) return;
-    // Walk backwards
-    if (game.dir === NORTH) move(0, 1);
-    if (game.dir === SOUTH) move(0, -1);
-    if (game.dir === EAST) move(-1, 0);
-    if (game.dir === WEST) move(1, 0);
-  }, {}, [game]);
-
-  useKey('ArrowLeft', () => rotate('left'), {}, [game]);
-  useKey('ArrowRight', () => rotate('right'), {}, [game]);
-
-  // WASD controls
-  useKey('w', () => {
-    if (!game) return;
-    if (game.dir === NORTH) move(0, -1);
-    if (game.dir === SOUTH) move(0, 1);
-    if (game.dir === EAST) move(1, 0);
-    if (game.dir === WEST) move(-1, 0);
-  }, {}, [game]);
-
-  useKey('s', () => {
-    if (!game) return;
-    if (game.dir === NORTH) move(0, 1);
-    if (game.dir === SOUTH) move(0, -1);
-    if (game.dir === EAST) move(-1, 0);
-    if (game.dir === WEST) move(1, 0);
-  }, {}, [game]);
-
-  useKey('a', () => rotate('left'), {}, [game]);
-  useKey('d', () => rotate('right'), {}, [game]);
+  // Movement controls - using held-key tracking for smooth, responsive input
+  // Single keypress = immediate move, held key = continuous movement at MOVE_DELAY intervals
+  const heldKeys = useRef<Set<string>>(new Set());
+  const lastMoveTime = useRef<number>(0);
+  const MOVE_DELAY = 150; // ms between moves when holding key
+  const INITIAL_DELAY = 200; // ms before continuous movement starts
+  const keyPressTime = useRef<Map<string, number>>(new Map());
+  
+  // Movement execution helper
+  const executeMovement = useCallback((key: string) => {
+    const g = gameRef.current;
+    if (!g || combatActiveRef.current) return;
+    
+    if (key === 'arrowup' || key === 'w') {
+      if (g.dir === NORTH) move(0, -1);
+      else if (g.dir === SOUTH) move(0, 1);
+      else if (g.dir === EAST) move(1, 0);
+      else if (g.dir === WEST) move(-1, 0);
+    } else if (key === 'arrowdown' || key === 's') {
+      if (g.dir === NORTH) move(0, 1);
+      else if (g.dir === SOUTH) move(0, -1);
+      else if (g.dir === EAST) move(-1, 0);
+      else if (g.dir === WEST) move(1, 0);
+    } else if (key === 'arrowleft' || key === 'a') {
+      rotate('left');
+    } else if (key === 'arrowright' || key === 'd') {
+      rotate('right');
+    }
+  }, [move, rotate]);
+  
+  useEffect(() => {
+    const movementKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'];
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (!movementKeys.includes(key)) return;
+      
+      // On first press (not repeat), execute immediately and record press time
+      if (!e.repeat && !heldKeys.current.has(key)) {
+        heldKeys.current.add(key);
+        keyPressTime.current.set(key, performance.now());
+        executeMovement(key);
+        lastMoveTime.current = performance.now();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      heldKeys.current.delete(key);
+      keyPressTime.current.delete(key);
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [executeMovement]);
+  
+  // Animation frame loop for continuous movement when key is held
+  useEffect(() => {
+    let animationId: number;
+    
+    const tick = (time: number) => {
+      const g = gameRef.current;
+      if (g && !combatActiveRef.current && heldKeys.current.size > 0) {
+        // Find the first held movement key that's been held long enough for continuous movement
+        for (const key of Array.from(heldKeys.current)) {
+          const pressTime = keyPressTime.current.get(key);
+          if (pressTime && time - pressTime >= INITIAL_DELAY) {
+            // Key held long enough - check if enough time passed since last move
+            if (time - lastMoveTime.current >= MOVE_DELAY) {
+              executeMovement(key);
+              lastMoveTime.current = time;
+              break; // Only process one movement per frame
+            }
+          }
+        }
+      }
+      animationId = requestAnimationFrame(tick);
+    };
+    
+    animationId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationId);
+  }, [executeMovement]);
   
   // Toggle mini map
   useKey('m', () => setShowMiniMap(prev => !prev), {}, []);
