@@ -1010,6 +1010,30 @@ export default function Game() {
                 </RetroButton>
               </div>
               
+              {/* Ladder Interaction */}
+              {!combatState.active && game.map[game.y][game.x] === TILE_LADDER_DOWN && (
+                <RetroButton 
+                  onClick={useLadder}
+                  className="w-full text-sm"
+                  data-testid="button-descend"
+                >
+                  <ChevronDown className="w-4 h-4 mr-1" />
+                  <span className="text-yellow-400">Descend</span>
+                  <span className="ml-1 text-muted-foreground text-xs">(Space)</span>
+                </RetroButton>
+              )}
+              {!combatState.active && game.map[game.y][game.x] === TILE_LADDER_UP && game.level > 1 && (
+                <RetroButton 
+                  onClick={useLadder}
+                  className="w-full text-sm"
+                  data-testid="button-ascend"
+                >
+                  <ArrowUp className="w-4 h-4 mr-1" />
+                  <span className="text-yellow-400">Ascend</span>
+                  <span className="ml-1 text-muted-foreground text-xs">(Space)</span>
+                </RetroButton>
+              )}
+              
               {/* Skills Section (Non-combat) */}
               {!combatState.active && (
                 <div className="w-full pt-2 border-t border-white/10">
