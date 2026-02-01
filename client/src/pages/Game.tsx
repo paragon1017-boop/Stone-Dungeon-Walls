@@ -12,7 +12,7 @@ import {
   xpForLevel, getLevelUpStats, Player,
   Ability, getAbilitiesForJob, getScaledAbilityPower,
   getEffectiveStats, Equipment, getRandomEquipmentDrop, canEquip,
-  getEnhancedName, getEnhancedStats,
+  getEnhancedName, getEnhancedStats, PlayerEquipment,
   TILE_FLOOR, TILE_WALL, TILE_DOOR, TILE_LADDER_DOWN, TILE_LADDER_UP,
   generateFloorMap,
   Potion, getRandomPotionDrop
@@ -95,15 +95,35 @@ export default function Game() {
         // Migrate old saves that don't have equipment fields
         const loadedData = serverState.data as unknown as GameData;
         
-        // Add equipment to party members if missing
+        // Add equipment to party members if missing (migrate old saves)
         const migratedParty = loadedData.party.map(char => {
           if (!char.equipment) {
             return {
               ...char,
-              equipment: { weapon: null, shield: null, armor: null, helmet: null, gloves: null, accessory: null }
+              equipment: { weapon: null, shield: null, armor: null, helmet: null, gloves: null, boots: null, necklace: null, ring1: null, ring2: null, relic: null, offhand: null }
             };
           }
-          return char;
+          // Migrate old equipment format (add missing slots)
+          // Handle legacy 'accessory' slot -> migrate to ring1
+          const legacyAccessory = (char.equipment as any).accessory ?? null;
+          const existingRing1 = (char.equipment as any).ring1 ?? null;
+          const existingRing2 = (char.equipment as any).ring2 ?? null;
+          
+          const migratedEquipment = {
+            weapon: char.equipment.weapon ?? null,
+            shield: char.equipment.shield ?? null,
+            armor: char.equipment.armor ?? null,
+            helmet: char.equipment.helmet ?? null,
+            gloves: char.equipment.gloves ?? null,
+            boots: (char.equipment as any).boots ?? null,
+            necklace: (char.equipment as any).necklace ?? null,
+            // Migrate legacy accessory to ring1 if ring1 is empty, else to ring2
+            ring1: existingRing1 ?? legacyAccessory ?? null,
+            ring2: existingRing2 ?? (existingRing1 ? legacyAccessory : null) ?? null,
+            relic: (char.equipment as any).relic ?? null,
+            offhand: (char.equipment as any).offhand ?? null,
+          };
+          return { ...char, equipment: migratedEquipment };
         });
         
         // Add equipmentInventory and potionInventory if missing
@@ -390,15 +410,20 @@ export default function Game() {
       return;
     }
     
-    const slot = item.slot;
-    const currentEquip = char.equipment[slot];
+    // Map equipment slot to player equipment slot (handle ring1/ring2)
+    let playerSlot: keyof PlayerEquipment = item.slot as keyof PlayerEquipment;
+    if (item.slot === 'ring') {
+      // Prefer ring1 if empty, else ring2
+      playerSlot = char.equipment.ring1 === null ? 'ring1' : 'ring2';
+    }
+    const currentEquip = char.equipment[playerSlot];
     
     // Update party with new equipment and clamp HP/MP to new effective max
     const newParty = game.party.map((c, idx) => {
       if (idx !== charIndex) return c;
       const updatedChar = {
         ...c,
-        equipment: { ...c.equipment, [slot]: item }
+        equipment: { ...c.equipment, [playerSlot]: item }
       };
       const newStats = getEffectiveStats(updatedChar);
       return {
@@ -419,7 +444,7 @@ export default function Game() {
   }, [game, log]);
   
   // Unequip an item to inventory
-  const unequipItem = useCallback((charIndex: number, slot: 'weapon' | 'shield' | 'armor' | 'helmet' | 'gloves' | 'accessory') => {
+  const unequipItem = useCallback((charIndex: number, slot: keyof PlayerEquipment) => {
     if (!game) return;
     const char = game.party[charIndex];
     const item = char.equipment[slot];
@@ -983,7 +1008,7 @@ export default function Game() {
                 {/* Selected Character's Equipment Slots */}
                 {game.party[selectedCharForEquip] && (
                   <div className="space-y-1 mb-2">
-                    {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'accessory'] as const).map(slot => {
+                    {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const).map(slot => {
                       const item = game.party[selectedCharForEquip].equipment[slot];
                       return (
                         <div 
@@ -1248,7 +1273,7 @@ export default function Game() {
                       <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                         <div className="text-[9px] text-muted-foreground mb-2">EQUIPPED</div>
                         <div className="space-y-0.5">
-                          {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'accessory'] as const).map(slot => {
+                          {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const).map(slot => {
                             const item = char.equipment[slot];
                             return (
                               <div key={slot} className="flex justify-between text-[9px]">

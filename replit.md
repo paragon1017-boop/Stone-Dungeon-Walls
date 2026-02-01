@@ -4,6 +4,25 @@
 
 A retro-styled first-person dungeon crawler RPG inspired by classic games like "Shining in the Darkness." Players explore procedurally generated dungeons from a first-person perspective using raycasting rendering, engage in turn-based combat with monsters, manage a party of characters with different classes (Fighter, Mage, Monk), and collect equipment with various rarity tiers. The game features persistent save states backed by PostgreSQL and authentication via Replit Auth.
 
+## Recent Changes (Feb 2026)
+
+### Equipment System Overhaul
+- Expanded from 6 to 11 equipment slots: weapon, shield (Fighter), armor, helmet, gloves, boots, necklace, ring1, ring2, relic (Mage), offhand (Monk)
+- New 9 thematic equipment sets with 243 total items:
+  - **Blade Dancer** - Speed/attack focused (Fighter/Monk)
+  - **Bulwark Sentinel** - Maximum defense (Fighter)
+  - **Vampiric Embrace** - Lifesteal theme (Fighter/Monk)
+  - **Wind Dancer** - Evasion/speed (all classes)
+  - **Riposte** - Counter-attack (Fighter)
+  - **Frozen Wasteland** - Ice magic (Mage)
+  - **Inferno Blaze** - Fire damage (Mage)
+  - **Storm Caller** - Lightning (Mage/Monk)
+  - **Earthen Colossus** - Earth/defense (Monk)
+- Added 'legendary' rarity tier
+- Class-specific slots: Shield (Fighter only), Relic (Mage only), Offhand (Monk only)
+- Ring slot now has two positions (ring1, ring2) for dual ring equipping
+- Old saves are automatically migrated to new equipment format
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
