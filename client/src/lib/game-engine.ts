@@ -178,7 +178,7 @@ export function rollEnhancement(floor: number): number {
 
 export interface PlayerEquipment {
   weapon: Equipment | null;
-  shield: Equipment | null;  // Fighter only
+  shield: Equipment | null;  // Fighter only (Fighter's offhand)
   armor: Equipment | null;
   helmet: Equipment | null;
   gloves: Equipment | null;
@@ -187,7 +187,7 @@ export interface PlayerEquipment {
   ring1: Equipment | null;
   ring2: Equipment | null;
   relic: Equipment | null;   // Mage only
-  offhand: Equipment | null; // Monk only
+  offhand: Equipment | null; // Mage/Monk only (replaces shield for non-Fighters)
 }
 
 export interface Player extends Entity {
@@ -229,8 +229,8 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'bd_blur_ring', name: 'Blur Ring', slot: 'ring', attack: 1, defense: 1, hp: 5, mp: 5, speed: 2, rarity: 'rare', allowedJobs: ['Fighter', 'Monk'], set: 'Blade Dancer', description: 'Become a blur. Set: Blade Dancer' },
   { id: 'bd_phantom_band', name: 'Phantom Band', slot: 'ring', attack: 2, defense: 2, hp: 10, mp: 5, speed: 3, rarity: 'epic', allowedJobs: ['Fighter', 'Monk'], set: 'Blade Dancer', description: 'Phase through attacks. Set: Blade Dancer' },
   // Relic (Mage) - Blade Dancer doesn't have Mage items, use offhand for Monk
-  { id: 'bd_wind_charm', name: 'Wind Charm', slot: 'offhand', attack: 4, defense: 1, hp: 10, mp: 10, speed: 3, rarity: 'rare', allowedJobs: ['Monk'], set: 'Blade Dancer', description: 'Channels wind energy. Set: Blade Dancer' },
-  { id: 'bd_tempest_focus', name: 'Tempest Focus', slot: 'offhand', attack: 6, defense: 2, hp: 15, mp: 15, speed: 5, rarity: 'epic', allowedJobs: ['Monk'], set: 'Blade Dancer', description: 'Focus of the storm. Set: Blade Dancer' },
+  { id: 'bd_wind_charm', name: 'Wind Charm', slot: 'offhand', attack: 4, defense: 1, hp: 10, mp: 10, speed: 3, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Blade Dancer', description: 'Channels wind energy. Set: Blade Dancer' },
+  { id: 'bd_tempest_focus', name: 'Tempest Focus', slot: 'offhand', attack: 6, defense: 2, hp: 15, mp: 15, speed: 5, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Blade Dancer', description: 'Focus of the storm. Set: Blade Dancer' },
   // Shield (Fighter)
   { id: 'bd_parry_buckler', name: 'Parry Buckler', slot: 'shield', attack: 2, defense: 6, hp: 10, mp: 0, speed: 2, rarity: 'rare', allowedJobs: ['Fighter'], set: 'Blade Dancer', description: 'Light for quick parries. Set: Blade Dancer' },
   { id: 'bd_deflection_guard', name: 'Deflection Guard', slot: 'shield', attack: 3, defense: 8, hp: 15, mp: 0, speed: 3, rarity: 'epic', allowedJobs: ['Fighter'], set: 'Blade Dancer', description: 'Redirects force effortlessly. Set: Blade Dancer' },
@@ -294,8 +294,8 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 've_vampire_band', name: 'Vampire\'s Band', slot: 'ring', attack: 3, defense: 1, hp: 0, mp: 0, speed: 1, rarity: 'rare', allowedJobs: ['Fighter', 'Monk'], set: 'Vampiric Embrace', description: 'Gift of the undead. Set: Vampiric Embrace' },
   { id: 've_nosferatu_ring', name: 'Nosferatu Ring', slot: 'ring', attack: 5, defense: 2, hp: 0, mp: 5, speed: 2, rarity: 'epic', allowedJobs: ['Fighter', 'Monk'], set: 'Vampiric Embrace', description: 'Ancient vampire power. Set: Vampiric Embrace' },
   // Offhand (Monk)
-  { id: 've_blood_focus', name: 'Blood Focus', slot: 'offhand', attack: 5, defense: 0, hp: 0, mp: 15, speed: 1, rarity: 'rare', allowedJobs: ['Monk'], set: 'Vampiric Embrace', description: 'Focus blood energy. Set: Vampiric Embrace' },
-  { id: 've_crimson_crystal', name: 'Crimson Crystal', slot: 'offhand', attack: 8, defense: 0, hp: 0, mp: 25, speed: 2, rarity: 'epic', allowedJobs: ['Monk'], set: 'Vampiric Embrace', description: 'Crystallized blood. Set: Vampiric Embrace' },
+  { id: 've_blood_focus', name: 'Blood Focus', slot: 'offhand', attack: 5, defense: 0, hp: 0, mp: 15, speed: 1, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Vampiric Embrace', description: 'Focus blood energy. Set: Vampiric Embrace' },
+  { id: 've_crimson_crystal', name: 'Crimson Crystal', slot: 'offhand', attack: 8, defense: 0, hp: 0, mp: 25, speed: 2, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Vampiric Embrace', description: 'Crystallized blood. Set: Vampiric Embrace' },
   // Shield (Fighter)
   { id: 've_blood_aegis', name: 'Blood Aegis', slot: 'shield', attack: 3, defense: 8, hp: 0, mp: 0, speed: 1, rarity: 'rare', allowedJobs: ['Fighter'], set: 'Vampiric Embrace', description: 'Absorbs damage as life. Set: Vampiric Embrace' },
   { id: 've_sanguine_barrier', name: 'Sanguine Barrier', slot: 'shield', attack: 5, defense: 12, hp: 0, mp: 10, speed: 1, rarity: 'epic', allowedJobs: ['Fighter'], set: 'Vampiric Embrace', description: 'Barrier of blood. Set: Vampiric Embrace' },
@@ -332,8 +332,8 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'wd_wind_crystal', name: 'Wind Crystal', slot: 'relic', attack: 3, defense: 0, hp: 5, mp: 25, speed: 3, rarity: 'rare', allowedJobs: ['Mage'], set: 'Wind Dancer', description: 'Crystallized wind. Set: Wind Dancer' },
   { id: 'wd_storm_orb', name: 'Storm Orb', slot: 'relic', attack: 5, defense: 1, hp: 10, mp: 40, speed: 5, rarity: 'epic', allowedJobs: ['Mage'], set: 'Wind Dancer', description: 'Contains a storm. Set: Wind Dancer' },
   // Offhand (Monk)
-  { id: 'wd_breeze_fan', name: 'Breeze Fan', slot: 'offhand', attack: 3, defense: 1, hp: 5, mp: 15, speed: 3, rarity: 'rare', allowedJobs: ['Monk'], set: 'Wind Dancer', description: 'Creates gentle breezes. Set: Wind Dancer' },
-  { id: 'wd_cyclone_spinner', name: 'Cyclone Spinner', slot: 'offhand', attack: 5, defense: 2, hp: 10, mp: 25, speed: 5, rarity: 'epic', allowedJobs: ['Monk'], set: 'Wind Dancer', description: 'Spins up cyclones. Set: Wind Dancer' },
+  { id: 'wd_breeze_fan', name: 'Breeze Fan', slot: 'offhand', attack: 3, defense: 1, hp: 5, mp: 15, speed: 3, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Wind Dancer', description: 'Creates gentle breezes. Set: Wind Dancer' },
+  { id: 'wd_cyclone_spinner', name: 'Cyclone Spinner', slot: 'offhand', attack: 5, defense: 2, hp: 10, mp: 25, speed: 5, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Wind Dancer', description: 'Spins up cyclones. Set: Wind Dancer' },
   // Shield (Fighter)
   { id: 'wd_wind_barrier', name: 'Wind Barrier', slot: 'shield', attack: 1, defense: 5, hp: 5, mp: 0, speed: 2, rarity: 'rare', allowedJobs: ['Fighter'], set: 'Wind Dancer', description: 'Deflects with wind. Set: Wind Dancer' },
   { id: 'wd_gale_guard', name: 'Gale Guard', slot: 'shield', attack: 2, defense: 8, hp: 10, mp: 5, speed: 4, rarity: 'epic', allowedJobs: ['Fighter'], set: 'Wind Dancer', description: 'Guarded by gales. Set: Wind Dancer' },
@@ -453,8 +453,8 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'sc_spark_crystal', name: 'Spark Crystal', slot: 'relic', attack: 4, defense: 0, hp: 0, mp: 28, speed: 2, rarity: 'rare', allowedJobs: ['Mage'], set: 'Storm Caller', description: 'Stored electricity. Set: Storm Caller' },
   { id: 'sc_thunder_orb', name: 'Thunder Orb', slot: 'relic', attack: 7, defense: 1, hp: 5, mp: 42, speed: 3, rarity: 'epic', allowedJobs: ['Mage'], set: 'Storm Caller', description: 'Rolling thunder. Set: Storm Caller' },
   // Offhand (Monk)
-  { id: 'sc_storm_charm', name: 'Storm Charm', slot: 'offhand', attack: 4, defense: 1, hp: 5, mp: 18, speed: 2, rarity: 'rare', allowedJobs: ['Monk'], set: 'Storm Caller', description: 'Storm focus. Set: Storm Caller' },
-  { id: 'sc_lightning_focus', name: 'Lightning Focus', slot: 'offhand', attack: 7, defense: 2, hp: 10, mp: 28, speed: 3, rarity: 'epic', allowedJobs: ['Monk'], set: 'Storm Caller', description: 'Channel lightning. Set: Storm Caller' },
+  { id: 'sc_storm_charm', name: 'Storm Charm', slot: 'offhand', attack: 4, defense: 1, hp: 5, mp: 18, speed: 2, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Storm Caller', description: 'Storm focus. Set: Storm Caller' },
+  { id: 'sc_lightning_focus', name: 'Lightning Focus', slot: 'offhand', attack: 7, defense: 2, hp: 10, mp: 28, speed: 3, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Storm Caller', description: 'Channel lightning. Set: Storm Caller' },
   // Necklace
   { id: 'sc_spark_pendant', name: 'Spark Pendant', slot: 'necklace', attack: 2, defense: 1, hp: 5, mp: 12, speed: 1, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Storm Caller', description: 'Electric spark. Set: Storm Caller' },
   { id: 'sc_storm_amulet', name: 'Storm Amulet', slot: 'necklace', attack: 4, defense: 2, hp: 10, mp: 22, speed: 2, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Storm Caller', description: 'Storm power. Set: Storm Caller' },
@@ -483,9 +483,9 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'ec_stone_treads', name: 'Stone Treads', slot: 'boots', attack: 1, defense: 5, hp: 12, mp: 0, speed: 0, rarity: 'rare', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Heavy steps. Set: Earthen Colossus' },
   { id: 'ec_boulder_boots', name: 'Boulder Boots', slot: 'boots', attack: 2, defense: 8, hp: 20, mp: 5, speed: -1, rarity: 'epic', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Grounded firmly. Set: Earthen Colossus' },
   // Offhand
-  { id: 'ec_stone_focus', name: 'Stone Focus', slot: 'offhand', attack: 3, defense: 4, hp: 15, mp: 10, speed: 0, rarity: 'rare', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Earth focus. Set: Earthen Colossus' },
-  { id: 'ec_boulder_orb', name: 'Boulder Orb', slot: 'offhand', attack: 5, defense: 7, hp: 25, mp: 18, speed: 0, rarity: 'epic', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Orb of earth. Set: Earthen Colossus' },
-  { id: 'ec_mountain_heart', name: 'Mountain Heart', slot: 'offhand', attack: 8, defense: 10, hp: 40, mp: 25, speed: 0, rarity: 'legendary', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Heart of mountain. Set: Earthen Colossus' },
+  { id: 'ec_stone_focus', name: 'Stone Focus', slot: 'offhand', attack: 3, defense: 4, hp: 15, mp: 10, speed: 0, rarity: 'rare', allowedJobs: ['Mage', 'Monk'], set: 'Earthen Colossus', description: 'Earth focus. Set: Earthen Colossus' },
+  { id: 'ec_boulder_orb', name: 'Boulder Orb', slot: 'offhand', attack: 5, defense: 7, hp: 25, mp: 18, speed: 0, rarity: 'epic', allowedJobs: ['Mage', 'Monk'], set: 'Earthen Colossus', description: 'Orb of earth. Set: Earthen Colossus' },
+  { id: 'ec_mountain_heart', name: 'Mountain Heart', slot: 'offhand', attack: 8, defense: 10, hp: 40, mp: 25, speed: 0, rarity: 'legendary', allowedJobs: ['Mage', 'Monk'], set: 'Earthen Colossus', description: 'Heart of mountain. Set: Earthen Colossus' },
   // Necklace
   { id: 'ec_stone_pendant', name: 'Stone Pendant', slot: 'necklace', attack: 1, defense: 3, hp: 20, mp: 0, speed: 0, rarity: 'rare', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Solid stone. Set: Earthen Colossus' },
   { id: 'ec_boulder_amulet', name: 'Boulder Amulet', slot: 'necklace', attack: 2, defense: 5, hp: 32, mp: 5, speed: 0, rarity: 'epic', allowedJobs: ['Monk'], set: 'Earthen Colossus', description: 'Boulder strength. Set: Earthen Colossus' },
@@ -534,8 +534,8 @@ export const EQUIPMENT_DATABASE: Equipment[] = [
   { id: 'quartz_shard', name: 'Quartz Shard', slot: 'relic', attack: 1, defense: 0, hp: 0, mp: 10, speed: 0, rarity: 'common', allowedJobs: ['Mage'], description: 'Basic magic focus' },
   { id: 'amethyst_crystal', name: 'Amethyst Crystal', slot: 'relic', attack: 2, defense: 0, hp: 0, mp: 18, speed: 0, rarity: 'uncommon', allowedJobs: ['Mage'], description: 'Channeling crystal' },
   // Basic Offhand (Monk only)
-  { id: 'prayer_beads', name: 'Prayer Beads', slot: 'offhand', attack: 1, defense: 0, hp: 5, mp: 8, speed: 0, rarity: 'common', allowedJobs: ['Monk'], description: 'Aids concentration' },
-  { id: 'meditation_stone', name: 'Meditation Stone', slot: 'offhand', attack: 2, defense: 1, hp: 8, mp: 12, speed: 0, rarity: 'uncommon', allowedJobs: ['Monk'], description: 'Focuses inner energy' },
+  { id: 'prayer_beads', name: 'Prayer Beads', slot: 'offhand', attack: 1, defense: 0, hp: 5, mp: 8, speed: 0, rarity: 'common', allowedJobs: ['Mage', 'Monk'], description: 'Aids concentration' },
+  { id: 'meditation_stone', name: 'Meditation Stone', slot: 'offhand', attack: 2, defense: 1, hp: 8, mp: 12, speed: 0, rarity: 'uncommon', allowedJobs: ['Mage', 'Monk'], description: 'Focuses inner energy' },
 ];
 
 // Get equipment by ID
@@ -545,10 +545,30 @@ export function getEquipmentById(id: string): Equipment | undefined {
 
 // Check if a character can equip an item
 export function canEquip(player: Player, equipment: Equipment): boolean {
-  return equipment.allowedJobs.includes(player.job);
+  // Check if job is in allowed jobs list
+  if (!equipment.allowedJobs.includes(player.job)) {
+    return false;
+  }
+  
+  // Enforce slot-based class restrictions
+  // Shield: Fighter only (Fighter's offhand)
+  if (equipment.slot === 'shield' && player.job !== 'Fighter') {
+    return false;
+  }
+  // Offhand: Mage/Monk only (replaces shield for non-Fighters)
+  if (equipment.slot === 'offhand' && player.job === 'Fighter') {
+    return false;
+  }
+  // Relic: Mage only
+  if (equipment.slot === 'relic' && player.job !== 'Mage') {
+    return false;
+  }
+  
+  return true;
 }
 
 // Calculate total stats including equipment bonuses (with enhancement)
+// Only counts equipment in valid slots for the player's class
 export function getEffectiveStats(player: Player): { attack: number; defense: number; maxHp: number; maxMp: number; speed: number } {
   let attack = player.attack;
   let defense = player.defense;
@@ -556,10 +576,16 @@ export function getEffectiveStats(player: Player): { attack: number; defense: nu
   let maxMp = player.maxMp;
   let speed = player.speed;
   
-  // Get all equipped items from the new slot system
+  // Class-based slot validity
+  const job = player.job;
+  const canUseShield = job === 'Fighter';
+  const canUseOffhand = job !== 'Fighter';
+  const canUseRelic = job === 'Mage';
+  
+  // Get all equipped items from the new slot system, respecting class restrictions
   const equippedItems: (Equipment | null)[] = [
     player.equipment.weapon,
-    player.equipment.shield,
+    canUseShield ? player.equipment.shield : null,  // Fighter only
     player.equipment.armor,
     player.equipment.helmet,
     player.equipment.gloves,
@@ -567,8 +593,8 @@ export function getEffectiveStats(player: Player): { attack: number; defense: nu
     player.equipment.necklace,
     player.equipment.ring1,
     player.equipment.ring2,
-    player.equipment.relic,
-    player.equipment.offhand,
+    canUseRelic ? player.equipment.relic : null,    // Mage only
+    canUseOffhand ? player.equipment.offhand : null, // Mage/Monk only
   ];
   
   for (const item of equippedItems) {

@@ -109,9 +109,19 @@ export default function Game() {
           const existingRing1 = (char.equipment as any).ring1 ?? null;
           const existingRing2 = (char.equipment as any).ring2 ?? null;
           
+          // Class-based slot restrictions:
+          // Fighter: can use shield (no offhand/relic)
+          // Mage: can use offhand and relic (no shield)
+          // Monk: can use offhand (no shield/relic)
+          const job = char.job;
+          const canUseShield = job === 'Fighter';
+          const canUseOffhand = job !== 'Fighter';
+          const canUseRelic = job === 'Mage';
+          
           const migratedEquipment = {
             weapon: char.equipment.weapon ?? null,
-            shield: char.equipment.shield ?? null,
+            // Clear shield for non-Fighters
+            shield: canUseShield ? (char.equipment.shield ?? null) : null,
             armor: char.equipment.armor ?? null,
             helmet: char.equipment.helmet ?? null,
             gloves: char.equipment.gloves ?? null,
@@ -120,8 +130,10 @@ export default function Game() {
             // Migrate legacy accessory to ring1 if ring1 is empty, else to ring2
             ring1: existingRing1 ?? legacyAccessory ?? null,
             ring2: existingRing2 ?? (existingRing1 ? legacyAccessory : null) ?? null,
-            relic: (char.equipment as any).relic ?? null,
-            offhand: (char.equipment as any).offhand ?? null,
+            // Clear relic for non-Mages
+            relic: canUseRelic ? ((char.equipment as any).relic ?? null) : null,
+            // Clear offhand for Fighters
+            offhand: canUseOffhand ? ((char.equipment as any).offhand ?? null) : null,
           };
           return { ...char, equipment: migratedEquipment };
         });
@@ -1008,7 +1020,18 @@ export default function Game() {
                 {/* Selected Character's Equipment Slots */}
                 {game.party[selectedCharForEquip] && (
                   <div className="space-y-1 mb-2">
-                    {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const).map(slot => {
+                    {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const)
+                      .filter(slot => {
+                        const job = game.party[selectedCharForEquip].job;
+                        // Fighter: show shield (not offhand), no relic
+                        // Mage: show offhand and relic (not shield)
+                        // Monk: show offhand (not shield), no relic
+                        if (slot === 'shield') return job === 'Fighter';
+                        if (slot === 'offhand') return job !== 'Fighter';
+                        if (slot === 'relic') return job === 'Mage';
+                        return true;
+                      })
+                      .map(slot => {
                       const item = game.party[selectedCharForEquip].equipment[slot];
                       return (
                         <div 
@@ -1273,7 +1296,17 @@ export default function Game() {
                       <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                         <div className="text-[9px] text-muted-foreground mb-2">EQUIPPED</div>
                         <div className="space-y-0.5">
-                          {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const).map(slot => {
+                          {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const)
+                            .filter(slot => {
+                              // Fighter: show shield (not offhand), no relic
+                              // Mage: show offhand and relic (not shield)
+                              // Monk: show offhand (not shield), no relic
+                              if (slot === 'shield') return char.job === 'Fighter';
+                              if (slot === 'offhand') return char.job !== 'Fighter';
+                              if (slot === 'relic') return char.job === 'Mage';
+                              return true;
+                            })
+                            .map(slot => {
                             const item = char.equipment[slot];
                             return (
                               <div key={slot} className="flex justify-between text-[9px]">
