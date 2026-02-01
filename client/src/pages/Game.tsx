@@ -984,6 +984,49 @@ export default function Game() {
             </RetroButton>
           </RetroCard>
           
+          {/* Movement Controls */}
+          <RetroCard title="MOVE" className="mt-2">
+            <div className="flex flex-col items-center gap-2">
+              <div className="grid grid-cols-3 gap-1 place-items-center">
+                <div />
+                <RetroButton onClick={() => {
+                  if (game.dir === NORTH) move(0, -1);
+                  if (game.dir === SOUTH) move(0, 1);
+                  if (game.dir === EAST) move(1, 0);
+                  if (game.dir === WEST) move(-1, 0);
+                }} className="w-10 h-10 p-0 flex items-center justify-center rounded-lg" data-testid="button-forward">
+                  <ArrowUp className="w-4 h-4" />
+                </RetroButton>
+                <div />
+                
+                <RetroButton onClick={() => rotate('left')} className="w-10 h-10 p-0 flex items-center justify-center rounded-lg" data-testid="button-rotate-left">
+                  <RotateCcw className="w-4 h-4" />
+                </RetroButton>
+                <div className="w-10 h-10 flex items-center justify-center text-[10px] text-muted-foreground">
+                  WASD
+                </div>
+                <RetroButton onClick={() => rotate('right')} className="w-10 h-10 p-0 flex items-center justify-center rounded-lg" data-testid="button-rotate-right">
+                  <RotateCw className="w-4 h-4" />
+                </RetroButton>
+              </div>
+              
+              {/* Skills Section (Non-combat) */}
+              {!combatState.active && (
+                <div className="w-full pt-2 border-t border-white/10">
+                  <RetroButton 
+                    onClick={healAllParty} 
+                    className="w-full text-sm"
+                    disabled={!game.party.some(c => c.job === 'Mage' && c.hp > 0 && c.mp >= 10)}
+                    data-testid="button-heal-all"
+                  >
+                    <span className="text-green-400">Heal</span>
+                    <span className="ml-1 text-blue-300 text-xs">(H)</span>
+                  </RetroButton>
+                </div>
+              )}
+            </div>
+          </RetroCard>
+          
           {/* Equipment Panel - Below Commands */}
           {showEquipment && (
             <div className="w-full bg-black/95 backdrop-blur-sm border border-primary/30 rounded-lg shadow-2xl shadow-black/50 mt-2">
@@ -1688,48 +1731,6 @@ export default function Game() {
               ))}
             </div>
             
-            {/* Movement Controls */}
-            <div className="bg-black/40 backdrop-blur-sm p-4 border-t border-white/10 flex justify-center gap-8 items-center">
-              <div className="grid grid-cols-3 gap-2 place-items-center">
-                <div />
-                <RetroButton onClick={() => {
-                  if (game.dir === NORTH) move(0, -1);
-                  if (game.dir === SOUTH) move(0, 1);
-                  if (game.dir === EAST) move(1, 0);
-                  if (game.dir === WEST) move(-1, 0);
-                }} className="w-12 h-12 p-0 flex items-center justify-center rounded-xl" data-testid="button-forward">
-                  <ArrowUp className="w-5 h-5" />
-                </RetroButton>
-                <div />
-                
-                <RetroButton onClick={() => rotate('left')} className="w-12 h-12 p-0 flex items-center justify-center rounded-xl" data-testid="button-rotate-left">
-                  <RotateCcw className="w-5 h-5" />
-                </RetroButton>
-                <div className="w-12 h-12 flex items-center justify-center text-xs text-muted-foreground">
-                  WASD
-                </div>
-                <RetroButton onClick={() => rotate('right')} className="w-12 h-12 p-0 flex items-center justify-center rounded-xl" data-testid="button-rotate-right">
-                  <RotateCw className="w-5 h-5" />
-                </RetroButton>
-              </div>
-              
-              {/* Skills Section (Non-combat) */}
-              {!combatState.active && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs text-muted-foreground text-center mb-1">SKILLS</div>
-                  <RetroButton 
-                    onClick={healAllParty} 
-                    className="px-4 py-2 text-sm"
-                    disabled={!game.party.some(c => c.job === 'Mage' && c.hp > 0 && c.mp >= 10)}
-                    data-testid="button-heal-all"
-                  >
-                    <span className="text-green-400">Heal All</span>
-                    <span className="ml-2 text-blue-300 text-xs">(10 MP)</span>
-                  </RetroButton>
-                  <div className="text-[10px] text-muted-foreground text-center">Press H</div>
-                </div>
-              )}
-            </div>
           </RetroCard>
         </div>
 
