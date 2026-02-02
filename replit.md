@@ -6,6 +6,15 @@ A retro-styled first-person dungeon crawler RPG inspired by classic games like "
 
 ## Recent Changes (Feb 2026)
 
+### Immersive Fullscreen Combat
+- Combat now triggers fullscreen mode with enhanced atmospheric effects
+- Larger monster sprites (up to 400px) for dramatic battles
+- Enhanced vignette effect and pulsing red border during combat
+- Torch glow intensifies during battle
+- Compact party stats overlay shows HP/MP with current turn indicator
+- FLEE button (ESC key) to exit combat
+- Minimap and side panels hidden during combat for immersion
+
 ### Equipment System Overhaul
 - Expanded from 6 to 11 equipment slots: weapon, shield (Fighter), armor, helmet, gloves, boots, necklace, ring1, ring2, relic (Mage), offhand (Monk)
 - New 9 thematic equipment sets with 243 total items:
