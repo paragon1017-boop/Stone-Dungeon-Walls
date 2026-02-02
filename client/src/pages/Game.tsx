@@ -1076,7 +1076,7 @@ export default function Game() {
         </>
       )}
       
-      <div className={`${isCombatFullscreen ? 'w-full h-full p-0' : 'max-w-6xl w-full pt-16 pb-4 px-2'} relative z-10 transition-all duration-300`}>
+      <div className={`${isCombatFullscreen ? 'w-full h-full p-0 max-w-5xl mx-auto flex items-center justify-center' : 'max-w-6xl w-full pt-16 pb-4 px-2'} relative z-10 transition-all duration-300`}>
         <div className={`${isCombatFullscreen ? 'h-full grid grid-cols-1 lg:grid-cols-12 gap-0' : 'grid grid-cols-1 lg:grid-cols-12 gap-3'}`}>
         
         {/* LEFT COLUMN: Commands & Party Stats stacked - hide during combat fullscreen */}
