@@ -347,3 +347,54 @@
 .screen-shake {
   animation: screen-shake 0.5s ease-out;
 }
+
+/* Combat transition animations */
+@keyframes flashIn {
+  0% { 
+    opacity: 0; 
+  }
+  30% { 
+    opacity: 0.9; 
+  }
+  100% { 
+    opacity: 0; 
+  }
+}
+
+@keyframes pulseIn {
+  0% { 
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  50% { 
+    opacity: 1;
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes encounterText {
+  0% { 
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  40% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes combatFlash {
+  0% { 
+    opacity: 1; 
+  }
+  100% { 
+    opacity: 0; 
+  }
+}

@@ -80,6 +80,7 @@ export default function Game() {
   const [graphicsQuality, setGraphicsQuality] = useState<GraphicsQuality>('high');
   const [showSettings, setShowSettings] = useState(false);
   const [isCombatFullscreen, setIsCombatFullscreen] = useState(false);
+  const [combatTransition, setCombatTransition] = useState<'none' | 'entering' | 'active'>('none');
   const [selectedCharForEquip, setSelectedCharForEquip] = useState(0);
   const [selectedCharForStats, setSelectedCharForStats] = useState(0);
   const [selectedCharForPotion, setSelectedCharForPotion] = useState(0);
@@ -234,7 +235,13 @@ export default function Game() {
         turnOrderPosition: 0,
         defending: false 
       });
-      setIsCombatFullscreen(true);
+      
+      // Trigger combat transition animation
+      setCombatTransition('entering');
+      setTimeout(() => {
+        setIsCombatFullscreen(true);
+        setCombatTransition('active');
+      }, 300); // Fast transition
       
       // Trigger entrance animation for all monsters
       monsters.forEach((_, idx) => {
@@ -396,6 +403,7 @@ export default function Game() {
       setLogs(prev => ["You fled from battle!", ...prev].slice(0, 5));
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setIsCombatFullscreen(false);
+      setCombatTransition('none');
     }
   }, {}, []);
   
@@ -888,6 +896,7 @@ export default function Game() {
       
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setIsCombatFullscreen(false);
+      setCombatTransition('none');
       setTimeout(() => awardXP(totalXp), 100);
       return;
     }
@@ -934,6 +943,7 @@ export default function Game() {
     log("You fled from battle!");
     setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
     setIsCombatFullscreen(false);
+    setCombatTransition('none');
   };
 
   if (isLoading || !game) {
@@ -981,6 +991,34 @@ export default function Game() {
         opacity: isCombatFullscreen ? 0.8 : 0.2,
         transition: 'opacity 300ms ease-out'
       }} />
+      
+      {/* Combat Transition Effect */}
+      {combatTransition === 'entering' && (
+        <div 
+          className="fixed inset-0 z-[100] pointer-events-none"
+          style={{
+            animation: 'combatFlash 300ms ease-out forwards'
+          }}
+        >
+          {/* White flash overlay */}
+          <div className="absolute inset-0 bg-white" style={{
+            animation: 'flashIn 150ms ease-out forwards'
+          }} />
+          {/* Red combat indicator */}
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(circle at center, transparent 0%, rgba(200,50,50,0.6) 100%)',
+            animation: 'pulseIn 300ms ease-out forwards'
+          }} />
+          {/* Zoom lines effect */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-4xl font-pixel text-red-500 drop-shadow-[0_0_20px_rgba(255,100,100,0.8)]" style={{
+              animation: 'encounterText 300ms ease-out forwards'
+            }}>
+              ENCOUNTER!
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Combat exit button (only shown during combat fullscreen) */}
       {isCombatFullscreen && (
