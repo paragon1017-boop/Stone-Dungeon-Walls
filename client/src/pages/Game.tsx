@@ -1799,8 +1799,8 @@ export default function Game() {
                   )}
                   
                   {/* Multiple monsters positioned side by side - SCALED UP for fullscreen */}
-                  <div className={`absolute inset-0 z-10 flex items-end justify-center pointer-events-none ${
-                    isCombatFullscreen ? 'pb-40' : 'pb-28'
+                  <div className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none ${
+                    isCombatFullscreen ? 'pb-24' : 'pb-16'
                   }`}>
                     <div className={`flex items-end justify-center ${isCombatFullscreen ? 'gap-6' : 'gap-2'} animate-in fade-in zoom-in duration-300`}>
                       {combatState.monsters.map((monster, idx) => (
@@ -1825,9 +1825,9 @@ export default function Game() {
                                 alt={monster.name} 
                                 className={`object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.9)] ${
                                   isCombatFullscreen 
-                                    ? combatState.monsters.length === 1 ? 'w-[400px] h-[400px]' :
-                                      combatState.monsters.length === 2 ? 'w-80 h-80' : 
-                                      combatState.monsters.length === 3 ? 'w-64 h-64' : 'w-52 h-52'
+                                    ? combatState.monsters.length === 1 ? 'w-72 h-72 md:w-80 md:h-80 lg:w-96 lg:h-96' :
+                                      combatState.monsters.length === 2 ? 'w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72' : 
+                                      combatState.monsters.length === 3 ? 'w-44 h-44 md:w-52 md:h-52 lg:w-56 lg:h-56' : 'w-40 h-40 md:w-44 md:h-44 lg:w-48 lg:h-48'
                                     : combatState.monsters.length === 1 ? 'w-72 h-72' :
                                       combatState.monsters.length === 2 ? 'w-52 h-52' : 'w-40 h-40'
                                 }`}
