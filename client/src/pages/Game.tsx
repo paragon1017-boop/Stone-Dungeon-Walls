@@ -1076,12 +1076,12 @@ export default function Game() {
         </>
       )}
       
-      <div className={`${isCombatFullscreen ? 'w-full h-full p-0' : 'max-w-5xl w-full py-4 px-2'} relative z-10 transition-all duration-300`}>
+      <div className={`${isCombatFullscreen ? 'w-full h-full p-0' : 'max-w-6xl w-full pt-8 pb-4 px-2'} relative z-10 transition-all duration-300`}>
         <div className={`${isCombatFullscreen ? 'h-full grid grid-cols-1 lg:grid-cols-12 gap-0' : 'grid grid-cols-1 lg:grid-cols-12 gap-3'}`}>
         
-        {/* LEFT COLUMN: Commands & Equipment - hide during combat fullscreen */}
+        {/* LEFT COLUMN: Commands & Party Stats stacked - hide during combat fullscreen */}
         {!isCombatFullscreen && (
-        <div className="lg:col-span-2 space-y-2 order-2 lg:order-1 overflow-y-auto max-h-[calc(100vh-3rem)] pr-1" style={{ scrollbarWidth: 'thin' }}>
+        <div className="lg:col-span-3 space-y-2 order-2 lg:order-1 overflow-y-auto max-h-[calc(100vh-4rem)] pr-1" style={{ scrollbarWidth: 'thin' }}>
           <RetroCard title="COMMANDS">
             <div className="grid grid-cols-2 gap-2">
               <RetroButton onClick={handleSave} disabled={saveMutation.isPending}>
@@ -1664,11 +1664,48 @@ export default function Game() {
               </div>
             </div>
           )}
+          
+          {/* Party Stats - moved to left column */}
+          <RetroCard title="PARTY" className="space-y-2">
+            {game.party.map((char, idx) => {
+              const isCurrentTurn = combatState.active && idx === combatState.currentCharIndex && char.hp > 0;
+              return (
+              <div 
+                key={char.id} 
+                className={`p-2 rounded-lg border transition-all duration-300 ${
+                  isCurrentTurn 
+                    ? 'bg-primary/20 border-primary/50 shadow-lg shadow-primary/30 animate-pulse' 
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`font-semibold text-xs transition-all duration-300 ${
+                    isCurrentTurn ? 'text-primary drop-shadow-[0_0_8px_rgba(200,140,50,0.8)]' : 'text-primary'
+                  }`}>
+                    {char.name}
+                  </span>
+                  <span className="text-muted-foreground text-[10px] bg-white/5 px-1.5 py-0.5 rounded-full">Lv.{char.level}</span>
+                </div>
+                <div className="space-y-1">
+                  <StatBar label="HP" current={char.hp} max={getEffectiveStats(char).maxHp} color={char.color} />
+                  <StatBar label="MP" current={char.mp} max={getEffectiveStats(char).maxMp} color="#3b82f6" />
+                </div>
+              </div>
+            );
+            })}
+            
+            <div className="pt-2 border-t border-white/10">
+              <div className="flex justify-between items-center bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-3 py-2 rounded-lg border border-amber-500/20">
+                <span className="text-amber-400 font-semibold text-sm">GOLD</span>
+                <span className="text-amber-300 font-bold text-lg">{game.gold}</span>
+              </div>
+            </div>
+          </RetroCard>
         </div>
         )}
 
         {/* CENTER COLUMN: Viewport - full width during combat */}
-        <div className={`${isCombatFullscreen ? 'lg:col-span-12 h-full' : 'lg:col-span-8'} order-1 lg:order-2`}>
+        <div className={`${isCombatFullscreen ? 'lg:col-span-12 h-full' : 'lg:col-span-7'} order-1 lg:order-2`}>
           {/* Settings and Fullscreen buttons - above dungeon view - hide during combat */}
           {!isCombatFullscreen && (
           <div className="flex justify-end gap-2 mb-2">
@@ -1724,17 +1761,7 @@ export default function Game() {
           </div>
           )}
           
-          {/* Message Log - Top of screen, newest first scrolling down */}
-          {!isCombatFullscreen && (
-            <div className="h-20 bg-gradient-to-b from-black/90 to-black/60 border-b border-white/10 p-2 text-xs overflow-y-auto mb-1 rounded-lg" style={{ scrollbarWidth: 'thin' }} data-testid="panel-message-log">
-              {logs.map((msg, i) => (
-                <div key={i} className={`transition-opacity ${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.15 }}>
-                  {i === 0 ? '▸ ' : '  '}{msg}
-                </div>
-              ))}
-            </div>
-          )}
-          
+                    
           <RetroCard className={`${isCombatFullscreen ? 'h-full rounded-none border-0 bg-transparent' : 'p-1'}`}>
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden rounded-lg">
               {/* Always show dungeon view as background */}
@@ -1990,44 +2017,16 @@ export default function Game() {
             </RetroCard>
         </div>
 
-        {/* RIGHT COLUMN: Party Stats - hide during combat fullscreen */}
+        {/* RIGHT COLUMN: Message Log - hide during combat fullscreen */}
         {!isCombatFullscreen && (
-        <div className="lg:col-span-2 order-3 overflow-y-auto max-h-[calc(100vh-3rem)] pl-1" style={{ scrollbarWidth: 'thin' }}>
-          <RetroCard title="PARTY STATUS" className="h-full space-y-3">
-            {game.party.map((char, idx) => {
-              const isCurrentTurn = combatState.active && idx === combatState.currentCharIndex && char.hp > 0;
-              return (
-              <div 
-                key={char.id} 
-                className={`p-3 rounded-lg border transition-all duration-300 ${
-                  isCurrentTurn 
-                    ? 'bg-primary/20 border-primary/50 shadow-lg shadow-primary/30 animate-pulse' 
-                    : 'bg-white/5 border-white/10'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-semibold text-sm transition-all duration-300 ${
-                    isCurrentTurn ? 'text-primary drop-shadow-[0_0_8px_rgba(200,140,50,0.8)]' : 'text-primary'
-                  }`}>
-                    {char.name}
-                    {isCurrentTurn && <span className="ml-2 text-xs">⚔️</span>}
-                  </span>
-                  <span className="text-muted-foreground text-xs bg-white/5 px-2 py-0.5 rounded-full">Lv.{char.level} {char.job}</span>
+        <div className="lg:col-span-2 order-3 overflow-y-auto max-h-[calc(100vh-4rem)] pl-1" style={{ scrollbarWidth: 'thin' }}>
+          <RetroCard title="LOG" className="h-full">
+            <div className="space-y-1 text-xs" data-testid="panel-message-log">
+              {logs.map((msg, i) => (
+                <div key={i} className={`transition-opacity py-0.5 ${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.1 }}>
+                  {i === 0 ? '▸ ' : '  '}{msg}
                 </div>
-                <div className="space-y-2">
-                  <StatBar label="HP" current={char.hp} max={getEffectiveStats(char).maxHp} color={char.color} />
-                  <StatBar label="MP" current={char.mp} max={getEffectiveStats(char).maxMp} color="#3b82f6" />
-                  <StatBar label="XP" current={char.xp} max={xpForLevel(char.level + 1)} color="#f59e0b" />
-                </div>
-              </div>
-            );
-            })}
-            
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="flex justify-between items-center bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-4 py-3 rounded-lg border border-amber-500/20">
-                <span className="text-amber-400 font-semibold">GOLD</span>
-                <span className="text-amber-300 font-bold text-xl">{game.gold}</span>
-              </div>
+              ))}
             </div>
           </RetroCard>
         </div>
