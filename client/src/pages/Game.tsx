@@ -40,83 +40,13 @@ function formatEquipmentStats(item: Equipment): string {
   return parts.join(' ');
 }
 
-// Shared AudioContext for battle sounds (lazy initialized)
-let sharedAudioContext: AudioContext | null = null;
-
-// Battle encounter sound using Web Audio API
-function playBattleSound() {
-  try {
-    // Reuse or create AudioContext
-    if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
-      sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    const audioContext = sharedAudioContext;
-    
-    // Resume if suspended (browser autoplay policy)
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-    
-    const startTime = audioContext.currentTime;
-    
-    // Low rumble
-    const osc1 = audioContext.createOscillator();
-    const gain1 = audioContext.createGain();
-    osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(80, startTime);
-    osc1.frequency.exponentialRampToValueAtTime(40, startTime + 0.3);
-    gain1.gain.setValueAtTime(0.3, startTime);
-    gain1.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
-    osc1.connect(gain1);
-    gain1.connect(audioContext.destination);
-    osc1.start(startTime);
-    osc1.stop(startTime + 0.4);
-    
-    // High swoosh
-    const osc2 = audioContext.createOscillator();
-    const gain2 = audioContext.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(800, startTime);
-    osc2.frequency.exponentialRampToValueAtTime(200, startTime + 0.15);
-    gain2.gain.setValueAtTime(0.15, startTime);
-    gain2.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-    osc2.connect(gain2);
-    gain2.connect(audioContext.destination);
-    osc2.start(startTime);
-    osc2.stop(startTime + 0.2);
-    
-    // Noise burst for impact
-    const bufferSize = audioContext.sampleRate * 0.1;
-    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-    }
-    const noise = audioContext.createBufferSource();
-    noise.buffer = noiseBuffer;
-    const noiseGain = audioContext.createGain();
-    const noiseFilter = audioContext.createBiquadFilter();
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.setValueAtTime(2000, startTime);
-    noiseFilter.frequency.exponentialRampToValueAtTime(200, startTime + 0.1);
-    noiseGain.gain.setValueAtTime(0.4, startTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(audioContext.destination);
-    noise.start(startTime);
-  } catch (e) {
-    // Audio not supported or blocked
-  }
-}
-
 export default function Game() {
   const { user, logout } = useAuth();
   const { data: serverState, isLoading } = useGameState();
   const saveMutation = useSaveGame();
 
   const [game, setGame] = useState<GameData | null>(null);
-  const [logs, setLogs] = useState<string[]>(["The darkness of the dungeon beckons thee..."]);
+  const [logs, setLogs] = useState<string[]>(["Welcome to the dungeon..."]);
   const [combatState, setCombatState] = useState<{ 
     active: boolean, 
     monsters: Monster[],
@@ -175,7 +105,6 @@ export default function Game() {
   const [graphicsQuality, setGraphicsQuality] = useState<GraphicsQuality>('high');
   const [showSettings, setShowSettings] = useState(false);
   const [isCombatFullscreen, setIsCombatFullscreen] = useState(false);
-  const [combatFlash, setCombatFlash] = useState(false);
   const [combatTransition, setCombatTransition] = useState<'none' | 'entering' | 'active'>('none');
   const [selectedCharForEquip, setSelectedCharForEquip] = useState(0);
   const [selectedCharForStats, setSelectedCharForStats] = useState(0);
@@ -186,10 +115,6 @@ export default function Game() {
   const gameRef = useRef<GameData | null>(null);
   const combatActiveRef = useRef(false);
   
-  // Refs for combat transition timeout cleanup
-  const combatFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const combatFullscreenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
   // Keep refs in sync with state
   useEffect(() => {
     gameRef.current = game;
@@ -199,31 +124,11 @@ export default function Game() {
     combatActiveRef.current = combatState.active;
   }, [combatState.active]);
 
-  // Restore focus and cleanup transitions after combat ends
+  // Restore focus after combat ends
   useEffect(() => {
-    if (!combatState.active) {
-      // Cleanup transition timeouts when combat ends by any path
-      if (combatFlashTimeoutRef.current) {
-        clearTimeout(combatFlashTimeoutRef.current);
-        combatFlashTimeoutRef.current = null;
-      }
-      if (combatFullscreenTimeoutRef.current) {
-        clearTimeout(combatFullscreenTimeoutRef.current);
-        combatFullscreenTimeoutRef.current = null;
-      }
-      setCombatFlash(false);
-      setCombatTransition('none');
-      
-      if (gameContainerRef.current) {
-        gameContainerRef.current.focus();
-      }
+    if (!combatState.active && gameContainerRef.current) {
+      gameContainerRef.current.focus();
     }
-    
-    // Cleanup on unmount
-    return () => {
-      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
-      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
-    };
   }, [combatState.active]);
 
   // Initialize game state from server or default
@@ -285,10 +190,10 @@ export default function Game() {
         };
         
         setGame(migratedData);
-        log("Thy adventure continues from where thee left off.");
+        log("Game loaded from server.");
       } else {
         setGame(createInitialState());
-        log("A new quest begins! May fortune favor thy party.");
+        log("New game started.");
       }
     }
   }, [serverState, isLoading]);
@@ -306,14 +211,14 @@ export default function Game() {
 
     // Check bounds
     if (ny < 0 || ny >= currentGame.map.length || nx < 0 || nx >= currentGame.map[0].length) {
-      log("Thy path is blocked by an impassable wall.");
+      log("Blocked.");
       return;
     }
 
     const tile = currentGame.map[ny][nx];
     // Wall/door collision (1 = wall, 2 = door) - can walk on floor, ladder down, ladder up
     if (tile === TILE_WALL || tile === TILE_DOOR) {
-      log("Thy path is blocked.");
+      log("Blocked.");
       return;
     }
 
@@ -321,9 +226,9 @@ export default function Game() {
 
     // Check for ladder tiles and show prompt
     if (tile === TILE_LADDER_DOWN) {
-      log("A ladder leads deeper into darkness. Press SPACE to descend.");
+      log("A ladder leading deeper! Press SPACE to descend.");
     } else if (tile === TILE_LADDER_UP && currentGame.level > 1) {
-      log("A ladder leads upward toward the light. Press SPACE to climb.");
+      log("A ladder leading up! Press SPACE to climb.");
     }
 
     // Random Encounter Chance (10%) - not on ladder tiles
@@ -349,12 +254,6 @@ export default function Game() {
       const turnOrder = partyWithSpeed.map(c => c.idx);
       const firstCharIdx = turnOrder.length > 0 ? turnOrder[0] : 0;
       
-      // Play battle encounter sound
-      playBattleSound();
-      
-      // Show flash effect first
-      setCombatFlash(true);
-      
       setCombatState({ 
         active: true, 
         monsters, 
@@ -366,22 +265,12 @@ export default function Game() {
         defending: false 
       });
       
-      // Trigger combat transition animation with zoom
+      // Trigger combat transition animation
       setCombatTransition('entering');
-      
-      // Clear any existing timeouts first
-      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
-      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
-      
-      // Remove flash and transition to fullscreen with tracked timeouts
-      combatFlashTimeoutRef.current = setTimeout(() => {
-        setCombatFlash(false);
-      }, 150);
-      
-      combatFullscreenTimeoutRef.current = setTimeout(() => {
+      setTimeout(() => {
         setIsCombatFullscreen(true);
         setCombatTransition('active');
-      }, 400); // Slightly longer for dramatic effect
+      }, 300); // Fast transition
       
       // Trigger entrance animation for all monsters
       monsters.forEach((_, idx) => {
@@ -391,11 +280,9 @@ export default function Game() {
       });
       
       if (monsterCount === 1) {
-        log(`A ${monsters[0].name} draws near!`);
-      } else if (monsterCount === 2) {
-        log(`${monsters[0].name} and ${monsters[1].name} draw near!`);
+        log(`A wild ${monsters[0].name} appeared!`);
       } else {
-        log(`A group of ${monsterCount} monsters draws near!`);
+        log(`${monsterCount} monsters appeared!`);
       }
     }
   }, [log]);
@@ -418,7 +305,7 @@ export default function Game() {
         y: startY,
         dir: EAST
       }) : null);
-      log(`Thy party descends to Floor ${newFloor}. The darkness deepens...`);
+      log(`Descended to Floor ${newFloor}. The dungeon grows darker...`);
     } else if (currentTile === TILE_LADDER_UP && game.level > 1) {
       // Ascend to previous floor
       const newFloor = game.level - 1;
@@ -432,7 +319,7 @@ export default function Game() {
         y: ladderDownY,
         dir: EAST
       }) : null);
-      log(`Thy party climbs to Floor ${newFloor}. The air grows clearer.`);
+      log(`Ascended to Floor ${newFloor}. The air feels lighter.`);
     }
   }, [game, combatState.active, log]);
 
@@ -553,16 +440,12 @@ export default function Game() {
     // Then check for combat
     if (combatActiveRef.current) {
       (document.activeElement as HTMLElement)?.blur();
-      setLogs(prev => ["The party flees from the battle!", ...prev].slice(0, 5));
+      setLogs(prev => ["You fled from battle!", ...prev].slice(0, 5));
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setMonsterEffects({}); // Clear status effects
       setPartyEffects({}); // Clear party effects
       setIsCombatFullscreen(false);
       setCombatTransition('none');
-      setCombatFlash(false);
-      // Clear transition timeouts
-      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
-      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
     }
   }, {}, []);
   
@@ -573,7 +456,7 @@ export default function Game() {
     // Find the mage in the party
     const mageIndex = game.party.findIndex(c => c.job === 'Mage' && c.hp > 0);
     if (mageIndex === -1) {
-      log("There is no Mage in thy party to cast healing magic!");
+      log("No Mage available to cast Heal!");
       return;
     }
     
@@ -581,7 +464,7 @@ export default function Game() {
     const mpCost = 10; // MP cost for out-of-combat heal all
     
     if (mage.mp < mpCost) {
-      log(`${mage.name} lacks the magical power! (${mpCost} MP needed)`);
+      log(`${mage.name} doesn't have enough MP! (${mpCost} required)`);
       return;
     }
     
@@ -592,7 +475,7 @@ export default function Game() {
     });
     
     if (!partyNeedsHealing) {
-      log("Thy party is already in perfect health!");
+      log("Everyone is already at full health!");
       return;
     }
     
@@ -615,7 +498,7 @@ export default function Game() {
     newParty[mageIndex] = { ...newParty[mageIndex], mp: mage.mp - mpCost };
     
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
-    log(`${mage.name} chants Heal All! The party's HP is restored by ${totalHealed}!`);
+    log(`${mage.name} casts Heal All! Party healed ${totalHealed} HP total!`);
   }, [game, combatState.active, log]);
   
   useKey('h', () => healAllParty(), {}, [healAllParty]);
@@ -673,7 +556,7 @@ export default function Game() {
     if (!game) return;
     const char = game.party[charIndex];
     if (!canEquip(char, item)) {
-      log(`${char.name} cannot wield ${getEnhancedName(item)}!`);
+      log(`${char.name} cannot equip ${getEnhancedName(item)}!`);
       return;
     }
     
@@ -707,7 +590,7 @@ export default function Game() {
     }
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} equips ${getEnhancedName(item)}!`);
+    log(`${char.name} equipped ${getEnhancedName(item)}!`);
   }, [game, log]);
   
   // Unequip an item to inventory
@@ -736,7 +619,7 @@ export default function Game() {
     const newEquipInv = [...game.equipmentInventory, item];
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} removes ${getEnhancedName(item)}.`);
+    log(`${char.name} unequipped ${getEnhancedName(item)}.`);
   }, [game, log]);
   
   // Drop (discard) an item from inventory
@@ -747,7 +630,7 @@ export default function Game() {
     const newEquipInv = game.equipmentInventory.filter(i => i.id !== item.id);
     
     setGame(prev => prev ? ({ ...prev, equipmentInventory: newEquipInv }) : null);
-    log(`Thy party discards ${getEnhancedName(item)}.`);
+    log(`Dropped ${getEnhancedName(item)}.`);
   }, [game, log]);
   
   // Use a potion on a character
@@ -756,7 +639,7 @@ export default function Game() {
     
     const char = game.party[charIndex];
     if (char.hp <= 0) {
-      log(`${char.name} has fallen unconscious!`);
+      log(`${char.name} is unconscious!`);
       return;
     }
     
@@ -792,7 +675,7 @@ export default function Game() {
     const effects: string[] = [];
     if (healedHp > 0) effects.push(`+${healedHp} HP`);
     if (restoredMp > 0) effects.push(`+${restoredMp} MP`);
-    log(`${char.name} drinks ${potion.name}! ${effects.join('. ')}!`);
+    log(`${char.name} used ${potion.name}: ${effects.join(', ')}`);
   }, [game, log]);
   
   // Drop a potion
@@ -801,7 +684,7 @@ export default function Game() {
     
     const newPotionInv = game.potionInventory.filter(p => p.id !== potion.id);
     setGame(prev => prev ? ({ ...prev, potionInventory: newPotionInv }) : null);
-    log(`Thy party discards ${potion.name}.`);
+    log(`Dropped ${potion.name}.`);
   }, [game, log]);
 
   // Combat keyboard shortcuts and ladder interaction
@@ -830,13 +713,13 @@ export default function Game() {
   };
 
   const handleNewGame = () => {
-    if (window.confirm("Dost thou wish to begin a new quest? Thy current progress shall be lost!")) {
+    if (window.confirm("Start a new game? All unsaved progress will be lost!")) {
       setGame(createInitialState());
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setMonsterEffects({});
       setPartyEffects({});
       setLogs([]);
-      log("A new adventure begins! The dungeon awaits!");
+      log("New adventure begins!");
     }
   };
 
@@ -851,7 +734,7 @@ export default function Game() {
       if (newXp >= xpNeeded) {
         const stats = getLevelUpStats(char.job);
         const newLevel = char.level + 1;
-        log(`${char.name} has reached Level ${newLevel}! Thy strength grows!`);
+        log(`${char.name} leveled up to ${newLevel}!`);
         
         return {
           ...char,
@@ -879,7 +762,7 @@ export default function Game() {
     // Each alive monster attacks a random alive party member (sorted by speed)
     const aliveMembers = game.party.filter(c => c.hp > 0);
     if (aliveMembers.length === 0) {
-      log("Thy party has fallen... All is lost!");
+      log("GAME OVER");
       return;
     }
     
@@ -891,9 +774,9 @@ export default function Game() {
       if (m.hp > 0 && monsterEffects[m.id]?.burn) {
         const burnDmg = monsterEffects[m.id].burn!;
         updatedMonsters[i] = { ...m, hp: m.hp - burnDmg };
-        log(`${m.name} writhes in flames! ${burnDmg} points of damage!`);
+        log(`${m.name} takes ${burnDmg} burn damage!`);
         if (updatedMonsters[i].hp <= 0) {
-          log(`${m.name} is consumed by fire!`);
+          log(`${m.name} burned to death!`);
           triggerMonsterAnimation(i, 'death', 1200);
           // Clean up effects for dead monster
           setMonsterEffects(prev => {
@@ -922,7 +805,7 @@ export default function Game() {
       // Check if monster is frozen (skip turn)
       const mEffects = monsterEffects[monster.id];
       if (mEffects?.frozen) {
-        log(`${monster.name} is frozen solid and cannot move!`);
+        log(`${monster.name} is frozen and cannot act!`);
         // Clear frozen status after skipping
         setMonsterEffects(prev => ({
           ...prev,
@@ -969,7 +852,7 @@ export default function Game() {
       // Check for stealth dodge (from Monk's Stealth ability)
       const stealthChance = partyEffects[target.id]?.stealth || 0;
       if (stealthChance > 0 && Math.random() * 100 < stealthChance) {
-        log(`${target.name} fades into shadow and dodges the attack!`);
+        log(`${target.name} dodges from stealth!`);
         if (originalIdx >= 0) {
           setTimeout(() => {
             triggerMonsterAnimation(originalIdx, 'attack', 600);
@@ -980,7 +863,7 @@ export default function Game() {
       
       // Check for evasion (player dodges attack)
       if (targetCombatStats.evasion > 0 && Math.random() * 100 < targetCombatStats.evasion) {
-        log(`${monster.name} attacks! But ${target.name} nimbly dodges!`);
+        log(`${target.name} evades ${monster.name}'s attack!`);
         if (originalIdx >= 0) {
           setTimeout(() => {
             triggerMonsterAnimation(originalIdx, 'attack', 600);
@@ -1005,7 +888,7 @@ export default function Game() {
         c.id === target.id ? { ...c, hp: Math.max(0, c.hp - monsterDmg) } : c
       );
       
-      log(`${monster.name} attacks! ${target.name} takes ${monsterDmg} points of damage!`);
+      log(`${monster.name} hits ${target.name} for ${monsterDmg} dmg!`);
       
       // Check for counter-attack
       if (targetCombatStats.counterChance > 0 && Math.random() * 100 < targetCombatStats.counterChance) {
@@ -1013,7 +896,7 @@ export default function Game() {
         const monsterIdx = updatedMonsters.findIndex(m => m.id === monster.id);
         if (monsterIdx >= 0) {
           updatedMonsters[monsterIdx] = { ...updatedMonsters[monsterIdx], hp: updatedMonsters[monsterIdx].hp - counterDamage };
-          log(`${target.name} strikes back! ${monster.name} takes ${counterDamage} points of damage!`);
+          log(`${target.name} counters ${monster.name} for ${counterDamage} dmg!`);
         }
       }
     }
@@ -1029,7 +912,7 @@ export default function Game() {
     
     // Check if all party members are dead
     if (newTurnOrder.length === 0 || newParty.every(c => c.hp <= 0)) {
-      log("Thy party has fallen... All is lost!");
+      log("GAME OVER");
       setCombatState(prev => ({ 
         ...prev, 
         monsters: updatedMonsters,
@@ -1063,7 +946,7 @@ export default function Game() {
     
     // Check MP cost
     if (ability.mpCost > char.mp) {
-      log(`${char.name} lacks the magical power to cast that spell!`);
+      log(`${char.name} doesn't have enough MP!`);
       return;
     }
     
@@ -1102,9 +985,9 @@ export default function Game() {
         newMonsters[combatState.targetIndex] = { ...targetMonster, hp: targetMonster.hp - damage };
         
         if (isCrit) {
-          log(`${char.name} lands a CRITICAL HIT! ${targetMonster.name} takes ${damage} points of damage!`);
+          log(`${char.name} CRITICAL HIT on ${targetMonster.name}! ${damage} damage!`);
         } else {
-          log(`${char.name} casts ${ability.name}! ${targetMonster.name} takes ${damage} points of damage!`);
+          log(`${char.name} uses ${ability.name} on ${targetMonster.name}! ${damage} damage!`);
         }
         
         // Apply lifesteal healing
@@ -1114,7 +997,7 @@ export default function Game() {
             const maxHp = charStats.maxHp;
             const newHp = Math.min(maxHp, char.hp + healFromLifesteal);
             newParty[charIndex] = { ...char, hp: newHp };
-            log(`${char.name} drains ${healFromLifesteal} HP from the enemy!`);
+            log(`${char.name} heals ${healFromLifesteal} HP from lifesteal!`);
           }
         }
         
@@ -1123,7 +1006,7 @@ export default function Game() {
           const maxHp = charStats.maxHp;
           const newHp = Math.min(maxHp, newParty[charIndex].hp + combatStats.onHitHeal);
           newParty[charIndex] = { ...newParty[charIndex], hp: newHp };
-          log(`${char.name}'s strike restores ${combatStats.onHitHeal} HP!`);
+          log(`${char.name} heals ${combatStats.onHitHeal} HP on hit!`);
         }
         
         // Apply elemental effects
@@ -1135,7 +1018,7 @@ export default function Game() {
             ...prev,
             [targetMonsterId]: { ...prev[targetMonsterId], burn: combatStats.burnDamage }
           }));
-          log(`${targetMonster.name} catches fire! It will burn for ${combatStats.burnDamage} each turn!`);
+          log(`${targetMonster.name} is burning! (${combatStats.burnDamage} dmg/turn)`);
         }
         
         // Apply slow effect (Ice)
@@ -1144,7 +1027,7 @@ export default function Game() {
             ...prev,
             [targetMonsterId]: { ...prev[targetMonsterId], slow: combatStats.slowEffect }
           }));
-          log(`${targetMonster.name} is chilled to the bone! Speed reduced by ${combatStats.slowEffect}%!`);
+          log(`${targetMonster.name} is slowed by ${combatStats.slowEffect}%!`);
         }
         
         // Apply lightning chain damage to other monsters
@@ -1156,7 +1039,7 @@ export default function Game() {
           for (const { m, idx } of otherMonsters) {
             const chainDmg = Math.max(1, Math.floor(damage * combatStats.chainDamage / 100));
             newMonsters[idx] = { ...m, hp: m.hp - chainDmg };
-            log(`Lightning arcs to ${m.name}! ${chainDmg} points of damage!`);
+            log(`Lightning chains to ${m.name} for ${chainDmg} dmg!`);
           }
         }
         
@@ -1167,7 +1050,7 @@ export default function Game() {
               ...prev,
               [targetMonsterId]: { ...prev[targetMonsterId], frozen: true }
             }));
-            log(`${targetMonster.name} is encased in ice! It cannot move next turn!`);
+            log(`${targetMonster.name} is FROZEN! It will skip its next turn!`);
           }
         }
         
@@ -1193,7 +1076,7 @@ export default function Game() {
         const baseHeal = ability.type === 'heal' ? scaledPower : ability.power;
         const healAmount = Math.min(Math.floor(baseHeal), targetEffectiveStats.maxHp - newParty[targetIdx].hp);
         newParty[targetIdx] = { ...newParty[targetIdx], hp: newParty[targetIdx].hp + healAmount };
-        log(`${char.name} chants ${ability.name}! ${newParty[targetIdx].name}'s HP is restored by ${healAmount}!`);
+        log(`${char.name} uses ${ability.name}! ${newParty[targetIdx].name} healed ${healAmount} HP!`);
         break;
       }
       case 'buff': {
@@ -1203,11 +1086,11 @@ export default function Game() {
             ...prev,
             [char.id]: { ...prev[char.id], stealth: ability.power }
           }));
-          log(`${char.name} vanishes into the shadows! Dodge chance increased!`);
+          log(`${char.name} enters stealth! (${ability.power}% dodge chance)`);
         } else {
           // Defend ability
           isDefending = true;
-          log(`${char.name} braces for impact! Defense is doubled!`);
+          log(`${char.name} takes a defensive stance!`);
         }
         break;
       }
@@ -1223,7 +1106,7 @@ export default function Game() {
             attackDebuff: ability.power 
           }
         }));
-        log(`${char.name} taunts ${targetMonster.name}! The enraged foe must attack ${char.name}!`);
+        log(`${char.name} provokes ${targetMonster.name}! It must attack ${char.name} for 2 turns!`);
         break;
       }
     }
@@ -1232,7 +1115,7 @@ export default function Game() {
     
     // Check if targeted monster is defeated
     if (newMonsters[combatState.targetIndex].hp <= 0) {
-      log(`${targetMonster.name} is defeated!`);
+      log(`Defeated ${targetMonster.name}!`);
       // Trigger death animation
       triggerMonsterAnimation(combatState.targetIndex, 'death', 1200);
       // Clean up effects for dead monster
@@ -1257,7 +1140,7 @@ export default function Game() {
     if (aliveMonsters.length === 0) {
       const totalXp = newMonsters.reduce((sum, m) => sum + m.xpValue, 0);
       const totalGold = newMonsters.reduce((sum, m) => sum + m.goldValue, 0);
-      log(`Thou art victorious! Gained ${totalXp} experience points and ${totalGold} gold!`);
+      log(`Victory! +${totalXp} XP, +${totalGold} Gold`);
       
       // Award gold
       setGame(prev => prev ? ({ ...prev, gold: prev.gold + totalGold }) : null);
@@ -1274,7 +1157,7 @@ export default function Game() {
       
       if (droppedEquipment.length > 0) {
         droppedEquipment.forEach(item => {
-          log(`Thy party discovers ${getEnhancedName(item)}!`);
+          log(`Found ${getEnhancedName(item)}!`);
         });
         // Add dropped equipment to inventory
         setGame(prev => prev ? ({
@@ -1294,7 +1177,7 @@ export default function Game() {
       
       if (droppedPotions.length > 0) {
         droppedPotions.forEach(potion => {
-          log(`Thy party finds a ${potion.name}!`);
+          log(`Found ${potion.name}!`);
         });
         // Add dropped potions to inventory
         setGame(prev => prev ? ({
@@ -1351,7 +1234,7 @@ export default function Game() {
 
   const handleRun = () => {
     (document.activeElement as HTMLElement)?.blur();
-    log("The party runs away from the battle!");
+    log("You fled from battle!");
     setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
     setMonsterEffects({}); // Clear status effects
     setPartyEffects({}); // Clear party effects
@@ -1372,11 +1255,7 @@ export default function Game() {
     <div 
       ref={gameContainerRef}
       tabIndex={-1}
-      className={`${isCombatFullscreen ? 'fixed inset-0 z-50' : 'h-screen w-screen'} ${combatTransition === 'entering' ? 'combat-zoom-entering' : ''} flex items-center justify-center relative overflow-hidden outline-none bg-black transition-all duration-300`}>
-      
-      {/* Combat flash overlay */}
-      {combatFlash && <div className="combat-flash-overlay" />}
-      
+      className={`${isCombatFullscreen ? 'fixed inset-0 z-50' : 'h-screen w-screen'} flex items-center justify-center relative overflow-hidden outline-none bg-black transition-all duration-300`}>
       {/* Stone wall background with grayscale filter */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -1414,7 +1293,7 @@ export default function Game() {
         <div 
           className="fixed inset-0 z-[100] pointer-events-none"
           style={{
-            animation: 'combatFlash 350ms ease-out forwards'
+            animation: 'combatFlash 300ms ease-out forwards'
           }}
         >
           {/* White flash overlay */}
@@ -1424,7 +1303,7 @@ export default function Game() {
           {/* Red combat indicator */}
           <div className="absolute inset-0" style={{
             background: 'radial-gradient(circle at center, transparent 0%, rgba(200,50,50,0.6) 100%)',
-            animation: 'pulseIn 350ms ease-out forwards'
+            animation: 'pulseIn 300ms ease-out forwards'
           }} />
           {/* Zoom lines effect */}
           <div className="absolute inset-0 flex items-center justify-center">
