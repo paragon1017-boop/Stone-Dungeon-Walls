@@ -93,6 +93,8 @@ export default function Game() {
   };
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showEquipment, setShowEquipment] = useState(false);
+  const showEquipmentRef = useRef(showEquipment);
+  useEffect(() => { showEquipmentRef.current = showEquipment; }, [showEquipment]);
   const [showStats, setShowStats] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -200,7 +202,7 @@ export default function Game() {
 
   const move = useCallback((dx: number, dy: number) => {
     const currentGame = gameRef.current;
-    if (!currentGame || combatActiveRef.current) return;
+    if (!currentGame || combatActiveRef.current || showEquipmentRef.current) return;
     
     const nx = currentGame.x + dx;
     const ny = currentGame.y + dy;
@@ -421,8 +423,14 @@ export default function Game() {
   // Toggle mini map
   useKey('m', () => setShowMiniMap(prev => !prev), {}, []);
   
-  // ESC key to flee combat (inline to avoid reference issues)
+  // ESC key to flee combat or close equipment modal
   useKey('Escape', () => {
+    // First check if equipment modal is open
+    if (showEquipmentRef.current) {
+      setShowEquipment(false);
+      return;
+    }
+    // Then check for combat
     if (combatActiveRef.current) {
       (document.activeElement as HTMLElement)?.blur();
       setLogs(prev => ["You fled from battle!", ...prev].slice(0, 5));
@@ -1600,164 +1608,6 @@ export default function Game() {
             </div>
           </RetroCard>
           
-          {/* Equipment Panel - Below Commands */}
-          {showEquipment && (
-            <div className="w-full bg-black/95 backdrop-blur-sm border border-primary/30 rounded-lg shadow-2xl shadow-black/50 mt-2">
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-primary font-pixel text-sm">EQUIPMENT</h3>
-                  <button 
-                    onClick={() => setShowEquipment(false)}
-                    className="text-muted-foreground hover:text-primary text-lg px-2"
-                    data-testid="button-close-equipment"
-                  >
-                    ×
-                  </button>
-                </div>
-                
-                {/* Character Selection */}
-                <div className="flex gap-1 mb-3">
-                  {game.party.map((char, idx) => (
-                    <button
-                      key={char.id}
-                      onClick={() => setSelectedCharForEquip(idx)}
-                      className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-                        selectedCharForEquip === idx 
-                          ? 'bg-primary/20 text-primary border border-primary/40 shadow-lg shadow-primary/10' 
-                          : 'bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10'
-                      }`}
-                      data-testid={`button-select-char-${idx}`}
-                    >
-                      {char.name}
-                    </button>
-                  ))}
-                </div>
-                
-                {/* Selected Character's Equipment Slots */}
-                {game.party[selectedCharForEquip] && (
-                  <div className="space-y-1 mb-2">
-                    {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const)
-                      .filter(slot => {
-                        const job = game.party[selectedCharForEquip].job;
-                        // Fighter: show shield (not offhand), no relic
-                        // Mage: show offhand and relic (not shield)
-                        // Monk: show offhand (not shield), no relic
-                        if (slot === 'shield') return job === 'Fighter';
-                        if (slot === 'offhand') return job !== 'Fighter';
-                        if (slot === 'relic') return job === 'Mage';
-                        return true;
-                      })
-                      .map(slot => {
-                      const item = game.party[selectedCharForEquip].equipment[slot];
-                      return (
-                        <div 
-                          key={slot} 
-                          className="flex items-center justify-between bg-white/5 px-2 py-1 rounded border border-white/10"
-                        >
-                          <div className="flex items-center gap-1 flex-1 min-w-0">
-                            <span className="text-[9px] text-muted-foreground capitalize w-10 flex-shrink-0">{slot}:</span>
-                            {item ? (
-                              <span className={`text-[9px] font-medium truncate ${
-                                item.rarity === 'rare' ? 'text-blue-400' : 
-                                item.rarity === 'uncommon' ? 'text-green-400' : 
-                                item.rarity === 'epic' ? 'text-purple-400' : 
-                                (item.enhancement || 0) > 0 ? 'text-yellow-400' : 'text-foreground'
-                              }`}>
-                                {getEnhancedName(item)}
-                              </span>
-                            ) : (
-                              <span className="text-[9px] text-muted-foreground italic">-</span>
-                            )}
-                          </div>
-                          {item && (
-                            <button
-                              onClick={() => unequipItem(selectedCharForEquip, slot)}
-                              className="text-[9px] px-1 bg-destructive/20 text-destructive hover:bg-destructive/40 rounded transition-colors ml-1"
-                              data-testid={`button-unequip-${slot}`}
-                            >
-                              X
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                {/* Show effective stats - grid */}
-                <div className="grid grid-cols-2 gap-1 text-[9px] text-muted-foreground mb-2">
-                  <span className="bg-white/5 px-1 py-0.5 rounded text-center">ATK: {getEffectiveStats(game.party[selectedCharForEquip]).attack}</span>
-                  <span className="bg-white/5 px-1 py-0.5 rounded text-center">DEF: {getEffectiveStats(game.party[selectedCharForEquip]).defense}</span>
-                  <span className="bg-white/5 px-1 py-0.5 rounded text-center">HP: {getEffectiveStats(game.party[selectedCharForEquip]).maxHp}</span>
-                  <span className="bg-white/5 px-1 py-0.5 rounded text-center">MP: {getEffectiveStats(game.party[selectedCharForEquip]).maxMp}</span>
-                </div>
-                
-                {/* Equipment Inventory */}
-                <div className="pt-2 border-t border-white/10">
-                  <div className="text-[10px] text-muted-foreground mb-1">
-                    Bag ({game.equipmentInventory.length})
-                  </div>
-                  {game.equipmentInventory.length === 0 ? (
-                    <div className="text-[10px] text-muted-foreground italic text-center py-2">
-                      Empty
-                    </div>
-                  ) : (
-                    <div className="space-y-1 max-h-40 overflow-y-auto">
-                      {game.equipmentInventory.map((item, idx) => {
-                        const char = game.party[selectedCharForEquip];
-                        const canEquipThis = canEquip(char, item);
-                        return (
-                          <div 
-                            key={`${item.id}-${idx}`}
-                            className={`bg-white/5 px-2 py-1.5 rounded border border-white/10 transition-opacity ${
-                              !canEquipThis ? 'opacity-40' : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-1">
-                              <div className="flex-1 min-w-0">
-                                <span className={`text-[9px] font-medium block truncate ${
-                                  item.rarity === 'rare' ? 'text-blue-400' : 
-                                  item.rarity === 'uncommon' ? 'text-green-400' : 
-                                  item.rarity === 'epic' ? 'text-purple-400' : 
-                                  (item.enhancement || 0) > 0 ? 'text-yellow-400' : 'text-foreground'
-                                }`}>
-                                  {getEnhancedName(item)}
-                                </span>
-                                <div className="text-[8px] text-amber-400/80">
-                                  {formatEquipmentStats(item)}
-                                </div>
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <button
-                                  onClick={() => equipItem(selectedCharForEquip, item)}
-                                  disabled={!canEquipThis}
-                                  className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${
-                                    canEquipThis 
-                                      ? 'bg-primary/20 text-primary hover:bg-primary/40' 
-                                      : 'bg-muted text-muted-foreground cursor-not-allowed'
-                                  }`}
-                                  data-testid={`button-equip-${item.id}`}
-                                >
-                                  Eq
-                                </button>
-                                <button
-                                  onClick={() => dropItem(item)}
-                                  className="text-[9px] px-1.5 py-0.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded transition-colors"
-                                  data-testid={`button-drop-${item.id}`}
-                                >
-                                  Drop
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* Stats Panel - Below Equipment */}
           {showStats && (
@@ -2782,6 +2632,186 @@ export default function Game() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      
+      {/* Equipment Modal - Full screen overlay on main view */}
+      {showEquipment && !isCombatFullscreen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowEquipment(false)}>
+          <div 
+            className="bg-gradient-to-b from-stone-900 to-stone-950 border-2 border-primary/50 rounded-lg shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h2 className="text-amber-400 font-pixel text-lg">EQUIPMENT</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">(Press E or ESC to close)</span>
+                <RetroButton 
+                  onClick={() => setShowEquipment(false)}
+                  className="w-8 h-8 p-0"
+                  variant="ghost"
+                  data-testid="button-close-equipment"
+                >
+                  <X className="w-4 h-4" />
+                </RetroButton>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              {/* Character Selection */}
+              <div className="flex gap-2 mb-4">
+                {game.party.map((char, idx) => (
+                  <button
+                    key={char.id}
+                    onClick={() => setSelectedCharForEquip(idx)}
+                    className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      selectedCharForEquip === idx 
+                        ? 'bg-primary/20 text-primary border-2 border-primary/50 shadow-lg shadow-primary/10' 
+                        : 'bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10'
+                    }`}
+                    data-testid={`button-select-char-${idx}`}
+                  >
+                    <div>{char.name}</div>
+                    <div className="text-xs opacity-70">{char.job}</div>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Left: Equipment Slots */}
+                <div>
+                  <h3 className="text-sm text-amber-400 font-semibold mb-2">Equipped</h3>
+                  {game.party[selectedCharForEquip] && (
+                    <div className="space-y-1.5">
+                      {(['weapon', 'shield', 'armor', 'helmet', 'gloves', 'boots', 'necklace', 'ring1', 'ring2', 'relic', 'offhand'] as const)
+                        .filter(slot => {
+                          const job = game.party[selectedCharForEquip].job;
+                          if (slot === 'shield') return job === 'Fighter';
+                          if (slot === 'offhand') return job !== 'Fighter';
+                          if (slot === 'relic') return job === 'Mage';
+                          return true;
+                        })
+                        .map(slot => {
+                        const item = game.party[selectedCharForEquip].equipment[slot];
+                        return (
+                          <div 
+                            key={slot} 
+                            className="flex items-center justify-between bg-white/5 px-3 py-2 rounded-lg border border-white/10"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs text-muted-foreground capitalize w-14 flex-shrink-0">{slot}:</span>
+                              {item ? (
+                                <span className={`text-xs font-medium truncate ${
+                                  item.rarity === 'legendary' ? 'text-amber-400' :
+                                  item.rarity === 'epic' ? 'text-purple-400' : 
+                                  item.rarity === 'rare' ? 'text-blue-400' : 
+                                  item.rarity === 'uncommon' ? 'text-green-400' : 
+                                  'text-foreground'
+                                }`}>
+                                  {getEnhancedName(item)}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">Empty</span>
+                              )}
+                            </div>
+                            {item && (
+                              <button
+                                onClick={() => unequipItem(selectedCharForEquip, slot)}
+                                className="text-xs px-2 py-1 bg-destructive/20 text-destructive hover:bg-destructive/40 rounded transition-colors ml-2"
+                                data-testid={`button-unequip-${slot}`}
+                              >
+                                Unequip
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Stats Summary */}
+                  <div className="mt-4 p-3 bg-black/40 rounded-lg border border-white/10">
+                    <h4 className="text-xs text-amber-400 mb-2">Stats</h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <span className="text-red-400">ATK: {getEffectiveStats(game.party[selectedCharForEquip]).attack}</span>
+                      <span className="text-blue-400">DEF: {getEffectiveStats(game.party[selectedCharForEquip]).defense}</span>
+                      <span className="text-green-400">HP: {getEffectiveStats(game.party[selectedCharForEquip]).maxHp}</span>
+                      <span className="text-cyan-400">MP: {getEffectiveStats(game.party[selectedCharForEquip]).maxMp}</span>
+                      <span className="text-yellow-400">SPD: {getEffectiveStats(game.party[selectedCharForEquip]).speed}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Right: Inventory */}
+                <div>
+                  <h3 className="text-sm text-amber-400 font-semibold mb-2">
+                    Inventory ({game.equipmentInventory.length})
+                  </h3>
+                  {game.equipmentInventory.length === 0 ? (
+                    <div className="text-sm text-muted-foreground italic text-center py-8 bg-white/5 rounded-lg border border-white/10">
+                      No equipment in bag
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+                      {game.equipmentInventory.map((item, idx) => {
+                        const char = game.party[selectedCharForEquip];
+                        const canEquipThis = canEquip(char, item);
+                        return (
+                          <div 
+                            key={`${item.id}-${idx}`}
+                            className={`bg-white/5 px-3 py-2 rounded-lg border border-white/10 transition-opacity ${
+                              !canEquipThis ? 'opacity-50' : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <span className={`text-xs font-medium block truncate ${
+                                  item.rarity === 'legendary' ? 'text-amber-400' :
+                                  item.rarity === 'epic' ? 'text-purple-400' : 
+                                  item.rarity === 'rare' ? 'text-blue-400' : 
+                                  item.rarity === 'uncommon' ? 'text-green-400' : 
+                                  'text-foreground'
+                                }`}>
+                                  {getEnhancedName(item)}
+                                </span>
+                                <div className="text-[10px] text-amber-400/80 mt-0.5">
+                                  {formatEquipmentStats(item)}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground capitalize">
+                                  {item.slot} • {item.allowedJobs.join(', ')}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 flex-shrink-0">
+                                <button
+                                  onClick={() => equipItem(selectedCharForEquip, item)}
+                                  disabled={!canEquipThis}
+                                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                                    canEquipThis 
+                                      ? 'bg-primary/20 text-primary hover:bg-primary/40' 
+                                      : 'bg-muted text-muted-foreground cursor-not-allowed'
+                                  }`}
+                                  data-testid={`button-equip-${item.id}`}
+                                >
+                                  Equip
+                                </button>
+                                <button
+                                  onClick={() => dropItem(item)}
+                                  className="text-xs px-2 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded transition-colors"
+                                  data-testid={`button-drop-${item.id}`}
+                                >
+                                  Drop
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
