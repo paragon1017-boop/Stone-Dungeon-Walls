@@ -40,6 +40,76 @@ function formatEquipmentStats(item: Equipment): string {
   return parts.join(' ');
 }
 
+// Shared AudioContext for battle sounds (lazy initialized)
+let sharedAudioContext: AudioContext | null = null;
+
+// Battle encounter sound using Web Audio API
+function playBattleSound() {
+  try {
+    // Reuse or create AudioContext
+    if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+      sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    const audioContext = sharedAudioContext;
+    
+    // Resume if suspended (browser autoplay policy)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
+    const startTime = audioContext.currentTime;
+    
+    // Low rumble
+    const osc1 = audioContext.createOscillator();
+    const gain1 = audioContext.createGain();
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(80, startTime);
+    osc1.frequency.exponentialRampToValueAtTime(40, startTime + 0.3);
+    gain1.gain.setValueAtTime(0.3, startTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+    osc1.connect(gain1);
+    gain1.connect(audioContext.destination);
+    osc1.start(startTime);
+    osc1.stop(startTime + 0.4);
+    
+    // High swoosh
+    const osc2 = audioContext.createOscillator();
+    const gain2 = audioContext.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(800, startTime);
+    osc2.frequency.exponentialRampToValueAtTime(200, startTime + 0.15);
+    gain2.gain.setValueAtTime(0.15, startTime);
+    gain2.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+    osc2.connect(gain2);
+    gain2.connect(audioContext.destination);
+    osc2.start(startTime);
+    osc2.stop(startTime + 0.2);
+    
+    // Noise burst for impact
+    const bufferSize = audioContext.sampleRate * 0.1;
+    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    const noise = audioContext.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const noiseGain = audioContext.createGain();
+    const noiseFilter = audioContext.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(2000, startTime);
+    noiseFilter.frequency.exponentialRampToValueAtTime(200, startTime + 0.1);
+    noiseGain.gain.setValueAtTime(0.4, startTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audioContext.destination);
+    noise.start(startTime);
+  } catch (e) {
+    // Audio not supported or blocked
+  }
+}
+
 export default function Game() {
   const { user, logout } = useAuth();
   const { data: serverState, isLoading } = useGameState();
@@ -105,6 +175,7 @@ export default function Game() {
   const [graphicsQuality, setGraphicsQuality] = useState<GraphicsQuality>('high');
   const [showSettings, setShowSettings] = useState(false);
   const [isCombatFullscreen, setIsCombatFullscreen] = useState(false);
+  const [combatFlash, setCombatFlash] = useState(false);
   const [combatTransition, setCombatTransition] = useState<'none' | 'entering' | 'active'>('none');
   const [selectedCharForEquip, setSelectedCharForEquip] = useState(0);
   const [selectedCharForStats, setSelectedCharForStats] = useState(0);
@@ -115,6 +186,10 @@ export default function Game() {
   const gameRef = useRef<GameData | null>(null);
   const combatActiveRef = useRef(false);
   
+  // Refs for combat transition timeout cleanup
+  const combatFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const combatFullscreenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   // Keep refs in sync with state
   useEffect(() => {
     gameRef.current = game;
@@ -124,11 +199,31 @@ export default function Game() {
     combatActiveRef.current = combatState.active;
   }, [combatState.active]);
 
-  // Restore focus after combat ends
+  // Restore focus and cleanup transitions after combat ends
   useEffect(() => {
-    if (!combatState.active && gameContainerRef.current) {
-      gameContainerRef.current.focus();
+    if (!combatState.active) {
+      // Cleanup transition timeouts when combat ends by any path
+      if (combatFlashTimeoutRef.current) {
+        clearTimeout(combatFlashTimeoutRef.current);
+        combatFlashTimeoutRef.current = null;
+      }
+      if (combatFullscreenTimeoutRef.current) {
+        clearTimeout(combatFullscreenTimeoutRef.current);
+        combatFullscreenTimeoutRef.current = null;
+      }
+      setCombatFlash(false);
+      setCombatTransition('none');
+      
+      if (gameContainerRef.current) {
+        gameContainerRef.current.focus();
+      }
     }
+    
+    // Cleanup on unmount
+    return () => {
+      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
+      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
+    };
   }, [combatState.active]);
 
   // Initialize game state from server or default
@@ -254,6 +349,12 @@ export default function Game() {
       const turnOrder = partyWithSpeed.map(c => c.idx);
       const firstCharIdx = turnOrder.length > 0 ? turnOrder[0] : 0;
       
+      // Play battle encounter sound
+      playBattleSound();
+      
+      // Show flash effect first
+      setCombatFlash(true);
+      
       setCombatState({ 
         active: true, 
         monsters, 
@@ -265,12 +366,22 @@ export default function Game() {
         defending: false 
       });
       
-      // Trigger combat transition animation
+      // Trigger combat transition animation with zoom
       setCombatTransition('entering');
-      setTimeout(() => {
+      
+      // Clear any existing timeouts first
+      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
+      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
+      
+      // Remove flash and transition to fullscreen with tracked timeouts
+      combatFlashTimeoutRef.current = setTimeout(() => {
+        setCombatFlash(false);
+      }, 150);
+      
+      combatFullscreenTimeoutRef.current = setTimeout(() => {
         setIsCombatFullscreen(true);
         setCombatTransition('active');
-      }, 300); // Fast transition
+      }, 400); // Slightly longer for dramatic effect
       
       // Trigger entrance animation for all monsters
       monsters.forEach((_, idx) => {
@@ -446,6 +557,10 @@ export default function Game() {
       setPartyEffects({}); // Clear party effects
       setIsCombatFullscreen(false);
       setCombatTransition('none');
+      setCombatFlash(false);
+      // Clear transition timeouts
+      if (combatFlashTimeoutRef.current) clearTimeout(combatFlashTimeoutRef.current);
+      if (combatFullscreenTimeoutRef.current) clearTimeout(combatFullscreenTimeoutRef.current);
     }
   }, {}, []);
   
@@ -1255,7 +1370,11 @@ export default function Game() {
     <div 
       ref={gameContainerRef}
       tabIndex={-1}
-      className={`${isCombatFullscreen ? 'fixed inset-0 z-50' : 'h-screen w-screen'} flex items-center justify-center relative overflow-hidden outline-none bg-black transition-all duration-300`}>
+      className={`${isCombatFullscreen ? 'fixed inset-0 z-50' : 'h-screen w-screen'} ${combatTransition === 'entering' ? 'combat-zoom-entering' : ''} flex items-center justify-center relative overflow-hidden outline-none bg-black transition-all duration-300`}>
+      
+      {/* Combat flash overlay */}
+      {combatFlash && <div className="combat-flash-overlay" />}
+      
       {/* Stone wall background with grayscale filter */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -1293,7 +1412,7 @@ export default function Game() {
         <div 
           className="fixed inset-0 z-[100] pointer-events-none"
           style={{
-            animation: 'combatFlash 300ms ease-out forwards'
+            animation: 'combatFlash 350ms ease-out forwards'
           }}
         >
           {/* White flash overlay */}
@@ -1303,7 +1422,7 @@ export default function Game() {
           {/* Red combat indicator */}
           <div className="absolute inset-0" style={{
             background: 'radial-gradient(circle at center, transparent 0%, rgba(200,50,50,0.6) 100%)',
-            animation: 'pulseIn 300ms ease-out forwards'
+            animation: 'pulseIn 350ms ease-out forwards'
           }} />
           {/* Zoom lines effect */}
           <div className="absolute inset-0 flex items-center justify-center">
