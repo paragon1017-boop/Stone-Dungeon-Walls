@@ -685,6 +685,17 @@ export default function Game() {
     });
   };
 
+  const handleNewGame = () => {
+    if (window.confirm("Start a new game? All unsaved progress will be lost!")) {
+      setGame(createInitialState());
+      setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
+      setMonsterEffects({});
+      setPartyEffects({});
+      setLogs([]);
+      log("New adventure begins!");
+    }
+  };
+
   const awardXP = useCallback((xpAmount: number) => {
     if (!game) return;
     
@@ -1424,8 +1435,13 @@ export default function Game() {
               <RetroButton onClick={handleSave} disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? "SAVING..." : "SAVE"} <Save className="w-3 h-3 ml-2 inline" />
               </RetroButton>
-              <RetroButton onClick={() => logout()} variant="danger">
-                EXIT <LogOut className="w-3 h-3 ml-2 inline" />
+              <RetroButton onClick={handleNewGame} variant="ghost" data-testid="button-new-game">
+                NEW <RotateCw className="w-3 h-3 ml-2 inline" />
+              </RetroButton>
+            </div>
+            <div className="mt-2">
+              <RetroButton onClick={() => logout()} variant="danger" className="w-full">
+                EXIT GAME <LogOut className="w-3 h-3 ml-2 inline" />
               </RetroButton>
             </div>
             
