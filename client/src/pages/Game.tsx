@@ -2538,12 +2538,12 @@ export default function Game() {
         
         {/* RIGHT SIDEBAR - Battle Log during combat fullscreen */}
         {isCombatFullscreen && (
-          <div className="w-80 h-full bg-black/90 border-l border-primary/30 flex flex-col p-2 z-30">
-            <div className="bg-black/60 rounded border border-white/10 p-3 flex-1 overflow-hidden flex flex-col">
+          <div className="w-80 min-h-screen bg-black/90 border-l border-primary/30 flex flex-col p-2 z-30">
+            <div className="bg-black/60 rounded border border-white/10 p-3 flex-1 overflow-hidden flex flex-col min-h-0">
               <div className="font-pixel text-sm text-primary mb-2">BATTLE LOG</div>
-              <div className="flex-1 space-y-1 text-xs overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                {logs.slice(0, 30).map((msg, i) => (
-                  <div key={i} className={`${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.03 }}>
+              <div className="flex-1 space-y-1 text-sm overflow-y-auto min-h-0" style={{ scrollbarWidth: 'thin' }}>
+                {logs.slice(0, 50).map((msg, i) => (
+                  <div key={i} className={`py-0.5 ${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.02 }}>
                     {msg}
                   </div>
                 ))}
@@ -2551,7 +2551,7 @@ export default function Game() {
             </div>
             
             {/* Settings and Fullscreen buttons */}
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 flex-shrink-0">
               <button
                 onClick={() => {
                   if (document.fullscreenElement) {
