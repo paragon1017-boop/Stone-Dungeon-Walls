@@ -1413,23 +1413,8 @@ export default function Game() {
 
           </div>
         )}
-        
-        {/* RIGHT SIDEBAR - Battle Log during combat fullscreen */}
-        {isCombatFullscreen && (
-          <div className="w-64 h-full bg-black/90 border-l border-primary/30 flex flex-col p-2 z-30">
-            <div className="bg-black/60 rounded border border-white/10 p-2 flex-1 overflow-hidden flex flex-col">
-              <div className="font-pixel text-xs text-primary mb-2">BATTLE LOG</div>
-              <div className="flex-1 space-y-0.5 text-[10px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                {logs.slice(0, 20).map((msg, i) => (
-                  <div key={i} className={`${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.04 }}>
-                    {msg}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
+        {/* CENTER - Main game area (monsters during combat) */}
         <div className={`${isCombatFullscreen ? 'flex-1 h-full' : 'grid grid-cols-1 lg:grid-cols-12 gap-3 w-full'}`}>
         
         {/* LEFT COLUMN: Commands & Party Stats stacked - hide during combat fullscreen */}
@@ -2549,6 +2534,22 @@ export default function Game() {
         </div>
         )}
         </div>
+        
+        {/* RIGHT SIDEBAR - Battle Log during combat fullscreen */}
+        {isCombatFullscreen && (
+          <div className="w-64 h-full bg-black/90 border-l border-primary/30 flex flex-col p-2 z-30">
+            <div className="bg-black/60 rounded border border-white/10 p-2 flex-1 overflow-hidden flex flex-col">
+              <div className="font-pixel text-xs text-primary mb-2">BATTLE LOG</div>
+              <div className="flex-1 space-y-0.5 text-[10px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                {logs.slice(0, 20).map((msg, i) => (
+                  <div key={i} className={`${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.04 }}>
+                    {msg}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Help Modal - Equipment Index */}
