@@ -8,44 +8,29 @@ interface DungeonViewProps {
   renderHeight?: number;
 }
 
-// Dungeon themes based on floor level
-type DungeonTheme = 'stone' | 'crypt' | 'ice' | 'forest' | 'temple';
-
-const THEME_TEXTURES: Record<DungeonTheme, { wall: string; floor: string }> = {
-  stone: { wall: '/assets/textures/wall_stone.png', floor: '/assets/textures/floor_cobble.png' },
-  crypt: { wall: '/assets/textures/wall_crypt.png', floor: '/assets/textures/floor_crypt.png' },
-  ice: { wall: '/assets/textures/wall_ice.png', floor: '/assets/textures/floor_ice.png' },
-  forest: { wall: '/assets/textures/wall_forest.png', floor: '/assets/textures/floor_forest.png' },
-  temple: { wall: '/assets/textures/wall_temple.png', floor: '/assets/textures/floor_temple.png' },
-};
-
-// Determine theme based on dungeon level
-function getThemeForLevel(level: number): DungeonTheme {
-  // Level 1-2: Stone (starting dungeon)
-  // Level 3-4: Forest (overgrown ruins)
-  // Level 5-6: Crypt (deeper crypts)
-  // Level 7-8: Ice (frozen depths)
-  // Level 9+: Temple (ancient temple)
-  if (level <= 2) return 'stone';
-  if (level <= 4) return 'forest';
-  if (level <= 6) return 'crypt';
-  if (level <= 8) return 'ice';
-  return 'temple';
+// Get texture paths for a specific dungeon level (1-10, each with unique textures)
+function getTexturesForLevel(level: number): { wall: string; floor: string } {
+  // Clamp level to 1-10 range
+  const lvl = Math.max(1, Math.min(10, level));
+  return {
+    wall: `/assets/textures/wall_${lvl}.png`,
+    floor: `/assets/textures/floor_${lvl}.png`
+  };
 }
 
 export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600 }: DungeonViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; door: HTMLImageElement | null }>({ wall: null, floor: null, door: null });
-  const currentThemeRef = useRef<DungeonTheme | null>(null);
+  const currentLevelRef = useRef<number | null>(null);
 
-  // Load textures based on current dungeon level theme
+  // Load textures based on current dungeon level (unique textures for each level 1-10)
   useEffect(() => {
-    const theme = getThemeForLevel(gameData.level);
+    const level = Math.max(1, Math.min(10, gameData.level));
     
-    // Only reload textures if theme changed
-    if (currentThemeRef.current !== theme) {
-      currentThemeRef.current = theme;
-      const texturePaths = THEME_TEXTURES[theme];
+    // Only reload textures if level changed
+    if (currentLevelRef.current !== level) {
+      currentLevelRef.current = level;
+      const texturePaths = getTexturesForLevel(level);
       
       const wallImg = new Image();
       wallImg.src = texturePaths.wall;
