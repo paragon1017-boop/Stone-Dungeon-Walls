@@ -12,7 +12,8 @@ A retro-styled first-person dungeon crawler RPG inspired by classic games like "
 - Fullscreen combat with enhanced atmospheric effects
 
 ### Performance Optimizations
-- **Smooth Movement Interpolation**: Camera slides smoothly between tiles at 12 tiles/sec using requestAnimationFrame, eliminating choppy tile-to-tile snapping
+- **Smooth Movement Interpolation**: Camera slides smoothly between tiles at 20 tiles/sec using requestAnimationFrame, eliminating choppy tile-to-tile snapping
+- **Fast Key Response**: Movement delay reduced to 100ms between moves (was 150ms), initial delay 120ms (was 200ms)
 - **Canvas Dirty Checking**: DungeonView skips redundant redraws when position/direction/level unchanged; uses alpha:false context for GPU performance
 - **Atmospheric Effects Optimized**: Reduced dust particles from 15 to 8, added will-change CSS hints, removed blur filters from slime decorations, slowed animation cycles (dust 15-27s, fog 30-35s)
 

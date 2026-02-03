@@ -216,7 +216,7 @@ export default function Game() {
 
   // Smooth movement interpolation animation loop
   useEffect(() => {
-    const INTERPOLATION_SPEED = 12; // Higher = faster movement (tiles per second)
+    const INTERPOLATION_SPEED = 20; // Higher = faster movement (tiles per second)
     let animationId: number;
     let lastTime = performance.now();
     
@@ -406,8 +406,8 @@ export default function Game() {
   // Single keypress = immediate move, held key = continuous movement at MOVE_DELAY intervals
   const heldKeys = useRef<Set<string>>(new Set());
   const lastMoveTime = useRef<number>(0);
-  const MOVE_DELAY = 150; // ms between moves when holding key
-  const INITIAL_DELAY = 200; // ms before continuous movement starts
+  const MOVE_DELAY = 100; // ms between moves when holding key (faster movement)
+  const INITIAL_DELAY = 120; // ms before continuous movement starts
   const keyPressTime = useRef<Map<string, number>>(new Map());
   
   // Movement execution helper
