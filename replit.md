@@ -6,6 +6,30 @@ A retro-styled first-person dungeon crawler RPG inspired by classic games like "
 
 ## Recent Changes (Feb 2026)
 
+### Multi-Monster Combat with Front/Back Rows
+- Supports up to **8 monsters** per encounter with front/back row formation
+- Front row (positions 0-3): Display larger sprites, positioned in front
+- Back row (positions 4-7): Display smaller sprites, positioned behind front row
+- Monster spawning scales with dungeon depth:
+  - Level 1-2: 1-3 monsters
+  - Level 3-4: 1-5 monsters  
+  - Level 5+: 1-8 monsters with back row chance
+- Combat sidebar shows row indicators [F]/[B] when 5+ monsters present
+- Color-coded borders: amber/orange for front row, cyan for back row
+
+### Expanded Abilities (4 per Class)
+- **Fighter**: Strike, Heavy Blow, Shield Bash, **Provoke** (forces enemy to attack you)
+- **Mage**: Fire, Ice Shard (40% freeze chance), Lightning, Heal
+- **Monk**: Palm Strike, Ki Blast, Meditate, **Stealth** (35% dodge chance)
+
+### Status Effect System
+- **Freeze**: Affected monster skips their turn (from Ice Shard)
+- **Taunt/Provoke**: Forces enemy to attack provoker, -25% attack for 2 turns
+- **Stealth**: Party member gains persistent dodge chance
+- **Burn**: Fire DoT from equipment set bonuses
+- **Slow**: Speed reduction from ice equipment effects
+- All effects properly cleared on combat end
+
 ### Immersive Fullscreen Combat
 - Combat now triggers fullscreen mode with enhanced atmospheric effects
 - Larger monster sprites (up to 400px) for dramatic battles
