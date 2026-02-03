@@ -2310,10 +2310,10 @@ export default function Game() {
                   )}
                   
                   {/* Monster display with front/back row layout for up to 8 monsters */}
-                  <div className={`absolute inset-0 z-10 flex items-end justify-center pointer-events-none ${
-                    isCombatFullscreen ? 'pb-4 pt-16' : 'pb-20'
+                  <div className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none ${
+                    isCombatFullscreen ? 'pt-16' : 'pb-10'
                   }`}>
-                    <div className="relative w-full max-w-5xl h-full flex flex-col justify-end items-center animate-in fade-in zoom-in duration-300 overflow-hidden">
+                    <div className="relative w-full max-w-5xl flex flex-col justify-center items-center animate-in fade-in zoom-in duration-300 overflow-hidden">
                       {/* Back Row (positions 4-7) - smaller, behind front row */}
                       {combatState.monsters.length > 4 && (
                         <div className={`flex items-end justify-center ${isCombatFullscreen ? 'gap-4 mb-[-20px]' : 'gap-2 mb-[-15px]'} z-10`}>
