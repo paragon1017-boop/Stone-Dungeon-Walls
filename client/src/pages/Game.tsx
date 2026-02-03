@@ -2073,6 +2073,8 @@ export default function Game() {
           <RetroCard title="PARTY" className="space-y-2">
             {game.party.map((char, idx) => {
               const isCurrentTurn = combatState.active && idx === combatState.currentCharIndex && char.hp > 0;
+              const xpNeeded = xpForLevel(char.level + 1);
+              const xpPercent = Math.min(100, Math.round((char.xp / xpNeeded) * 100));
               return (
               <div 
                 key={char.id} 
@@ -2093,6 +2095,16 @@ export default function Game() {
                 <div className="space-y-1">
                   <StatBar label="HP" current={char.hp} max={getEffectiveStats(char).maxHp} color={char.color} />
                   <StatBar label="MP" current={char.mp} max={getEffectiveStats(char).maxMp} color="#3b82f6" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] text-amber-400 w-5">XP</span>
+                    <div className="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-amber-400 transition-all" 
+                        style={{ width: `${xpPercent}%` }}
+                      />
+                    </div>
+                    <span className="text-[8px] text-amber-300 w-8 text-right">{xpPercent}%</span>
+                  </div>
                 </div>
               </div>
             );

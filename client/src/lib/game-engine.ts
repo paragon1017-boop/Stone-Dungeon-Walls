@@ -542,13 +542,13 @@ export function xpForLevel(level: number): number {
 export function getLevelUpStats(job: string): { hp: number, mp: number, attack: number, defense: number, speed: number } {
   switch (job) {
     case 'Fighter':
-      return { hp: 10, mp: 0, attack: 3, defense: 2, speed: 1 };
+      return { hp: 10, mp: 3, attack: 3, defense: 2, speed: 1 };
     case 'Mage':
       return { hp: 4, mp: 8, attack: 1, defense: 1, speed: 1 };
     case 'Monk':
-      return { hp: 8, mp: 2, attack: 2, defense: 1, speed: 2 };
+      return { hp: 8, mp: 4, attack: 2, defense: 1, speed: 2 };
     default:
-      return { hp: 6, mp: 2, attack: 2, defense: 1, speed: 1 };
+      return { hp: 6, mp: 3, attack: 2, defense: 1, speed: 1 };
   }
 }
 
@@ -611,7 +611,7 @@ export function createInitialState(): GameData {
     party: [
       { 
         id: 'p1', name: 'Bork', job: 'Fighter', 
-        hp: 50, maxHp: 50, mp: 0, maxMp: 0, attack: 12, defense: 8, speed: 8,
+        hp: 50, maxHp: 50, mp: 20, maxMp: 20, attack: 12, defense: 8, speed: 8,
         color: '#e74c3c', xp: 0, level: 1,
         equipment: { weapon: fighterWeapon, shield: null, armor: fighterArmor, helmet: null, gloves: null, boots: null, necklace: null, ring1: null, ring2: null, relic: null, offhand: null }
       },
@@ -623,7 +623,7 @@ export function createInitialState(): GameData {
       },
       { 
         id: 'p3', name: 'Milo', job: 'Monk', 
-        hp: 45, maxHp: 45, mp: 10, maxMp: 10, attack: 10, defense: 6, speed: 12,
+        hp: 45, maxHp: 45, mp: 20, maxMp: 20, attack: 10, defense: 6, speed: 12,
         color: '#f1c40f', xp: 0, level: 1,
         equipment: { weapon: monkWeapon, shield: null, armor: monkArmor, helmet: null, gloves: null, boots: null, necklace: null, ring1: null, ring2: null, relic: null, offhand: null }
       },
