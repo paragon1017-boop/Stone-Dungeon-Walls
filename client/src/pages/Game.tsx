@@ -2128,62 +2128,6 @@ export default function Game() {
 
         {/* CENTER COLUMN: Viewport */}
         <div className={`${isCombatFullscreen ? 'w-full h-full' : 'lg:col-span-7'} order-1 lg:order-2`}>
-          {/* Settings and Fullscreen buttons - above dungeon view - hide during combat */}
-          {!isCombatFullscreen && (
-          <div className="flex justify-end gap-2 mb-2">
-            {/* Fullscreen toggle button */}
-            <button
-              onClick={() => {
-                if (document.fullscreenElement) {
-                  document.exitFullscreen();
-                } else {
-                  document.documentElement.requestFullscreen();
-                }
-              }}
-              className="bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors"
-              data-testid="button-fullscreen"
-              title={document.fullscreenElement ? "Exit Fullscreen (F11)" : "Fullscreen (F11)"}
-            >
-              {document.fullscreenElement ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-            </button>
-            
-            <div className="relative">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors"
-                data-testid="button-settings"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              
-              {showSettings && (
-                <div className="absolute top-full right-0 mt-2 bg-slate-900/95 backdrop-blur-sm border border-amber-600/30 rounded-lg p-3 min-w-[180px] shadow-xl z-50">
-                  <div className="text-xs text-amber-400 font-bold mb-2 tracking-wider">GRAPHICS</div>
-                  {(['high', 'medium', 'low'] as GraphicsQuality[]).map((quality) => (
-                    <button
-                      key={quality}
-                      onClick={() => {
-                        setGraphicsQuality(quality);
-                        setShowSettings(false);
-                      }}
-                      className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
-                        graphicsQuality === quality 
-                          ? 'bg-amber-600/50 text-amber-200' 
-                          : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                      }`}
-                      data-testid={`button-quality-${quality}`}
-                    >
-                      {RESOLUTION_PRESETS[quality].label}
-                      {graphicsQuality === quality && <span className="ml-2 text-amber-400">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          )}
-          
-                    
           <RetroCard className={`${isCombatFullscreen ? 'h-full rounded-none border-0 bg-transparent' : 'p-1'}`}>
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden rounded-lg">
               {/* Always show dungeon view as background */}
@@ -2521,8 +2465,8 @@ export default function Game() {
 
         {/* RIGHT COLUMN: Message Log - hide during combat fullscreen */}
         {!isCombatFullscreen && (
-        <div className="lg:col-span-2 order-3 overflow-y-auto max-h-[calc(100vh-6rem)] pl-1 pt-20" style={{ scrollbarWidth: 'thin' }}>
-          <RetroCard title="LOG" className="h-full">
+        <div className="lg:col-span-2 order-3 overflow-y-auto max-h-[calc(100vh-6rem)] pl-1 pt-20 flex flex-col gap-2" style={{ scrollbarWidth: 'thin' }}>
+          <RetroCard title="LOG" className="flex-1">
             <div className="space-y-1 text-xs" data-testid="panel-message-log">
               {logs.map((msg, i) => (
                 <div key={i} className={`transition-opacity py-0.5 ${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.1 }}>
@@ -2531,6 +2475,60 @@ export default function Game() {
               ))}
             </div>
           </RetroCard>
+          
+          {/* Settings and Fullscreen buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (document.fullscreenElement) {
+                  document.exitFullscreen();
+                } else {
+                  document.documentElement.requestFullscreen();
+                }
+              }}
+              className="flex-1 bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors flex items-center justify-center gap-2"
+              data-testid="button-fullscreen"
+              title={document.fullscreenElement ? "Exit Fullscreen (F11)" : "Fullscreen (F11)"}
+            >
+              {document.fullscreenElement ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              <span className="text-xs">Screen</span>
+            </button>
+            
+            <div className="relative flex-1">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="w-full bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors flex items-center justify-center gap-2"
+                data-testid="button-settings"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-xs">Graphics</span>
+              </button>
+              
+              {showSettings && (
+                <div className="absolute bottom-full right-0 mb-2 bg-slate-900/95 backdrop-blur-sm border border-amber-600/30 rounded-lg p-3 min-w-[160px] shadow-xl z-50">
+                  <div className="text-xs text-amber-400 font-bold mb-2 tracking-wider">QUALITY</div>
+                  {(['high', 'medium', 'low'] as GraphicsQuality[]).map((quality) => (
+                    <button
+                      key={quality}
+                      onClick={() => {
+                        setGraphicsQuality(quality);
+                        setShowSettings(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
+                        graphicsQuality === quality 
+                          ? 'bg-amber-600/50 text-amber-200' 
+                          : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                      }`}
+                      data-testid={`button-quality-${quality}`}
+                    >
+                      {RESOLUTION_PRESETS[quality].label}
+                      {graphicsQuality === quality && <span className="ml-2 text-amber-400">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         )}
         </div>
