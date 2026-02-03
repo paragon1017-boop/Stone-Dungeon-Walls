@@ -2220,26 +2220,26 @@ export default function Game() {
                   
                   {/* Monster Health Bar - Top of Screen - Horizontal row */}
                   {isCombatFullscreen && (
-                    <div className="absolute top-0 left-72 right-80 z-30 p-2 bg-gradient-to-b from-black/80 to-transparent">
-                      <div className="flex flex-nowrap gap-1 justify-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                    <div className="absolute top-0 left-72 right-80 z-40 p-3 bg-gradient-to-b from-black/90 via-black/60 to-transparent pointer-events-auto">
+                      <div className="flex flex-nowrap gap-2 justify-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                         {combatState.monsters.map((monster, idx) => {
                           const isBackRow = idx >= 4;
-                          const barWidth = combatState.monsters.length <= 4 ? 'w-36' : combatState.monsters.length <= 6 ? 'w-28' : 'w-24';
+                          const barWidth = combatState.monsters.length <= 3 ? 'w-40' : combatState.monsters.length <= 5 ? 'w-32' : 'w-28';
                           return (
                             <div 
                               key={monster.id}
-                              className={`flex-shrink-0 ${barWidth} px-2 py-1 rounded border cursor-pointer transition-all ${
+                              className={`flex-shrink-0 ${barWidth} px-2 py-1.5 rounded-lg border-2 cursor-pointer transition-all ${
                                 idx === combatState.targetIndex && monster.hp > 0
-                                  ? 'border-yellow-400 bg-yellow-400/20 scale-105' 
+                                  ? 'border-yellow-400 bg-yellow-400/30 scale-105 shadow-lg shadow-yellow-400/30' 
                                   : isBackRow 
-                                    ? 'border-cyan-500/40 bg-black/60' 
-                                    : 'border-amber-500/40 bg-black/60'
+                                    ? 'border-cyan-500/60 bg-black/80' 
+                                    : 'border-amber-500/60 bg-black/80'
                               } ${monster.hp <= 0 ? 'opacity-40' : ''}`}
                               onClick={() => monster.hp > 0 && setCombatState(prev => ({ ...prev, targetIndex: idx }))}
                             >
                               <div className="flex items-center justify-between gap-1">
-                                <span className={`text-[10px] font-semibold truncate ${
-                                  monster.hp <= 0 ? 'text-gray-500 line-through' : isBackRow ? 'text-cyan-400' : 'text-amber-400'
+                                <span className={`text-xs font-bold truncate ${
+                                  monster.hp <= 0 ? 'text-gray-500 line-through' : isBackRow ? 'text-cyan-300' : 'text-amber-300'
                                 }`}>
                                   {combatState.monsters.length > 4 && (
                                     <span className="mr-0.5 opacity-70">{isBackRow ? 'B' : 'F'}</span>
@@ -2247,11 +2247,11 @@ export default function Game() {
                                   {monster.name}
                                 </span>
                                 {idx === combatState.targetIndex && monster.hp > 0 && (
-                                  <span className="text-yellow-400 text-[8px] flex-shrink-0">◀</span>
+                                  <span className="text-yellow-400 text-xs flex-shrink-0">◀</span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <div className="flex-1 h-1.5 bg-black/70 rounded-full overflow-hidden">
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <div className="flex-1 h-2.5 bg-black/80 rounded-full overflow-hidden border border-white/20">
                                   <div 
                                     className="h-full transition-all duration-300"
                                     style={{ 
@@ -2260,8 +2260,8 @@ export default function Game() {
                                     }}
                                   />
                                 </div>
-                                <span className="text-[8px] text-white/80 flex-shrink-0">
-                                  {monster.hp}
+                                <span className="text-xs text-white font-semibold flex-shrink-0 min-w-[40px] text-right">
+                                  {monster.hp}/{monster.maxHp}
                                 </span>
                               </div>
                             </div>
