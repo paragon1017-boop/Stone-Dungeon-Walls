@@ -116,7 +116,7 @@ export default function Game() {
   const saveMutation = useSaveGame();
 
   const [game, setGame] = useState<GameData | null>(null);
-  const [logs, setLogs] = useState<string[]>(["Welcome to the dungeon..."]);
+  const [logs, setLogs] = useState<string[]>(["The darkness of the dungeon beckons thee..."]);
   const [combatState, setCombatState] = useState<{ 
     active: boolean, 
     monsters: Monster[],
@@ -285,10 +285,10 @@ export default function Game() {
         };
         
         setGame(migratedData);
-        log("Game loaded from server.");
+        log("Thy adventure continues from where thee left off.");
       } else {
         setGame(createInitialState());
-        log("New game started.");
+        log("A new quest begins! May fortune favor thy party.");
       }
     }
   }, [serverState, isLoading]);
@@ -306,14 +306,14 @@ export default function Game() {
 
     // Check bounds
     if (ny < 0 || ny >= currentGame.map.length || nx < 0 || nx >= currentGame.map[0].length) {
-      log("Blocked.");
+      log("Thy path is blocked by an impassable wall.");
       return;
     }
 
     const tile = currentGame.map[ny][nx];
     // Wall/door collision (1 = wall, 2 = door) - can walk on floor, ladder down, ladder up
     if (tile === TILE_WALL || tile === TILE_DOOR) {
-      log("Blocked.");
+      log("Thy path is blocked.");
       return;
     }
 
@@ -321,9 +321,9 @@ export default function Game() {
 
     // Check for ladder tiles and show prompt
     if (tile === TILE_LADDER_DOWN) {
-      log("A ladder leading deeper! Press SPACE to descend.");
+      log("A ladder leads deeper into darkness. Press SPACE to descend.");
     } else if (tile === TILE_LADDER_UP && currentGame.level > 1) {
-      log("A ladder leading up! Press SPACE to climb.");
+      log("A ladder leads upward toward the light. Press SPACE to climb.");
     }
 
     // Random Encounter Chance (10%) - not on ladder tiles
@@ -391,9 +391,11 @@ export default function Game() {
       });
       
       if (monsterCount === 1) {
-        log(`A wild ${monsters[0].name} appeared!`);
+        log(`A ${monsters[0].name} draws near!`);
+      } else if (monsterCount === 2) {
+        log(`${monsters[0].name} and ${monsters[1].name} draw near!`);
       } else {
-        log(`${monsterCount} monsters appeared!`);
+        log(`A group of ${monsterCount} monsters draws near!`);
       }
     }
   }, [log]);
@@ -416,7 +418,7 @@ export default function Game() {
         y: startY,
         dir: EAST
       }) : null);
-      log(`Descended to Floor ${newFloor}. The dungeon grows darker...`);
+      log(`Thy party descends to Floor ${newFloor}. The darkness deepens...`);
     } else if (currentTile === TILE_LADDER_UP && game.level > 1) {
       // Ascend to previous floor
       const newFloor = game.level - 1;
@@ -430,7 +432,7 @@ export default function Game() {
         y: ladderDownY,
         dir: EAST
       }) : null);
-      log(`Ascended to Floor ${newFloor}. The air feels lighter.`);
+      log(`Thy party climbs to Floor ${newFloor}. The air grows clearer.`);
     }
   }, [game, combatState.active, log]);
 
@@ -551,7 +553,7 @@ export default function Game() {
     // Then check for combat
     if (combatActiveRef.current) {
       (document.activeElement as HTMLElement)?.blur();
-      setLogs(prev => ["You fled from battle!", ...prev].slice(0, 5));
+      setLogs(prev => ["The party flees from the battle!", ...prev].slice(0, 5));
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setMonsterEffects({}); // Clear status effects
       setPartyEffects({}); // Clear party effects
@@ -571,7 +573,7 @@ export default function Game() {
     // Find the mage in the party
     const mageIndex = game.party.findIndex(c => c.job === 'Mage' && c.hp > 0);
     if (mageIndex === -1) {
-      log("No Mage available to cast Heal!");
+      log("There is no Mage in thy party to cast healing magic!");
       return;
     }
     
@@ -579,7 +581,7 @@ export default function Game() {
     const mpCost = 10; // MP cost for out-of-combat heal all
     
     if (mage.mp < mpCost) {
-      log(`${mage.name} doesn't have enough MP! (${mpCost} required)`);
+      log(`${mage.name} lacks the magical power! (${mpCost} MP needed)`);
       return;
     }
     
@@ -590,7 +592,7 @@ export default function Game() {
     });
     
     if (!partyNeedsHealing) {
-      log("Everyone is already at full health!");
+      log("Thy party is already in perfect health!");
       return;
     }
     
@@ -613,7 +615,7 @@ export default function Game() {
     newParty[mageIndex] = { ...newParty[mageIndex], mp: mage.mp - mpCost };
     
     setGame(prev => prev ? ({ ...prev, party: newParty }) : null);
-    log(`${mage.name} casts Heal All! Party healed ${totalHealed} HP total!`);
+    log(`${mage.name} chants Heal All! The party's HP is restored by ${totalHealed}!`);
   }, [game, combatState.active, log]);
   
   useKey('h', () => healAllParty(), {}, [healAllParty]);
@@ -671,7 +673,7 @@ export default function Game() {
     if (!game) return;
     const char = game.party[charIndex];
     if (!canEquip(char, item)) {
-      log(`${char.name} cannot equip ${getEnhancedName(item)}!`);
+      log(`${char.name} cannot wield ${getEnhancedName(item)}!`);
       return;
     }
     
@@ -705,7 +707,7 @@ export default function Game() {
     }
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} equipped ${getEnhancedName(item)}!`);
+    log(`${char.name} equips ${getEnhancedName(item)}!`);
   }, [game, log]);
   
   // Unequip an item to inventory
@@ -734,7 +736,7 @@ export default function Game() {
     const newEquipInv = [...game.equipmentInventory, item];
     
     setGame(prev => prev ? ({ ...prev, party: newParty, equipmentInventory: newEquipInv }) : null);
-    log(`${char.name} unequipped ${getEnhancedName(item)}.`);
+    log(`${char.name} removes ${getEnhancedName(item)}.`);
   }, [game, log]);
   
   // Drop (discard) an item from inventory
@@ -745,7 +747,7 @@ export default function Game() {
     const newEquipInv = game.equipmentInventory.filter(i => i.id !== item.id);
     
     setGame(prev => prev ? ({ ...prev, equipmentInventory: newEquipInv }) : null);
-    log(`Dropped ${getEnhancedName(item)}.`);
+    log(`Thy party discards ${getEnhancedName(item)}.`);
   }, [game, log]);
   
   // Use a potion on a character
@@ -754,7 +756,7 @@ export default function Game() {
     
     const char = game.party[charIndex];
     if (char.hp <= 0) {
-      log(`${char.name} is unconscious!`);
+      log(`${char.name} has fallen unconscious!`);
       return;
     }
     
@@ -790,7 +792,7 @@ export default function Game() {
     const effects: string[] = [];
     if (healedHp > 0) effects.push(`+${healedHp} HP`);
     if (restoredMp > 0) effects.push(`+${restoredMp} MP`);
-    log(`${char.name} used ${potion.name}: ${effects.join(', ')}`);
+    log(`${char.name} drinks ${potion.name}! ${effects.join('. ')}!`);
   }, [game, log]);
   
   // Drop a potion
@@ -799,7 +801,7 @@ export default function Game() {
     
     const newPotionInv = game.potionInventory.filter(p => p.id !== potion.id);
     setGame(prev => prev ? ({ ...prev, potionInventory: newPotionInv }) : null);
-    log(`Dropped ${potion.name}.`);
+    log(`Thy party discards ${potion.name}.`);
   }, [game, log]);
 
   // Combat keyboard shortcuts and ladder interaction
@@ -828,13 +830,13 @@ export default function Game() {
   };
 
   const handleNewGame = () => {
-    if (window.confirm("Start a new game? All unsaved progress will be lost!")) {
+    if (window.confirm("Dost thou wish to begin a new quest? Thy current progress shall be lost!")) {
       setGame(createInitialState());
       setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
       setMonsterEffects({});
       setPartyEffects({});
       setLogs([]);
-      log("New adventure begins!");
+      log("A new adventure begins! The dungeon awaits!");
     }
   };
 
@@ -849,7 +851,7 @@ export default function Game() {
       if (newXp >= xpNeeded) {
         const stats = getLevelUpStats(char.job);
         const newLevel = char.level + 1;
-        log(`${char.name} leveled up to ${newLevel}!`);
+        log(`${char.name} has reached Level ${newLevel}! Thy strength grows!`);
         
         return {
           ...char,
@@ -877,7 +879,7 @@ export default function Game() {
     // Each alive monster attacks a random alive party member (sorted by speed)
     const aliveMembers = game.party.filter(c => c.hp > 0);
     if (aliveMembers.length === 0) {
-      log("GAME OVER");
+      log("Thy party has fallen... All is lost!");
       return;
     }
     
@@ -889,9 +891,9 @@ export default function Game() {
       if (m.hp > 0 && monsterEffects[m.id]?.burn) {
         const burnDmg = monsterEffects[m.id].burn!;
         updatedMonsters[i] = { ...m, hp: m.hp - burnDmg };
-        log(`${m.name} takes ${burnDmg} burn damage!`);
+        log(`${m.name} writhes in flames! ${burnDmg} points of damage!`);
         if (updatedMonsters[i].hp <= 0) {
-          log(`${m.name} burned to death!`);
+          log(`${m.name} is consumed by fire!`);
           triggerMonsterAnimation(i, 'death', 1200);
           // Clean up effects for dead monster
           setMonsterEffects(prev => {
@@ -920,7 +922,7 @@ export default function Game() {
       // Check if monster is frozen (skip turn)
       const mEffects = monsterEffects[monster.id];
       if (mEffects?.frozen) {
-        log(`${monster.name} is frozen and cannot act!`);
+        log(`${monster.name} is frozen solid and cannot move!`);
         // Clear frozen status after skipping
         setMonsterEffects(prev => ({
           ...prev,
@@ -967,7 +969,7 @@ export default function Game() {
       // Check for stealth dodge (from Monk's Stealth ability)
       const stealthChance = partyEffects[target.id]?.stealth || 0;
       if (stealthChance > 0 && Math.random() * 100 < stealthChance) {
-        log(`${target.name} dodges from stealth!`);
+        log(`${target.name} fades into shadow and dodges the attack!`);
         if (originalIdx >= 0) {
           setTimeout(() => {
             triggerMonsterAnimation(originalIdx, 'attack', 600);
@@ -978,7 +980,7 @@ export default function Game() {
       
       // Check for evasion (player dodges attack)
       if (targetCombatStats.evasion > 0 && Math.random() * 100 < targetCombatStats.evasion) {
-        log(`${target.name} evades ${monster.name}'s attack!`);
+        log(`${monster.name} attacks! But ${target.name} nimbly dodges!`);
         if (originalIdx >= 0) {
           setTimeout(() => {
             triggerMonsterAnimation(originalIdx, 'attack', 600);
@@ -1003,7 +1005,7 @@ export default function Game() {
         c.id === target.id ? { ...c, hp: Math.max(0, c.hp - monsterDmg) } : c
       );
       
-      log(`${monster.name} hits ${target.name} for ${monsterDmg} dmg!`);
+      log(`${monster.name} attacks! ${target.name} takes ${monsterDmg} points of damage!`);
       
       // Check for counter-attack
       if (targetCombatStats.counterChance > 0 && Math.random() * 100 < targetCombatStats.counterChance) {
@@ -1011,7 +1013,7 @@ export default function Game() {
         const monsterIdx = updatedMonsters.findIndex(m => m.id === monster.id);
         if (monsterIdx >= 0) {
           updatedMonsters[monsterIdx] = { ...updatedMonsters[monsterIdx], hp: updatedMonsters[monsterIdx].hp - counterDamage };
-          log(`${target.name} counters ${monster.name} for ${counterDamage} dmg!`);
+          log(`${target.name} strikes back! ${monster.name} takes ${counterDamage} points of damage!`);
         }
       }
     }
@@ -1027,7 +1029,7 @@ export default function Game() {
     
     // Check if all party members are dead
     if (newTurnOrder.length === 0 || newParty.every(c => c.hp <= 0)) {
-      log("GAME OVER");
+      log("Thy party has fallen... All is lost!");
       setCombatState(prev => ({ 
         ...prev, 
         monsters: updatedMonsters,
@@ -1061,7 +1063,7 @@ export default function Game() {
     
     // Check MP cost
     if (ability.mpCost > char.mp) {
-      log(`${char.name} doesn't have enough MP!`);
+      log(`${char.name} lacks the magical power to cast that spell!`);
       return;
     }
     
@@ -1100,9 +1102,9 @@ export default function Game() {
         newMonsters[combatState.targetIndex] = { ...targetMonster, hp: targetMonster.hp - damage };
         
         if (isCrit) {
-          log(`${char.name} CRITICAL HIT on ${targetMonster.name}! ${damage} damage!`);
+          log(`${char.name} lands a CRITICAL HIT! ${targetMonster.name} takes ${damage} points of damage!`);
         } else {
-          log(`${char.name} uses ${ability.name} on ${targetMonster.name}! ${damage} damage!`);
+          log(`${char.name} casts ${ability.name}! ${targetMonster.name} takes ${damage} points of damage!`);
         }
         
         // Apply lifesteal healing
@@ -1112,7 +1114,7 @@ export default function Game() {
             const maxHp = charStats.maxHp;
             const newHp = Math.min(maxHp, char.hp + healFromLifesteal);
             newParty[charIndex] = { ...char, hp: newHp };
-            log(`${char.name} heals ${healFromLifesteal} HP from lifesteal!`);
+            log(`${char.name} drains ${healFromLifesteal} HP from the enemy!`);
           }
         }
         
@@ -1121,7 +1123,7 @@ export default function Game() {
           const maxHp = charStats.maxHp;
           const newHp = Math.min(maxHp, newParty[charIndex].hp + combatStats.onHitHeal);
           newParty[charIndex] = { ...newParty[charIndex], hp: newHp };
-          log(`${char.name} heals ${combatStats.onHitHeal} HP on hit!`);
+          log(`${char.name}'s strike restores ${combatStats.onHitHeal} HP!`);
         }
         
         // Apply elemental effects
@@ -1133,7 +1135,7 @@ export default function Game() {
             ...prev,
             [targetMonsterId]: { ...prev[targetMonsterId], burn: combatStats.burnDamage }
           }));
-          log(`${targetMonster.name} is burning! (${combatStats.burnDamage} dmg/turn)`);
+          log(`${targetMonster.name} catches fire! It will burn for ${combatStats.burnDamage} each turn!`);
         }
         
         // Apply slow effect (Ice)
@@ -1142,7 +1144,7 @@ export default function Game() {
             ...prev,
             [targetMonsterId]: { ...prev[targetMonsterId], slow: combatStats.slowEffect }
           }));
-          log(`${targetMonster.name} is slowed by ${combatStats.slowEffect}%!`);
+          log(`${targetMonster.name} is chilled to the bone! Speed reduced by ${combatStats.slowEffect}%!`);
         }
         
         // Apply lightning chain damage to other monsters
@@ -1154,7 +1156,7 @@ export default function Game() {
           for (const { m, idx } of otherMonsters) {
             const chainDmg = Math.max(1, Math.floor(damage * combatStats.chainDamage / 100));
             newMonsters[idx] = { ...m, hp: m.hp - chainDmg };
-            log(`Lightning chains to ${m.name} for ${chainDmg} dmg!`);
+            log(`Lightning arcs to ${m.name}! ${chainDmg} points of damage!`);
           }
         }
         
@@ -1165,7 +1167,7 @@ export default function Game() {
               ...prev,
               [targetMonsterId]: { ...prev[targetMonsterId], frozen: true }
             }));
-            log(`${targetMonster.name} is FROZEN! It will skip its next turn!`);
+            log(`${targetMonster.name} is encased in ice! It cannot move next turn!`);
           }
         }
         
@@ -1191,7 +1193,7 @@ export default function Game() {
         const baseHeal = ability.type === 'heal' ? scaledPower : ability.power;
         const healAmount = Math.min(Math.floor(baseHeal), targetEffectiveStats.maxHp - newParty[targetIdx].hp);
         newParty[targetIdx] = { ...newParty[targetIdx], hp: newParty[targetIdx].hp + healAmount };
-        log(`${char.name} uses ${ability.name}! ${newParty[targetIdx].name} healed ${healAmount} HP!`);
+        log(`${char.name} chants ${ability.name}! ${newParty[targetIdx].name}'s HP is restored by ${healAmount}!`);
         break;
       }
       case 'buff': {
@@ -1201,11 +1203,11 @@ export default function Game() {
             ...prev,
             [char.id]: { ...prev[char.id], stealth: ability.power }
           }));
-          log(`${char.name} enters stealth! (${ability.power}% dodge chance)`);
+          log(`${char.name} vanishes into the shadows! Dodge chance increased!`);
         } else {
           // Defend ability
           isDefending = true;
-          log(`${char.name} takes a defensive stance!`);
+          log(`${char.name} braces for impact! Defense is doubled!`);
         }
         break;
       }
@@ -1221,7 +1223,7 @@ export default function Game() {
             attackDebuff: ability.power 
           }
         }));
-        log(`${char.name} provokes ${targetMonster.name}! It must attack ${char.name} for 2 turns!`);
+        log(`${char.name} taunts ${targetMonster.name}! The enraged foe must attack ${char.name}!`);
         break;
       }
     }
@@ -1230,7 +1232,7 @@ export default function Game() {
     
     // Check if targeted monster is defeated
     if (newMonsters[combatState.targetIndex].hp <= 0) {
-      log(`Defeated ${targetMonster.name}!`);
+      log(`${targetMonster.name} is defeated!`);
       // Trigger death animation
       triggerMonsterAnimation(combatState.targetIndex, 'death', 1200);
       // Clean up effects for dead monster
@@ -1255,7 +1257,7 @@ export default function Game() {
     if (aliveMonsters.length === 0) {
       const totalXp = newMonsters.reduce((sum, m) => sum + m.xpValue, 0);
       const totalGold = newMonsters.reduce((sum, m) => sum + m.goldValue, 0);
-      log(`Victory! +${totalXp} XP, +${totalGold} Gold`);
+      log(`Thou art victorious! Gained ${totalXp} experience points and ${totalGold} gold!`);
       
       // Award gold
       setGame(prev => prev ? ({ ...prev, gold: prev.gold + totalGold }) : null);
@@ -1272,7 +1274,7 @@ export default function Game() {
       
       if (droppedEquipment.length > 0) {
         droppedEquipment.forEach(item => {
-          log(`Found ${getEnhancedName(item)}!`);
+          log(`Thy party discovers ${getEnhancedName(item)}!`);
         });
         // Add dropped equipment to inventory
         setGame(prev => prev ? ({
@@ -1292,7 +1294,7 @@ export default function Game() {
       
       if (droppedPotions.length > 0) {
         droppedPotions.forEach(potion => {
-          log(`Found ${potion.name}!`);
+          log(`Thy party finds a ${potion.name}!`);
         });
         // Add dropped potions to inventory
         setGame(prev => prev ? ({
@@ -1349,7 +1351,7 @@ export default function Game() {
 
   const handleRun = () => {
     (document.activeElement as HTMLElement)?.blur();
-    log("You fled from battle!");
+    log("The party runs away from the battle!");
     setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
     setMonsterEffects({}); // Clear status effects
     setPartyEffects({}); // Clear party effects
