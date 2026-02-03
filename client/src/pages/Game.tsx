@@ -2329,7 +2329,7 @@ export default function Game() {
                   
                   {/* Monster display with front/back row layout for up to 8 monsters */}
                   <div className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none ${
-                    isCombatFullscreen ? 'pt-16' : 'pb-10'
+                    isCombatFullscreen ? 'pt-6' : 'pb-10'
                   }`}>
                     <div className="relative w-full max-w-5xl flex flex-col justify-center items-center animate-in fade-in zoom-in duration-300 overflow-hidden">
                       {/* Back Row (positions 4-7) - smaller, behind front row */}
@@ -2546,6 +2546,60 @@ export default function Game() {
                     {msg}
                   </div>
                 ))}
+              </div>
+            </div>
+            
+            {/* Settings and Fullscreen buttons */}
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                  } else {
+                    document.documentElement.requestFullscreen();
+                  }
+                }}
+                className="flex-1 bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors flex items-center justify-center gap-2"
+                data-testid="button-fullscreen-combat"
+                title={document.fullscreenElement ? "Exit Fullscreen (F11)" : "Fullscreen (F11)"}
+              >
+                {document.fullscreenElement ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <span className="text-xs">Screen</span>
+              </button>
+              
+              <div className="relative flex-1">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="w-full bg-slate-800/90 hover:bg-slate-700 border border-amber-600/30 rounded-lg p-2 text-amber-400 hover:text-amber-300 transition-colors flex items-center justify-center gap-2"
+                  data-testid="button-settings-combat"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="text-xs">Graphics</span>
+                </button>
+                
+                {showSettings && (
+                  <div className="absolute bottom-full right-0 mb-2 bg-slate-900/95 backdrop-blur-sm border border-amber-600/30 rounded-lg p-3 min-w-[160px] shadow-xl z-50">
+                    <div className="text-xs text-amber-400 font-bold mb-2 tracking-wider">QUALITY</div>
+                    {(['high', 'medium', 'low'] as GraphicsQuality[]).map((quality) => (
+                      <button
+                        key={quality}
+                        onClick={() => {
+                          setGraphicsQuality(quality);
+                          setShowSettings(false);
+                        }}
+                        className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
+                          graphicsQuality === quality 
+                            ? 'bg-amber-600/50 text-amber-200' 
+                            : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                        }`}
+                        data-testid={`button-quality-combat-${quality}`}
+                      >
+                        {RESOLUTION_PRESETS[quality].label}
+                        {graphicsQuality === quality && <span className="ml-2 text-amber-400">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
