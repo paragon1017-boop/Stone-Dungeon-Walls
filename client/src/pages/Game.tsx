@@ -1292,6 +1292,126 @@ export default function Game() {
         transition: 'opacity 300ms ease-out'
       }} />
       
+      {/* Atmospheric Effects - Floating Dust Particles */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-dust-particles" className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Dust particles floating in air - reduced to 15 for performance */}
+          {[...Array(15)].map((_, i) => {
+            const size = 1 + (i % 3);
+            const startX = ((i * 37) % 100);
+            const startY = ((i * 53) % 100);
+            const duration = 10 + (i % 5) * 3;
+            const delay = (i % 8) * 1;
+            return (
+              <div
+                key={`dust-${i}`}
+                className="absolute rounded-full bg-amber-100/25"
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  left: `${startX}%`,
+                  top: `${startY}%`,
+                  animation: `dustFloat ${duration}s ease-in-out ${delay}s infinite`
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+      
+      {/* Flickering Torch Glow Effect */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-torch-glow">
+          <div className="absolute top-[20%] left-[5%] w-32 h-32 pointer-events-none" style={{
+            background: 'radial-gradient(circle, rgba(255,150,50,0.35) 0%, rgba(255,100,30,0.15) 40%, transparent 70%)',
+            animation: 'torchFlicker 0.2s ease-in-out infinite alternate'
+          }} />
+          <div className="absolute top-[25%] right-[8%] w-28 h-28 pointer-events-none" style={{
+            background: 'radial-gradient(circle, rgba(255,140,40,0.3) 0%, rgba(255,90,20,0.12) 40%, transparent 70%)',
+            animation: 'torchFlicker 0.18s ease-in-out 0.08s infinite alternate'
+          }} />
+        </div>
+      )}
+      
+      {/* Fog/Mist Layer - Ground fog effect */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-fog-layer" className="absolute bottom-0 left-0 right-0 h-[25%] pointer-events-none" style={{
+          background: 'linear-gradient(to top, rgba(40,45,50,0.35) 0%, rgba(30,35,40,0.15) 50%, transparent 100%)',
+          animation: 'fogDrift 25s ease-in-out infinite'
+        }}>
+          {/* Rolling fog wisps */}
+          <div className="absolute bottom-0 left-0 right-0 h-full" style={{
+            background: `
+              radial-gradient(ellipse 80% 30% at 20% 90%, rgba(60,65,70,0.25) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 25% at 70% 85%, rgba(50,55,60,0.2) 0%, transparent 50%)
+            `,
+            animation: 'fogWisps 20s ease-in-out infinite alternate'
+          }} />
+        </div>
+      )}
+      
+      {/* Dripping Water Animation */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-water-drips" className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Water drip 1 - left side */}
+          <div className="absolute left-[15%] top-[35%]">
+            <div className="w-1 h-1 rounded-full bg-cyan-200/40" style={{
+              animation: 'waterDrip 4s ease-in 0s infinite'
+            }} />
+          </div>
+          {/* Water drip 2 - center */}
+          <div className="absolute left-[50%] top-[36%]">
+            <div className="w-1 h-1 rounded-full bg-cyan-200/35" style={{
+              animation: 'waterDrip 5s ease-in 2s infinite'
+            }} />
+          </div>
+          {/* Water drip 3 - right side */}
+          <div className="absolute left-[80%] top-[38%]">
+            <div className="w-1 h-1 rounded-full bg-cyan-200/30" style={{
+              animation: 'waterDrip 4.5s ease-in 3.5s infinite'
+            }} />
+          </div>
+        </div>
+      )}
+      
+      {/* Animated Cobweb Corners */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-cobwebs">
+          {/* Top-left cobweb */}
+          <div className="absolute top-[15%] left-0 w-20 h-20 pointer-events-none opacity-25" style={{
+            background: `
+              linear-gradient(135deg, rgba(200,200,210,0.35) 0%, transparent 50%),
+              repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(180,180,195,0.15) 4px, rgba(180,180,195,0.15) 5px)
+            `,
+            animation: 'cobwebSway 12s ease-in-out infinite'
+          }} />
+          {/* Top-right cobweb */}
+          <div className="absolute top-[18%] right-0 w-16 h-16 pointer-events-none opacity-20" style={{
+            background: `
+              linear-gradient(225deg, rgba(200,200,210,0.35) 0%, transparent 50%),
+              repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(180,180,195,0.15) 3px, rgba(180,180,195,0.15) 4px)
+            `,
+            animation: 'cobwebSway 15s ease-in-out 3s infinite'
+          }} />
+        </div>
+      )}
+      
+      {/* Scurrying Critter Animation */}
+      {!isCombatFullscreen && (
+        <div data-testid="effect-critter" className="absolute bottom-[12%] left-0 right-0 w-full pointer-events-none">
+          <div className="absolute" style={{
+            animation: 'critterScurry 18s linear infinite'
+          }}>
+            <div className="w-3 h-2 bg-gray-800/50 rounded-full relative">
+              <div className="absolute -left-1 top-0 w-1.5 h-1 bg-gray-700/40 rounded-full" />
+              <div className="absolute -right-0.5 top-0.5 w-0.5 h-2 bg-gray-700/30 rounded-full origin-top" style={{
+                animation: 'tailWag 0.4s ease-in-out infinite alternate'
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Combat Transition Effect - Dramatic Battle Entry */}
       {combatTransition === 'entering' && (
         <div 

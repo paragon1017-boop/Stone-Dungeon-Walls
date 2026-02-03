@@ -1085,6 +1085,238 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       }
     }
     
+    // Floor Props - Barrels, Crates, Skull Piles
+    // Wooden Barrel (rare)
+    if (decorRandom() > 0.75) {
+      const barrelX = 60 + decorRandom() * (w - 120);
+      const barrelY = h - 40 - decorRandom() * 30;
+      const barrelW = 20 + decorRandom() * 10;
+      const barrelH = 25 + decorRandom() * 10;
+      const barrelAlpha = 0.7 + decorRandom() * 0.2;
+      
+      // Barrel body (wood)
+      ctx.fillStyle = `rgba(100, 70, 45, ${barrelAlpha})`;
+      ctx.beginPath();
+      ctx.ellipse(barrelX, barrelY, barrelW/2, barrelH/2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Wood grain lines
+      ctx.strokeStyle = `rgba(70, 50, 30, ${barrelAlpha * 0.6})`;
+      ctx.lineWidth = 1;
+      for (let g = -barrelW/2 + 3; g < barrelW/2 - 3; g += 4) {
+        ctx.beginPath();
+        ctx.moveTo(barrelX + g, barrelY - barrelH/2 + 3);
+        ctx.lineTo(barrelX + g, barrelY + barrelH/2 - 3);
+        ctx.stroke();
+      }
+      
+      // Metal bands
+      ctx.strokeStyle = `rgba(60, 55, 50, ${barrelAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(barrelX, barrelY - barrelH/3, barrelW/2, 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(barrelX, barrelY + barrelH/3, barrelW/2, 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Highlight
+      ctx.fillStyle = `rgba(140, 100, 65, ${barrelAlpha * 0.4})`;
+      ctx.beginPath();
+      ctx.ellipse(barrelX - barrelW/4, barrelY - barrelH/4, barrelW/6, barrelH/3, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Wooden Crate (rare)
+    if (decorRandom() > 0.8) {
+      const crateX = 80 + decorRandom() * (w - 160);
+      const crateY = h - 35 - decorRandom() * 25;
+      const crateSize = 18 + decorRandom() * 12;
+      const crateAlpha = 0.65 + decorRandom() * 0.25;
+      
+      // Crate body
+      ctx.fillStyle = `rgba(90, 65, 40, ${crateAlpha})`;
+      ctx.fillRect(crateX - crateSize/2, crateY - crateSize/2, crateSize, crateSize);
+      
+      // Wood plank lines (horizontal)
+      ctx.strokeStyle = `rgba(60, 45, 25, ${crateAlpha * 0.7})`;
+      ctx.lineWidth = 1;
+      for (let p = -crateSize/2 + 4; p < crateSize/2 - 2; p += 5) {
+        ctx.beginPath();
+        ctx.moveTo(crateX - crateSize/2 + 1, crateY + p);
+        ctx.lineTo(crateX + crateSize/2 - 1, crateY + p);
+        ctx.stroke();
+      }
+      
+      // Cross braces
+      ctx.strokeStyle = `rgba(70, 50, 30, ${crateAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(crateX - crateSize/2 + 2, crateY - crateSize/2 + 2);
+      ctx.lineTo(crateX + crateSize/2 - 2, crateY + crateSize/2 - 2);
+      ctx.moveTo(crateX + crateSize/2 - 2, crateY - crateSize/2 + 2);
+      ctx.lineTo(crateX - crateSize/2 + 2, crateY + crateSize/2 - 2);
+      ctx.stroke();
+      
+      // Edge highlight
+      ctx.fillStyle = `rgba(120, 90, 55, ${crateAlpha * 0.3})`;
+      ctx.fillRect(crateX - crateSize/2, crateY - crateSize/2, crateSize, 3);
+    }
+    
+    // Skull Pile (rare, spooky)
+    if (decorRandom() > 0.85) {
+      const pileX = 100 + decorRandom() * (w - 200);
+      const pileY = h - 25 - decorRandom() * 20;
+      const pileAlpha = 0.6 + decorRandom() * 0.25;
+      const skullCount = 2 + Math.floor(decorRandom() * 3);
+      
+      for (let s = 0; s < skullCount; s++) {
+        const sx = pileX + (s - skullCount/2) * 8 + (decorRandom() - 0.5) * 6;
+        const sy = pileY + (decorRandom() - 0.5) * 5 - s * 2;
+        const sSize = 5 + decorRandom() * 3;
+        
+        // Skull
+        ctx.fillStyle = `rgba(195, 185, 165, ${pileAlpha})`;
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, sSize, sSize * 1.1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Eye sockets
+        ctx.fillStyle = `rgba(15, 10, 5, ${pileAlpha})`;
+        ctx.beginPath();
+        ctx.arc(sx - sSize * 0.3, sy - sSize * 0.1, sSize * 0.22, 0, Math.PI * 2);
+        ctx.arc(sx + sSize * 0.3, sy - sSize * 0.1, sSize * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Scattered bones around pile
+      for (let b = 0; b < 3; b++) {
+        const bx = pileX + (decorRandom() - 0.5) * 40;
+        const by = pileY + 5 + decorRandom() * 8;
+        const bLen = 6 + decorRandom() * 8;
+        const bAngle = decorRandom() * Math.PI;
+        
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(bAngle);
+        ctx.fillStyle = `rgba(185, 175, 155, ${pileAlpha * 0.7})`;
+        ctx.fillRect(-bLen/2, -1, bLen, 2);
+        ctx.restore();
+      }
+    }
+    
+    // Treasure Chest (very rare)
+    if (decorRandom() > 0.92) {
+      const chestX = 120 + decorRandom() * (w - 240);
+      const chestY = h - 30 - decorRandom() * 15;
+      const chestW = 24;
+      const chestH = 16;
+      const chestAlpha = 0.75;
+      
+      // Chest body (wood with gold trim)
+      ctx.fillStyle = `rgba(100, 65, 35, ${chestAlpha})`;
+      ctx.fillRect(chestX - chestW/2, chestY - chestH/2, chestW, chestH);
+      
+      // Chest lid (curved top)
+      ctx.fillStyle = `rgba(90, 60, 30, ${chestAlpha})`;
+      ctx.beginPath();
+      ctx.ellipse(chestX, chestY - chestH/2, chestW/2, 5, 0, Math.PI, Math.PI * 2);
+      ctx.fill();
+      
+      // Gold band (horizontal)
+      ctx.fillStyle = `rgba(200, 170, 80, ${chestAlpha})`;
+      ctx.fillRect(chestX - chestW/2, chestY - 2, chestW, 4);
+      
+      // Gold lock
+      ctx.fillStyle = `rgba(220, 190, 100, ${chestAlpha})`;
+      ctx.fillRect(chestX - 4, chestY - 5, 8, 8);
+      ctx.fillStyle = `rgba(180, 150, 60, ${chestAlpha})`;
+      ctx.beginPath();
+      ctx.arc(chestX, chestY - 1, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Gold corner studs
+      ctx.fillStyle = `rgba(210, 180, 90, ${chestAlpha})`;
+      ctx.beginPath();
+      ctx.arc(chestX - chestW/2 + 3, chestY - chestH/2 + 3, 2, 0, Math.PI * 2);
+      ctx.arc(chestX + chestW/2 - 3, chestY - chestH/2 + 3, 2, 0, Math.PI * 2);
+      ctx.arc(chestX - chestW/2 + 3, chestY + chestH/2 - 3, 2, 0, Math.PI * 2);
+      ctx.arc(chestX + chestW/2 - 3, chestY + chestH/2 - 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Weapon Rack on Wall (rare)
+    if (decorRandom() > 0.88) {
+      const rackX = 50 + decorRandom() * (w - 100);
+      const rackY = h/2 + 15 + decorRandom() * 30;
+      const rackAlpha = 0.6 + decorRandom() * 0.25;
+      
+      // Wooden plank (horizontal)
+      ctx.fillStyle = `rgba(80, 55, 35, ${rackAlpha})`;
+      ctx.fillRect(rackX - 25, rackY, 50, 4);
+      
+      // Iron brackets
+      ctx.fillStyle = `rgba(50, 45, 40, ${rackAlpha})`;
+      ctx.fillRect(rackX - 22, rackY + 4, 4, 8);
+      ctx.fillRect(rackX + 18, rackY + 4, 4, 8);
+      
+      // Sword on rack
+      ctx.fillStyle = `rgba(150, 145, 140, ${rackAlpha})`;
+      ctx.fillRect(rackX - 15, rackY + 3, 2, 25);
+      ctx.fillStyle = `rgba(100, 70, 40, ${rackAlpha})`;
+      ctx.fillRect(rackX - 17, rackY + 25, 6, 8);
+      
+      // Axe on rack
+      ctx.fillStyle = `rgba(90, 65, 40, ${rackAlpha})`;
+      ctx.fillRect(rackX + 8, rackY + 3, 3, 22);
+      ctx.fillStyle = `rgba(140, 135, 130, ${rackAlpha})`;
+      ctx.beginPath();
+      ctx.moveTo(rackX + 11, rackY + 8);
+      ctx.lineTo(rackX + 20, rackY + 5);
+      ctx.lineTo(rackX + 20, rackY + 15);
+      ctx.lineTo(rackX + 11, rackY + 18);
+      ctx.closePath();
+      ctx.fill();
+    }
+    
+    // Stone Altar (very rare, ominous)
+    if (decorRandom() > 0.94) {
+      const altarX = w/2 + (decorRandom() - 0.5) * 150;
+      const altarY = h - 25;
+      const altarAlpha = 0.65;
+      
+      // Altar base (stone)
+      ctx.fillStyle = `rgba(70, 65, 60, ${altarAlpha})`;
+      ctx.fillRect(altarX - 30, altarY - 15, 60, 20);
+      
+      // Altar top
+      ctx.fillStyle = `rgba(80, 75, 70, ${altarAlpha})`;
+      ctx.fillRect(altarX - 35, altarY - 20, 70, 8);
+      
+      // Carved symbols
+      ctx.strokeStyle = `rgba(120, 40, 40, ${altarAlpha * 0.6})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(altarX, altarY - 8, 5, 0, Math.PI * 2);
+      ctx.moveTo(altarX - 8, altarY - 8);
+      ctx.lineTo(altarX + 8, altarY - 8);
+      ctx.moveTo(altarX, altarY - 16);
+      ctx.lineTo(altarX, altarY);
+      ctx.stroke();
+      
+      // Candles on altar
+      ctx.fillStyle = `rgba(200, 180, 150, ${altarAlpha})`;
+      ctx.fillRect(altarX - 25, altarY - 30, 4, 12);
+      ctx.fillRect(altarX + 21, altarY - 30, 4, 12);
+      
+      // Candle flames
+      ctx.fillStyle = `rgba(255, 180, 80, 0.8)`;
+      ctx.beginPath();
+      ctx.ellipse(altarX - 23, altarY - 33, 2, 4, 0, 0, Math.PI * 2);
+      ctx.ellipse(altarX + 23, altarY - 33, 2, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
     // Floor debris and scattered stones
     const debrisCount = 5 + Math.floor(decorRandom() * 8);
     for (let i = 0; i < debrisCount; i++) {
