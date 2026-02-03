@@ -2132,7 +2132,11 @@ export default function Game() {
                   }`}>
                     <div className="relative w-full flex flex-col justify-center items-center animate-in fade-in zoom-in duration-300">
                       {/* All monsters in single row (max 3) */}
-                      <div className="flex items-end justify-center z-20" style={{ gap: isCombatFullscreen ? '-15px' : '4px' }}>
+                      <div className="flex items-end justify-center z-20" style={{ 
+                        gap: isCombatFullscreen 
+                          ? (combatState.monsters.length === 3 ? '-60px' : combatState.monsters.length === 2 ? '-30px' : '0px')
+                          : '4px' 
+                      }}>
                         {combatState.monsters.slice(0, 3).map((monster, idx) => {
                           const getMonsterSize = () => {
                             if (isCombatFullscreen) {
