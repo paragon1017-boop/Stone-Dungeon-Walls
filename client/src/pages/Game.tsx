@@ -1411,12 +1411,17 @@ export default function Game() {
               </div>
             )}
 
-            {/* Damage Log */}
-            <div className="flex-1 bg-black/60 rounded border border-white/10 p-2 overflow-hidden">
-              <div className="font-pixel text-xs text-muted-foreground mb-2">BATTLE LOG</div>
-              <div className="space-y-0.5 text-[10px] overflow-y-auto max-h-40" style={{ scrollbarWidth: 'thin' }}>
-                {logs.slice(0, 15).map((msg, i) => (
-                  <div key={i} className={`${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.06 }}>
+          </div>
+        )}
+        
+        {/* RIGHT SIDEBAR - Battle Log during combat fullscreen */}
+        {isCombatFullscreen && (
+          <div className="w-64 h-full bg-black/90 border-l border-primary/30 flex flex-col p-2 z-30">
+            <div className="bg-black/60 rounded border border-white/10 p-2 flex-1 overflow-hidden flex flex-col">
+              <div className="font-pixel text-xs text-primary mb-2">BATTLE LOG</div>
+              <div className="flex-1 space-y-0.5 text-[10px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                {logs.slice(0, 20).map((msg, i) => (
+                  <div key={i} className={`${i === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ opacity: 1 - i * 0.04 }}>
                     {msg}
                   </div>
                 ))}
@@ -2286,7 +2291,7 @@ export default function Game() {
                   
                   {/* Monster Health Bar - Top of Screen */}
                   {isCombatFullscreen && (
-                    <div className="absolute top-0 left-72 right-0 z-30 p-2 bg-gradient-to-b from-black/80 to-transparent">
+                    <div className="absolute top-0 left-72 right-64 z-30 p-2 bg-gradient-to-b from-black/80 to-transparent">
                       <div className="flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
                         {combatState.monsters.map((monster, idx) => {
                           const isBackRow = idx >= 4;
