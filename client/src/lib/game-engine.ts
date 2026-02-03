@@ -503,10 +503,10 @@ export function createEmptyEquipment(): PlayerEquipment {
 // Combat abilities for each job
 export const JOB_ABILITIES: Record<string, Ability[]> = {
   Fighter: [
-    { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
-    { id: 'power_strike', name: 'Power Strike', mpCost: 0, type: 'attack', power: 2.0, description: 'Powerful attack (2x damage)' },
-    { id: 'defend', name: 'Defend', mpCost: 0, type: 'buff', power: 0.5, description: 'Reduce incoming damage' },
-    { id: 'provoke', name: 'Provoke', mpCost: 4, type: 'debuff', power: 2, description: 'Force enemy to attack you, reduces their attack for 2 turns' },
+    { id: 'strike', name: 'Strike', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
+    { id: 'heavy_blow', name: 'Heavy Blow', mpCost: 5, type: 'attack', power: 2.2, description: 'Powerful attack (2.2x damage)' },
+    { id: 'shield_bash', name: 'Shield Bash', mpCost: 3, type: 'attack', power: 1.5, description: 'Bash with shield (1.5x damage, may stun)' },
+    { id: 'provoke', name: 'Provoke', mpCost: 6, type: 'debuff', power: 2, description: 'Force enemy to attack you, reduces their attack for 2 turns' },
   ],
   Mage: [
     { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
