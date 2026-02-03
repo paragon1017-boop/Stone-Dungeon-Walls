@@ -58,7 +58,7 @@ export interface Ability {
   id: string;
   name: string;
   mpCost: number;
-  type: 'attack' | 'heal' | 'buff';
+  type: 'attack' | 'heal' | 'buff' | 'debuff';
   power: number; // multiplier or base value
   description: string;
 }
@@ -506,16 +506,19 @@ export const JOB_ABILITIES: Record<string, Ability[]> = {
     { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
     { id: 'power_strike', name: 'Power Strike', mpCost: 0, type: 'attack', power: 2.0, description: 'Powerful attack (2x damage)' },
     { id: 'defend', name: 'Defend', mpCost: 0, type: 'buff', power: 0.5, description: 'Reduce incoming damage' },
+    { id: 'provoke', name: 'Provoke', mpCost: 4, type: 'debuff', power: 2, description: 'Force enemy to attack you, reduces their attack for 2 turns' },
   ],
   Mage: [
     { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
     { id: 'fireball', name: 'Fireball', mpCost: 8, type: 'attack', power: 3.0, description: 'Powerful fire spell (3x damage)' },
     { id: 'heal', name: 'Heal', mpCost: 6, type: 'heal', power: 25, description: 'Restore 25 HP to a party member' },
+    { id: 'ice_shard', name: 'Ice Shard', mpCost: 10, type: 'attack', power: 2.2, description: 'Ice damage, 40% chance to freeze enemy (skip turn)' },
   ],
   Monk: [
     { id: 'attack', name: 'Attack', mpCost: 0, type: 'attack', power: 1.0, description: 'Basic attack' },
     { id: 'chi_strike', name: 'Chi Strike', mpCost: 4, type: 'attack', power: 1.8, description: 'Focused strike (1.8x damage)' },
     { id: 'meditate', name: 'Meditate', mpCost: 0, type: 'heal', power: 15, description: 'Restore 15 HP to self' },
+    { id: 'stealth', name: 'Stealth', mpCost: 8, type: 'buff', power: 25, description: 'Enter stealth: 25% chance to dodge all attacks this battle' },
   ],
 };
 
