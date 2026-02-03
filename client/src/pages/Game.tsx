@@ -58,6 +58,23 @@ export default function Game() {
     defending: boolean 
   }>({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
   const [monsterAnimations, setMonsterAnimations] = useState<{ [key: number]: MonsterAnimationState }>({});
+  const [showGameOver, setShowGameOver] = useState(false);
+  const gameOverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const showGameOverRef = useRef(false);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    showGameOverRef.current = showGameOver;
+  }, [showGameOver]);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (gameOverTimeoutRef.current) {
+        clearTimeout(gameOverTimeoutRef.current);
+      }
+    };
+  }, []);
   
   // Track monster status effects (burn damage, slow, etc.)
   const [monsterEffects, setMonsterEffects] = useState<{ 
@@ -262,7 +279,7 @@ export default function Game() {
 
   const move = useCallback((dx: number, dy: number) => {
     const currentGame = gameRef.current;
-    if (!currentGame || combatActiveRef.current || showEquipmentRef.current || showStatsRef.current) return;
+    if (!currentGame || combatActiveRef.current || showEquipmentRef.current || showStatsRef.current || showGameOverRef.current) return;
     
     const nx = currentGame.x + dx;
     const ny = currentGame.y + dy;
@@ -349,7 +366,7 @@ export default function Game() {
 
   // Ladder climbing function
   const useLadder = useCallback(() => {
-    if (!game || combatState.active) return;
+    if (!game || combatState.active || showGameOver) return;
     
     const currentTile = game.map[game.y][game.x];
     
@@ -392,7 +409,7 @@ export default function Game() {
   }, [game, combatState.active, log]);
 
   const rotate = useCallback((dir: 'left' | 'right') => {
-    if (!gameRef.current || combatActiveRef.current) return;
+    if (!gameRef.current || combatActiveRef.current || showGameOverRef.current) return;
     setGame(prev => {
       if (!prev) return null;
       let newDir = prev.dir;
@@ -413,7 +430,7 @@ export default function Game() {
   // Movement execution helper
   const executeMovement = useCallback((key: string) => {
     const g = gameRef.current;
-    if (!g || combatActiveRef.current) return;
+    if (!g || combatActiveRef.current || showGameOverRef.current) return;
     
     if (key === 'arrowup' || key === 'w') {
       if (g.dir === NORTH) move(0, -1);
@@ -498,6 +515,8 @@ export default function Game() {
   
   // ESC key to flee combat or close modals
   useKey('Escape', () => {
+    // Block escape during game over
+    if (showGameOver) return;
     // First check if equipment modal is open
     if (showEquipmentRef.current) {
       setShowEquipment(false);
@@ -518,11 +537,11 @@ export default function Game() {
       setIsCombatFullscreen(false);
       setCombatTransition('none');
     }
-  }, {}, []);
+  }, {}, [showGameOver]);
   
   // Out-of-combat Heal All skill (H key)
   const healAllParty = useCallback(() => {
-    if (!game || combatState.active) return;
+    if (!game || combatState.active || showGameOver) return;
     
     // Find the mage in the party
     const mageIndex = game.party.findIndex(c => c.job === 'Mage' && c.hp > 0);
@@ -761,19 +780,21 @@ export default function Game() {
   // Combat keyboard shortcuts and ladder interaction
   useKey(' ', (e) => {
     e.preventDefault();
+    if (showGameOver) return; // Block during game over
     if (combatState.active && combatState.monsters.length > 0) {
       handleAttack();
     } else if (game && !combatState.active) {
       // Try to use ladder when not in combat
       useLadder();
     }
-  }, {}, [combatState, game, useLadder]);
+  }, {}, [combatState, game, useLadder, showGameOver]);
 
   useKey('Shift', (e) => {
+    if (showGameOver) return; // Block during game over
     if (e.location === 2 && combatState.active) { // Right Shift only
       handleRun();
     }
-  }, {}, [combatState]);
+  }, {}, [combatState, showGameOver]);
 
   const handleSave = () => {
     if (!game) return;
@@ -988,7 +1009,10 @@ export default function Game() {
     
     // Check if all party members are dead
     if (newTurnOrder.length === 0 || newParty.every(c => c.hp <= 0)) {
+      // Prevent duplicate game over triggers
+      if (showGameOver) return;
       log("GAME OVER");
+      setShowGameOver(true);
       setCombatState(prev => ({ 
         ...prev, 
         monsters: updatedMonsters,
@@ -997,6 +1021,26 @@ export default function Game() {
         turnOrderPosition: 0,
         defending: false
       }));
+      // Clear any existing timeout to prevent multiple resets
+      if (gameOverTimeoutRef.current) {
+        clearTimeout(gameOverTimeoutRef.current);
+      }
+      // Start new game after delay
+      gameOverTimeoutRef.current = setTimeout(() => {
+        setShowGameOver(false);
+        const newGame = createInitialState();
+        setGame(newGame);
+        setVisualPos({ x: newGame.x, y: newGame.y });
+        visualPosRef.current = { x: newGame.x, y: newGame.y };
+        targetPosRef.current = { x: newGame.x, y: newGame.y };
+        setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
+        setMonsterEffects({});
+        setPartyEffects({});
+        setIsCombatFullscreen(false);
+        setCombatTransition('none');
+        setLogs(["Your adventure begins anew..."]);
+        gameOverTimeoutRef.current = null;
+      }, 3000);
       return;
     }
     
@@ -1013,7 +1057,7 @@ export default function Game() {
   }, [game, log]);
 
   const useAbility = (ability: Ability, charIndex: number) => {
-    if (combatState.monsters.length === 0 || !game) return;
+    if (combatState.monsters.length === 0 || !game || showGameOver) return;
     
     (document.activeElement as HTMLElement)?.blur();
     
@@ -1301,6 +1345,7 @@ export default function Game() {
   };
 
   const handleAttack = () => {
+    if (showGameOver) return; // Block during game over
     const abilities = getAbilitiesForJob(game?.party[combatState.currentCharIndex]?.job || 'Fighter');
     const attackAbility = abilities.find(a => a.id === 'attack');
     if (attackAbility) {
@@ -1309,6 +1354,7 @@ export default function Game() {
   };
 
   const handleRun = () => {
+    if (showGameOver) return; // Block during game over
     (document.activeElement as HTMLElement)?.blur();
     log("You fled from battle!");
     setCombatState({ active: false, monsters: [], targetIndex: 0, turn: 0, currentCharIndex: 0, turnOrder: [], turnOrderPosition: 0, defending: false });
@@ -3033,6 +3079,29 @@ export default function Game() {
                 );
               })()}
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Game Over Overlay - Shows when party is wiped */}
+      {showGameOver && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 animate-in fade-in duration-500">
+          <div className="text-center">
+            <h1 
+              className="text-6xl md:text-8xl lg:text-9xl font-pixel text-red-600"
+              style={{
+                textShadow: '0 0 20px rgba(220,38,38,0.8), 0 0 40px rgba(220,38,38,0.5), 0 0 60px rgba(220,38,38,0.3)',
+                animation: 'gameOverFlash 0.5s ease-in-out infinite alternate'
+              }}
+            >
+              GAME OVER
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-400 mt-6 animate-pulse">
+              Your party has fallen...
+            </p>
+            <p className="text-sm text-gray-500 mt-10">
+              Starting new adventure in 3 seconds...
+            </p>
           </div>
         </div>
       )}
