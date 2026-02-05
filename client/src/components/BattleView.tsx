@@ -167,8 +167,8 @@ function TransparentMonster({
 
         // Only process if we found a clear dominant background color
         if (foundBg) {
-          // Hard clip tolerance - very conservative to preserve sprite details
-          const tolerance = 25;
+          // Hard clip tolerance - ultra conservative to preserve all sprite details
+          const tolerance = 18;
 
           // Process pixels - hard clip background (no fading)
           for (let i = 0; i < data.length; i += 4) {
