@@ -13,23 +13,23 @@ interface DungeonViewProps {
 
 // Get texture paths for a specific dungeon level (1-10, each with unique textures)
 function getTexturesForLevel(level: number): { wall: string; floor: string; ceiling: string } {
-  // Map each level to specific themed textures
-  const levelTextures: Record<number, { wall: string; floor: string; ceiling: string }> = {
-    1: { wall: '/assets/textures/wall_stone_dungeon.png', floor: '/assets/textures/floor_stone_dungeon.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    2: { wall: '/assets/textures/wall_crypt.png', floor: '/assets/textures/floor_crypt.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    3: { wall: '/assets/textures/wall_forest.png', floor: '/assets/textures/floor_forest.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    4: { wall: '/assets/textures/wall_ice.png', floor: '/assets/textures/floor_ice.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    5: { wall: '/assets/textures/wall_temple.png', floor: '/assets/textures/floor_temple.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    // Levels 6-10 cycle through themes with variations
-    6: { wall: '/assets/textures/wall_stone_dungeon.png', floor: '/assets/textures/floor_stone_dungeon.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    7: { wall: '/assets/textures/wall_crypt.png', floor: '/assets/textures/floor_crypt.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    8: { wall: '/assets/textures/wall_forest.png', floor: '/assets/textures/floor_forest.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    9: { wall: '/assets/textures/wall_ice.png', floor: '/assets/textures/floor_ice.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-    10: { wall: '/assets/textures/wall_temple.png', floor: '/assets/textures/floor_temple.png', ceiling: '/assets/textures/ceiling_stone_dungeon.png' },
-  };
-  
   const lvl = Math.max(1, Math.min(10, level));
-  return levelTextures[lvl] || levelTextures[1];
+  
+  // Level 1 uses new stone dungeon textures matching battle screen aesthetic
+  if (lvl === 1) {
+    return {
+      wall: '/assets/textures/wall_stone_dungeon.png',
+      floor: '/assets/textures/floor_stone_dungeon.png',
+      ceiling: '/assets/textures/ceiling_stone_dungeon.png'
+    };
+  }
+  
+  // Levels 2-10 use the existing numbered texture assets
+  return {
+    wall: `/assets/textures/wall_${lvl}.png`,
+    floor: `/assets/textures/floor_${lvl}.png`,
+    ceiling: '/assets/textures/ceiling_stone_dungeon.png' // Use same ceiling for now
+  };
 }
 
 export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600, visualX, visualY, onCanvasRef }: DungeonViewProps) {
