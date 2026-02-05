@@ -11,16 +11,20 @@ interface DungeonViewProps {
   onCanvasRef?: (canvas: HTMLCanvasElement | null) => void;  // Callback to get canvas reference for post-processing
 }
 
+// Cache buster for texture reloads during development
+const TEXTURE_VERSION = 2;
+
 // Get texture paths for a specific dungeon level (1-10, each with unique textures)
 function getTexturesForLevel(level: number): { wall: string; floor: string; ceiling: string } {
   const lvl = Math.max(1, Math.min(10, level));
+  const v = `?v=${TEXTURE_VERSION}`;
   
   // Level 1 uses new stone dungeon textures matching battle screen aesthetic
   if (lvl === 1) {
     return {
-      wall: '/assets/textures/wall_stone_dungeon.png',
-      floor: '/assets/textures/floor_stone_dungeon.png',
-      ceiling: '/assets/textures/ceiling_stone_dungeon.png'
+      wall: `/assets/textures/wall_stone_dungeon.png${v}`,
+      floor: `/assets/textures/floor_stone_dungeon.png${v}`,
+      ceiling: `/assets/textures/ceiling_stone_dungeon.png${v}`
     };
   }
   
@@ -46,7 +50,7 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
   
   // Alias for internal usage
   const canvasRef = internalCanvasRef;
-  const currentLevelRef = useRef<number | null>(null);
+  const currentLevelRef = useRef<string | null>(null);
   
   // Dirty tracking to skip redundant redraws
   const lastRenderState = useRef<{ x: number; y: number; dir: number; level: number; width: number; height: number } | null>(null);
@@ -54,10 +58,11 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
   // Load textures based on current dungeon level (unique textures for each level 1-10)
   useEffect(() => {
     const level = Math.max(1, Math.min(10, gameData.level));
+    const levelKey = `${level}-v${TEXTURE_VERSION}`;
     
-    // Only reload textures if level changed
-    if (currentLevelRef.current !== level) {
-      currentLevelRef.current = level;
+    // Only reload textures if level or version changed
+    if (currentLevelRef.current !== levelKey) {
+      currentLevelRef.current = levelKey;
       const texturePaths = getTexturesForLevel(level);
       
       const wallImg = new Image();
