@@ -27,9 +27,9 @@ import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp
 // Graphics resolution presets
 type GraphicsQuality = 'high' | 'medium' | 'low';
 const RESOLUTION_PRESETS: Record<GraphicsQuality, { width: number; height: number; label: string }> = {
-  high: { width: 800, height: 600, label: 'High (800x600)' },
-  medium: { width: 640, height: 480, label: 'Medium (640x480)' },
-  low: { width: 400, height: 300, label: 'Low (400x300)' }
+  high: { width: 1024, height: 640, label: 'High (1024x640)' },
+  medium: { width: 800, height: 500, label: 'Medium (800x500)' },
+  low: { width: 640, height: 400, label: 'Low (640x400)' }
 };
 
 function formatEquipmentStats(item: Equipment): string {
@@ -2010,7 +2010,7 @@ export default function Game() {
         {/* CENTER COLUMN: Viewport */}
         <div className={`${isCombatFullscreen ? 'w-full h-full' : 'lg:col-span-7'} order-1 lg:order-2`}>
           <RetroCard className={`${isCombatFullscreen ? 'h-full rounded-none border-0 bg-transparent' : 'p-1'}`}>
-            <div className="relative aspect-[4/3] w-full bg-black overflow-hidden rounded-lg">
+            <div className="relative w-full bg-black overflow-hidden rounded-lg" style={{ aspectRatio: '16/10', maxHeight: '70vh' }}>
               {/* Always show dungeon view as background */}
               {/* Base dungeon rendering (hidden only when post-processing is active AND canvas is ready) */}
               <DungeonView 
