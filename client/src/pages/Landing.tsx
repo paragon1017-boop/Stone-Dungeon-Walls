@@ -1,15 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { preloadGameAssets, getTotalAssetCount } from "@/lib/preloader";
 
 export default function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
   const [_, setLocation] = useLocation();
   const [particles, setParticles] = useState<Array<{ id: number; left: string; delay: string; duration: string }>>([]);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
-  const [loadingText, setLoadingText] = useState("Preparing dungeon...");
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -25,34 +21,6 @@ export default function Landing() {
       duration: `${Math.random() * 10 + 10}s`
     }));
     setParticles(newParticles);
-  }, []);
-
-  // Preload game assets on mount
-  useEffect(() => {
-    const loadingMessages = [
-      "Preparing dungeon...",
-      "Summoning monsters...",
-      "Forging weapons...",
-      "Lighting torches...",
-      "Opening the gates..."
-    ];
-    
-    let messageIndex = 0;
-    const messageInterval = setInterval(() => {
-      messageIndex = (messageIndex + 1) % loadingMessages.length;
-      setLoadingText(loadingMessages[messageIndex]);
-    }, 800);
-
-    preloadGameAssets((loaded, total) => {
-      const progress = Math.round((loaded / total) * 100);
-      setLoadingProgress(progress);
-    }).then(() => {
-      clearInterval(messageInterval);
-      setLoadingText("Ready to explore!");
-      setAssetsLoaded(true);
-    });
-
-    return () => clearInterval(messageInterval);
   }, []);
 
   if (isLoading) return null;
@@ -945,70 +913,6 @@ export default function Landing() {
             display: none;
           }
         }
-
-        .loading-container {
-          margin-top: 30px;
-          width: 300px;
-          text-align: center;
-        }
-
-        .loading-bar-bg {
-          width: 100%;
-          height: 8px;
-          background: rgba(139, 92, 246, 0.2);
-          border-radius: 4px;
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-
-        .loading-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 50%, #8b5cf6 100%);
-          background-size: 200% 100%;
-          border-radius: 4px;
-          transition: width 0.3s ease;
-          animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-
-        .loading-text {
-          font-size: 14px;
-          color: rgba(139, 92, 246, 0.9);
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          animation: pulse-text 1s infinite alternate;
-        }
-
-        @keyframes pulse-text {
-          0% { opacity: 0.6; }
-          100% { opacity: 1; }
-        }
-
-        .loading-percent {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.5);
-          margin-top: 4px;
-        }
-
-        .cta-button.loading {
-          opacity: 0.5;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
-
-        .cta-button.ready {
-          animation: button-ready 0.5s ease-out;
-        }
-
-        @keyframes button-ready {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
       `}</style>
 
       <div className="dungeon-background" />
@@ -1122,26 +1026,9 @@ export default function Landing() {
           </div>
         </div>
 
-        {!assetsLoaded ? (
-          <div className="loading-container">
-            <div className="loading-bar-bg">
-              <div 
-                className="loading-bar-fill" 
-                style={{ width: `${loadingProgress}%` }}
-              />
-            </div>
-            <div className="loading-text">{loadingText}</div>
-            <div className="loading-percent">{loadingProgress}%</div>
-          </div>
-        ) : (
-          <a 
-            href="/api/login" 
-            className={`cta-button ${assetsLoaded ? 'ready' : 'loading'}`}
-            data-testid="button-start-adventure"
-          >
-            START YOUR ADVENTURE
-          </a>
-        )}
+        <a href="/api/login" className="cta-button" data-testid="button-start-adventure">
+          START YOUR ADVENTURE
+        </a>
       </div>
     </div>
   );
