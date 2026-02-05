@@ -17,6 +17,18 @@ A retro-styled first-person dungeon crawler RPG inspired by classic games like "
 - **Canvas Dirty Checking**: DungeonView skips redundant redraws when position/direction/level unchanged; uses alpha:false context for GPU performance
 - **Atmospheric Effects Optimized**: Reduced dust particles from 15 to 8, added will-change CSS hints, removed blur filters from slime decorations, slowed animation cycles (dust 15-27s, fog 30-35s)
 
+### WebGL Post-Processing Effects
+- **Hybrid rendering**: Stable 2D Canvas raycaster for dungeon + WebGL overlay for GPU-accelerated effects
+- **Visual effects** (toggle in Graphics settings):
+  - **Scanlines**: CRT-style horizontal lines for retro feel
+  - **Bloom**: Subtle glow on bright areas
+  - **Vignette**: Darkened screen edges for atmosphere
+  - **Chromatic Aberration**: RGB color separation at edges
+  - **Color Grading**: Warm tones and saturation boost
+  - **CRT Curve** (optional): Screen curvature effect
+- **Fallback system**: Auto-disables WebGL effects if initialization fails, falls back to base canvas
+- Implementation in `client/src/components/WebGLPostProcess.tsx`
+
 ### Expanded Abilities (4 per Class)
 - **Fighter**: Strike, Heavy Blow, Shield Bash, **Provoke** (forces enemy to attack you)
 - **Mage**: Fire, Ice Shard (40% freeze chance), Lightning, Heal
