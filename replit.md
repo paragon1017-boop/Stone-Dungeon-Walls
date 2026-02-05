@@ -12,10 +12,12 @@ A retro-styled first-person dungeon crawler RPG inspired by classic games like "
 - Fullscreen combat with enhanced atmospheric effects
 
 ### Performance Optimizations
-- **Smooth Movement Interpolation**: Camera slides smoothly between tiles at 20 tiles/sec using requestAnimationFrame, eliminating choppy tile-to-tile snapping
+- **Asset Preloader**: All 29 monster sprites and 10 dungeon textures preloaded on menu screen with progress bar; eliminates lag during gameplay
+- **Smooth Movement Interpolation**: Ease-out lerp interpolation (LERP_FACTOR=0.12) creates smooth deceleration as camera glides to target tile; eliminates choppy/bouncy movement
 - **Fast Key Response**: Movement delay reduced to 100ms between moves (was 150ms), initial delay 120ms (was 200ms)
 - **Canvas Dirty Checking**: DungeonView skips redundant redraws when position/direction/level unchanged; uses alpha:false context for GPU performance
 - **Atmospheric Effects Optimized**: Reduced dust particles from 15 to 8, added will-change CSS hints, removed blur filters from slime decorations, slowed animation cycles (dust 15-27s, fog 30-35s)
+- **React Memoization**: DungeonView wrapped with React.memo; useMemo for currentCombatCharacter, currentCharacterAbilities, alivePartyMembers, aliveMonsters to prevent unnecessary re-renders during combat
 
 ### Expanded Abilities (4 per Class)
 - **Fighter**: Strike, Heavy Blow, Shield Bash, **Provoke** (forces enemy to attack you)
@@ -145,3 +147,14 @@ Preferred communication style: Simple, everyday language.
 - Monster sprites stored in `client/src/assets/monsters/` (29 unique monster images)
 - Dungeon textures in `public/assets/textures/` (wall, floor, door images)
 - Custom fonts: Cinzel (headings) and Rajdhani (body text) loaded from Google Fonts
+
+## Future Features Wishlist
+
+### SMT-Style Battle Screen
+Inspired by Shin Megami Tensei series:
+- **Press Turn System** - Turn icons consumed/half-consumed based on hitting weaknesses or missing
+- **Large demon portraits** - Clean, centered enemy artwork with smooth animations
+- **Horizontal command menu** - Attack, Skill, Item, Guard, Run categories
+- **Weakness indicators** - Shows "WEAK!" on effective hits, "NULL/REPEL" on immunities
+- **Turn order visualization** - Clear icons showing who acts next
+- Files to modify: `Game.tsx` (UI), `game-engine.ts` (mechanics), `index.css` (styling)

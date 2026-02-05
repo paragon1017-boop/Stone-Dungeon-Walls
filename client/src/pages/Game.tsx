@@ -120,6 +120,7 @@ export default function Game() {
   const [helpFilter, setHelpFilter] = useState<string>('all');
   const [helpTab, setHelpTab] = useState<'items' | 'sets'>('items');
   const [graphicsQuality, setGraphicsQuality] = useState<GraphicsQuality>('high');
+  
   const [showSettings, setShowSettings] = useState(false);
   const [showCheatMenu, setShowCheatMenu] = useState(false);
   const [isCombatFullscreen, setIsCombatFullscreen] = useState(false);
@@ -231,15 +232,21 @@ export default function Game() {
     }
   }, [serverState, isLoading]);
 
-  // Smooth movement interpolation animation loop
+  // Smooth movement interpolation animation loop - THROTTLED to 30fps (Option 3)
   useEffect(() => {
     const INTERPOLATION_SPEED = 20; // Higher = faster movement (tiles per second)
     let animationId: number;
-    let lastTime = performance.now();
+    let lastFrameTime = 0;
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS; // ~33ms between updates
     
     const animate = (time: number) => {
-      const deltaTime = (time - lastTime) / 1000; // Convert to seconds
-      lastTime = time;
+      // Throttle to 30fps - skip frames if running faster
+      if (time - lastFrameTime < FRAME_INTERVAL) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime = time;
       
       const current = visualPosRef.current;
       const target = targetPosRef.current;
@@ -250,14 +257,17 @@ export default function Game() {
       
       if (distance > 0.01) {
         // Move toward target at constant speed
-        const moveAmount = Math.min(distance, INTERPOLATION_SPEED * deltaTime);
+        const moveAmount = Math.min(distance, INTERPOLATION_SPEED * (FRAME_INTERVAL / 1000));
         const ratio = moveAmount / distance;
         
         const newX = current.x + dx * ratio;
         const newY = current.y + dy * ratio;
         
         visualPosRef.current = { x: newX, y: newY };
-        setVisualPos({ x: newX, y: newY });
+        // Only update React state every 5th frame (reduce re-renders)
+        if (Math.floor(time / FRAME_INTERVAL) % 5 === 0) {
+          setVisualPos({ x: newX, y: newY });
+        }
         isAnimatingRef.current = true;
       } else if (isAnimatingRef.current) {
         // Snap to target when close enough
@@ -272,6 +282,8 @@ export default function Game() {
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, []);
+  
+
 
   const log = useCallback((msg: string) => {
     setLogs(prev => [msg, ...prev].slice(0, 5));
@@ -2089,6 +2101,7 @@ export default function Game() {
                 renderHeight={RESOLUTION_PRESETS[graphicsQuality].height}
                 visualX={visualPos.x}
                 visualY={visualPos.y}
+                isMoving={isAnimatingRef.current}
               />
               
               {/* Mini Map in top left (toggle with M key) - hide during combat fullscreen */}
