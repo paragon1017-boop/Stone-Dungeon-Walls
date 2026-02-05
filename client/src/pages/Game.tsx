@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGameState, useSaveGame } from "@/hooks/use-game";
-import { DungeonView } from "@/components/DungeonView";
+import { DungeonViewWebGL } from "@/components/DungeonViewWebGL";
 import dungeonWallBg from "@assets/Gemini_Generated_Image_8w52n78w52n78w52_1769494784513.png";
 import { TransparentMonster, MonsterAnimationState } from "@/components/TransparentMonster";
 import { RetroCard, RetroButton, StatBar } from "@/components/RetroUI";
@@ -2082,7 +2082,7 @@ export default function Game() {
           <RetroCard className={`${isCombatFullscreen ? 'h-full rounded-none border-0 bg-transparent' : 'p-1'}`}>
             <div className="relative aspect-[4/3] w-full bg-black overflow-hidden rounded-lg">
               {/* Always show dungeon view as background */}
-              <DungeonView 
+              <DungeonViewWebGL 
                 gameData={game} 
                 className="w-full h-full" 
                 renderWidth={RESOLUTION_PRESETS[graphicsQuality].width}
