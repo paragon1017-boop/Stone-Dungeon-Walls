@@ -102,46 +102,46 @@ function TransparentMonster({
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // Sample corner pixels only (safer than all edges - less likely to hit sprite content)
-        const cornerPixels: number[][] = [];
-        const cornerSize = 8;
+        // Sample all edge pixels (top, bottom, left, right edges) for better background detection
+        const edgePixels: number[][] = [];
+        const edgeDepth = 3; // Sample 3 pixels deep from each edge
         
-        // Top-left corner
-        for (let y = 0; y < cornerSize; y++) {
-          for (let x = 0; x < cornerSize; x++) {
+        // Top edge
+        for (let y = 0; y < edgeDepth; y++) {
+          for (let x = 0; x < canvas.width; x++) {
             const idx = (y * canvas.width + x) * 4;
-            cornerPixels.push([data[idx], data[idx + 1], data[idx + 2]]);
+            edgePixels.push([data[idx], data[idx + 1], data[idx + 2]]);
           }
         }
-        // Top-right corner
-        for (let y = 0; y < cornerSize; y++) {
-          for (let x = canvas.width - cornerSize; x < canvas.width; x++) {
+        // Bottom edge
+        for (let y = canvas.height - edgeDepth; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
             const idx = (y * canvas.width + x) * 4;
-            cornerPixels.push([data[idx], data[idx + 1], data[idx + 2]]);
+            edgePixels.push([data[idx], data[idx + 1], data[idx + 2]]);
           }
         }
-        // Bottom-left corner
-        for (let y = canvas.height - cornerSize; y < canvas.height; y++) {
-          for (let x = 0; x < cornerSize; x++) {
+        // Left edge (excluding corners already counted)
+        for (let y = edgeDepth; y < canvas.height - edgeDepth; y++) {
+          for (let x = 0; x < edgeDepth; x++) {
             const idx = (y * canvas.width + x) * 4;
-            cornerPixels.push([data[idx], data[idx + 1], data[idx + 2]]);
+            edgePixels.push([data[idx], data[idx + 1], data[idx + 2]]);
           }
         }
-        // Bottom-right corner
-        for (let y = canvas.height - cornerSize; y < canvas.height; y++) {
-          for (let x = canvas.width - cornerSize; x < canvas.width; x++) {
+        // Right edge (excluding corners already counted)
+        for (let y = edgeDepth; y < canvas.height - edgeDepth; y++) {
+          for (let x = canvas.width - edgeDepth; x < canvas.width; x++) {
             const idx = (y * canvas.width + x) * 4;
-            cornerPixels.push([data[idx], data[idx + 1], data[idx + 2]]);
+            edgePixels.push([data[idx], data[idx + 1], data[idx + 2]]);
           }
         }
 
-        // Find the most common corner color (likely the background)
+        // Find the most common edge color (the background)
         const colorCounts: Record<string, { count: number; r: number; g: number; b: number }> = {};
-        cornerPixels.forEach(([r, g, b]) => {
-          // Quantize to reduce variations
-          const qr = Math.round(r / 20) * 20;
-          const qg = Math.round(g / 20) * 20;
-          const qb = Math.round(b / 20) * 20;
+        edgePixels.forEach(([r, g, b]) => {
+          // Quantize to group similar colors
+          const qr = Math.round(r / 15) * 15;
+          const qg = Math.round(g / 15) * 15;
+          const qb = Math.round(b / 15) * 15;
           const key = `${qr},${qg},${qb}`;
           if (!colorCounts[key]) {
             colorCounts[key] = { count: 0, r: qr, g: qg, b: qb };
@@ -149,14 +149,14 @@ function TransparentMonster({
           colorCounts[key].count++;
         });
 
-        // Get the most common color - must be dominant (>60% of corners)
+        // Get the most common color - just needs to be the dominant one (>25% threshold)
         let bgR = 0, bgG = 0, bgB = 0;
         let maxCount = 0;
         let foundBg = false;
-        const totalPixels = cornerPixels.length;
+        const totalPixels = edgePixels.length;
         for (const entry of Object.values(colorCounts)) {
-          // Lower threshold to 40% for better detection of backgrounds
-          if (entry.count > maxCount && entry.count > totalPixels * 0.4) {
+          // Low threshold - just find the most common edge color
+          if (entry.count > maxCount && entry.count > totalPixels * 0.25) {
             maxCount = entry.count;
             bgR = entry.r;
             bgG = entry.g;
