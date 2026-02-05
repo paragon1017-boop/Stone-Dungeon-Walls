@@ -102,9 +102,9 @@ function TransparentMonster({
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // Sample all edge pixels (top, bottom, left, right edges) for better background detection
+        // Sample edge pixels but only 1 pixel deep to avoid hitting sprite content
         const edgePixels: number[][] = [];
-        const edgeDepth = 3; // Sample 3 pixels deep from each edge
+        const edgeDepth = 1; // Only 1 pixel deep - very conservative
         
         // Top edge
         for (let y = 0; y < edgeDepth; y++) {
@@ -167,8 +167,8 @@ function TransparentMonster({
 
         // Only process if we found a clear dominant background color
         if (foundBg) {
-          // Hard clip tolerance - lower value = more conservative, only removes exact background matches
-          const tolerance = 35;
+          // Hard clip tolerance - very conservative to preserve sprite details
+          const tolerance = 25;
 
           // Process pixels - hard clip background (no fading)
           for (let i = 0; i < data.length; i += 4) {
