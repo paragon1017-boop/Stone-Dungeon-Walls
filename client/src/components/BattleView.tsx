@@ -1,7 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronRight, Swords, Shield, DoorOpen, Zap, Skull, Wand2, Hand } from "lucide-react";
 import type { GameData, Monster, Player, Ability } from "@/lib/game-engine";
-import stoneDungeonBg from "@assets/Gemini_Generated_Image_haabe3haabe3haab_1770316826611.png";
+
+// Level 1 Stone Dungeon backgrounds - randomly selected per battle
+import stoneDungeonBg1 from "@assets/Gemini_Generated_Image_haabe3haabe3haab_1770316826611.png";
+import stoneDungeonBg2 from "@assets/Gemini_Generated_Image_8ydwe58ydwe58ydw_1770316967886.png";
+import stoneDungeonBg3 from "@assets/Gemini_Generated_Image_ig45onig45onig45_1770316967886.png";
+import stoneDungeonBg4 from "@assets/Gemini_Generated_Image_oek41koek41koek4_1770316967886.png";
+
+const STONE_DUNGEON_BACKGROUNDS = [
+  stoneDungeonBg1,
+  stoneDungeonBg2,
+  stoneDungeonBg3,
+  stoneDungeonBg4
+];
 
 interface EffectiveStats {
   attack: number;
@@ -105,11 +117,11 @@ interface FloorTheme {
   atmosphere: 'torches' | 'drips' | 'crystal_glow' | 'lava_embers' | 'runes' | 'spores' | 'snowfall' | 'souls' | 'dust' | 'void_rifts';
   ambientColor: string;
   fogColor: string;
-  backgroundImage?: string;
+  backgroundImages?: string[];
 }
 
 const FLOOR_THEMES: FloorTheme[] = [
-  // Level 1: Stone Dungeon - classic dungeon entrance (uses custom background image)
+  // Level 1: Stone Dungeon - classic dungeon entrance (randomly picks from 4 backgrounds)
   { 
     name: 'Stone Dungeon',
     bg: 'from-stone-900 via-stone-800 to-gray-900',
@@ -119,7 +131,7 @@ const FLOOR_THEMES: FloorTheme[] = [
     atmosphere: 'torches',
     ambientColor: 'rgba(255, 180, 100, 0.08)',
     fogColor: 'rgba(80, 70, 60, 0.2)',
-    backgroundImage: stoneDungeonBg
+    backgroundImages: STONE_DUNGEON_BACKGROUNDS
   },
   // Level 2: Mossy Cavern - overgrown tunnels
   {
@@ -692,16 +704,25 @@ export function BattleView({
   
   // Get theme for current floor (1-indexed, clamped to available themes)
   const theme = FLOOR_THEMES[Math.min(Math.max(0, game.level - 1), FLOOR_THEMES.length - 1)];
+  
+  // Randomly select a background image for this battle (stable for duration of component)
+  const selectedBackground = useMemo(() => {
+    if (theme.backgroundImages && theme.backgroundImages.length > 0) {
+      const randomIndex = Math.floor(Math.random() * theme.backgroundImages.length);
+      return theme.backgroundImages[randomIndex];
+    }
+    return null;
+  }, [theme.backgroundImages]);
 
   return (
     <div className="relative w-full h-full overflow-hidden" data-testid="battle-view">
       {/* Background - either custom image or procedural theme */}
-      {theme.backgroundImage ? (
+      {selectedBackground ? (
         <>
           {/* Custom background image */}
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${theme.backgroundImage})` }}
+            style={{ backgroundImage: `url(${selectedBackground})` }}
           />
           {/* Subtle ambient overlay for consistency */}
           <div className="absolute inset-0" style={{ background: theme.ambientColor }} />
