@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { GameData, NORTH, EAST, SOUTH, WEST } from "@/lib/game-engine";
 
 interface DungeonViewProps {
@@ -8,7 +8,6 @@ interface DungeonViewProps {
   renderHeight?: number;
   visualX?: number;  // Optional interpolated X position for smooth movement
   visualY?: number;  // Optional interpolated Y position for smooth movement
-  isMoving?: boolean; // Whether the player is currently moving (for quality reduction)
 }
 
 // Get texture paths for a specific dungeon level (1-10, each with unique textures)
@@ -21,32 +20,13 @@ function getTexturesForLevel(level: number): { wall: string; floor: string } {
   };
 }
 
-export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600, visualX, visualY, isMoving = false }: DungeonViewProps) {
+export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600, visualX, visualY }: DungeonViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; door: HTMLImageElement | null }>({ wall: null, floor: null, door: null });
   const currentLevelRef = useRef<number | null>(null);
   
   // Dirty tracking to skip redundant redraws
   const lastRenderState = useRef<{ x: number; y: number; dir: number; level: number; width: number; height: number } | null>(null);
-  
-  // View cache system - stores pre-rendered views for each tile position
-  const viewCacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
-  const MAX_CACHE_SIZE = 9;
-  
-  // Generate cache key from position
-  const getCacheKey = useCallback((tileX: number, tileY: number, dir: number, level: number) => {
-    return `${Math.floor(tileX)},${Math.floor(tileY)},${dir},${level}`;
-  }, []);
-  
-  // Cache for decorations - only regenerate when tile position changes, not during interpolation
-  const decorationsCacheRef = useRef<{
-    tileX: number;
-    tileY: number;
-    dir: number;
-    level: number;
-    facingDoor: boolean;
-    decorations: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
-  } | null>(null);
 
   // Load textures based on current dungeon level (unique textures for each level 1-10)
   useEffect(() => {
@@ -70,9 +50,6 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     }
   }, [gameData.level]);
 
-  // Offscreen canvas for caching decorations
-  const decorCacheCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  
   // Redraw when game data, visual position, or resolution changes
   useEffect(() => {
     draw();
@@ -100,26 +77,6 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     
     // Update last render state
     lastRenderState.current = { x: currentX, y: currentY, dir: gameData.dir, level: gameData.level, width: renderWidth, height: renderHeight };
-    
-    // Check view cache - if we have a cached view for this tile, use it directly
-    const tileX = Math.floor(currentX);
-    const tileY = Math.floor(currentY);
-    const cacheKey = getCacheKey(tileX, tileY, gameData.dir, gameData.level);
-    const cachedView = viewCacheRef.current.get(cacheKey);
-    
-    if (cachedView) {
-      // Get context and draw cached view directly - skip all raycasting!
-      const ctx = canvas.getContext("2d", { alpha: false });
-      if (!ctx) return;
-      
-      // Clear and draw cached view
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(cachedView, 0, 0);
-      
-      // Skip the rest of the rendering - we're done!
-      return;
-    }
     
     // Get context with alpha:false for better performance
     const ctx = canvas.getContext("2d", { alpha: false });
@@ -493,10 +450,8 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       ctx.fillRect(0, h / 2, w, h / 2);
     }
 
-    // Raycasting Loop with adaptive quality
-    // Use larger steps when moving for performance, full quality when stopped
-    const step = isMoving ? 4 : 2; // 4px steps when moving, 2px when stopped
-    for (let x = 0; x < w; x += step) {
+    // Raycasting Loop
+    for (let x = 0; x < w; x+=2) { // Optimization: Step by 2 pixels
       const cameraX = 2 * x / w - 1;
       const rayDirX = dirX + planeX * cameraX;
       const rayDirY = dirY + planeY * cameraX;
@@ -667,17 +622,17 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
            ctx.fillRect(x, drawStart, 2, doorHeight);
            ctx.globalAlpha = 1.0;
          } else {
-          // Draw regular wall slice with adaptive width
-            ctx.drawImage(
-               texturesRef.current.wall, 
-               texX, 0, 1, texturesRef.current.wall.height,
-               x, drawStart, step, drawEnd - drawStart // Width matches step size
-            );
+           // Draw regular wall slice
+           ctx.drawImage(
+              texturesRef.current.wall, 
+              texX, 0, 1, texturesRef.current.wall.height,
+              x, drawStart, 2, drawEnd - drawStart // Width 2 because loop step is 2
+           );
            
-            // Apply fog (draw black rect with opacity over it)
-            ctx.globalAlpha = 1 - fog;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(x, drawStart, step, drawEnd - drawStart);
+           // Apply fog (draw black rect with opacity over it)
+           ctx.globalAlpha = 1 - fog;
+           ctx.fillStyle = "#000";
+           ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
            ctx.globalAlpha = 1.0;
          }
          
@@ -719,18 +674,28 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
          ctx.fillRect(x, baseboardTop, 2, baseboardHeight);
          ctx.globalAlpha = 1.0;
          } // end if !isDoor for baseboard
-       } else {
-          // Fallback color
-          const color = side === 1 ? '#555' : '#777';
-          ctx.fillStyle = color;
-          ctx.fillRect(x, drawStart, step, drawEnd - drawStart);
-       }
+      } else {
+         // Fallback color
+         const color = side === 1 ? '#555' : '#777';
+         ctx.fillStyle = color;
+         ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
+      }
     }
+    
+    // Draw wall decorations (spider webs, vines, moss) as overlay
+    // Uses player position as seed for consistent decorations per view
+    let decorSeed = Math.floor(posX * 1000 + posY * 100 + gameData.dir * 10);
+    const decorRandom = () => {
+      decorSeed = (decorSeed * 1103515245 + 12345) & 0x7fffffff;
+      return decorSeed / 0x7fffffff;
+    };
     
     // Check if player is facing a door - skip decorations if so
     let facingDoor = false;
     {
       // Cast a ray straight ahead to check what's in front
+      let checkX = Math.floor(posX);
+      let checkY = Math.floor(posY);
       for (let step = 1; step <= 3; step++) {
         const nextX = Math.floor(posX + dirX * step);
         const nextY = Math.floor(posY + dirY * step);
@@ -745,78 +710,6 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
         }
       }
     }
-    
-    // Check if we need to regenerate decorations cache
-    const needsNewDecorCache = !decorCacheCanvasRef.current || 
-                               !decorationsCacheRef.current ||
-                               decorationsCacheRef.current.tileX !== tileX ||
-                               decorationsCacheRef.current.tileY !== tileY ||
-                               decorationsCacheRef.current.dir !== gameData.dir ||
-                               decorationsCacheRef.current.level !== gameData.level ||
-                               decorationsCacheRef.current.facingDoor !== facingDoor;
-    
-    // Create or update decorations cache
-    if (needsNewDecorCache) {
-      // Create offscreen canvas if needed
-      if (!decorCacheCanvasRef.current || 
-          decorCacheCanvasRef.current.width !== w || 
-          decorCacheCanvasRef.current.height !== h) {
-        decorCacheCanvasRef.current = document.createElement('canvas');
-        decorCacheCanvasRef.current.width = w;
-        decorCacheCanvasRef.current.height = h;
-      }
-      
-      const decorCtx = decorCacheCanvasRef.current.getContext('2d');
-      if (decorCtx) {
-        // Clear the cache canvas
-        decorCtx.clearRect(0, 0, w, h);
-        
-        // Draw decorations to cache
-        drawDecorations(decorCtx, w, h, tileX, tileY, gameData.dir, facingDoor, gameData.level);
-        
-        // Update cache metadata
-        decorationsCacheRef.current = {
-          tileX,
-          tileY,
-          dir: gameData.dir,
-          level: gameData.level,
-          facingDoor,
-          decorations: () => {} // Placeholder, we use the canvas directly
-        };
-      }
-    }
-    
-    // Copy cached decorations to main canvas
-    if (decorCacheCanvasRef.current && !facingDoor) {
-      ctx.drawImage(decorCacheCanvasRef.current, 0, 0);
-    }
-    
-    // Cache this view for future use (if not already cached)
-    // Only cache when player is exactly on a tile center (not during interpolation)
-    const isExactlyOnTile = Math.abs(currentX - tileX) < 0.01 && Math.abs(currentY - tileY) < 0.01;
-    if (isExactlyOnTile && !viewCacheRef.current.has(cacheKey)) {
-      // Render to cache for next time
-      renderToCache(tileX, tileY);
-    }
-  };
-  
-  // Separate function to draw decorations (for caching)
-  const drawDecorations = (
-    ctx: CanvasRenderingContext2D, 
-    w: number, h: number, 
-    tileX: number, tileY: number, 
-    dir: number, facingDoor: boolean,
-    level: number
-  ) => {
-    if (facingDoor) return;
-    
-    // Draw wall decorations (spider webs, vines, moss) as overlay
-    // Uses player position as seed for consistent decorations per view
-    let decorSeed = Math.floor(tileX * 1000 + tileY * 100 + dir * 10 + level * 10000);
-    const decorRandom = () => {
-      decorSeed = (decorSeed * 1103515245 + 12345) & 0x7fffffff;
-      return decorSeed / 0x7fffffff;
-    };
     
     // Skip all decorations when facing a door
     if (!facingDoor) {
@@ -1690,219 +1583,6 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     
     } // end if (!facingDoor)
   };
-
-  // Render dungeon view to an offscreen cache canvas
-  const renderToCache = useCallback((tileX: number, tileY: number) => {
-    const cacheKey = getCacheKey(tileX, tileY, gameData.dir, gameData.level);
-    
-    // Check if already cached
-    if (viewCacheRef.current.has(cacheKey)) {
-      return viewCacheRef.current.get(cacheKey)!;
-    }
-    
-    // Create new offscreen canvas
-    const cacheCanvas = document.createElement('canvas');
-    cacheCanvas.width = renderWidth;
-    cacheCanvas.height = renderHeight;
-    const cacheCtx = cacheCanvas.getContext('2d');
-    if (!cacheCtx) return null;
-    
-    // Store in cache
-    viewCacheRef.current.set(cacheKey, cacheCanvas);
-    
-    // LRU eviction - remove oldest if cache too large
-    if (viewCacheRef.current.size > MAX_CACHE_SIZE) {
-      const firstKey = viewCacheRef.current.keys().next().value;
-      viewCacheRef.current.delete(firstKey);
-    }
-    
-    // Get textures
-    const textures = texturesRef.current;
-    
-    // Use the center of the tile for rendering
-    const posX = tileX + 0.5;
-    const posY = tileY + 0.5;
-    
-    // Direction vectors
-    let dirX = 0, dirY = 0, planeX = 0, planeY = 0;
-    switch(gameData.dir) {
-      case NORTH: dirY = -1; planeX = 0.66; break;
-      case SOUTH: dirY = 1; planeX = -0.66; break;
-      case EAST: dirX = 1; planeY = 0.66; break;
-      case WEST: dirX = -1; planeY = -0.66; break;
-    }
-    
-    const w = renderWidth;
-    const h = renderHeight;
-    const map = gameData.map;
-    
-    // Clear cache canvas
-    cacheCtx.fillStyle = "#000";
-    cacheCtx.fillRect(0, 0, w, h);
-    
-    // Draw Ceiling with perspective texture (matching floor but darker)
-    const ceilingTex = textures.floor; // Use same texture as floor
-    if (ceilingTex) {
-      const texW = ceilingTex.width;
-      const texH = ceilingTex.height;
-      const texScale = 128;
-      
-      // Ceiling casting - mirror of floor casting
-      for (let y = 0; y < Math.floor(h / 2); y += 2) {
-        const p = Math.floor(h / 2) - y;
-        const rowDistance = (h * 0.5) / p;
-        
-        const ceilStepX = rowDistance * (planeX * 2) / w;
-        const ceilStepY = rowDistance * (planeY * 2) / w;
-        
-        let ceilX = posX + rowDistance * (dirX - planeX);
-        let ceilY = posY + rowDistance * (dirY - planeY);
-        
-        for (let x = 0; x < w; x += 4) {
-          const tx = Math.floor(Math.abs(ceilX * texScale) % texW);
-          const ty = Math.floor(Math.abs(ceilY * texScale) % texH);
-          
-          cacheCtx.drawImage(
-            ceilingTex,
-            tx, ty, 4, 2,
-            x, y, 4, 1
-          );
-          
-          ceilX += ceilStepX * 4;
-          ceilY += ceilStepY * 4;
-        }
-      }
-      
-      // Apply jagged stone texture overlay to ceiling (darkened)
-      cacheCtx.fillStyle = 'rgba(5, 8, 5, 0.4)';
-      cacheCtx.fillRect(0, 0, w, h / 2);
-    }
-    
-    // Draw Floor with perspective floor casting (cobblestone walkway effect)
-    const floorTex = textures.floor;
-    if (floorTex) {
-      const texW = floorTex.width;
-      const texH = floorTex.height;
-      const texScale = 128;
-      
-      for (let y = Math.floor(h / 2) + 1; y < h; y += 2) {
-        const p = y - h / 2;
-        const rowDistance = (h * 0.5) / p;
-        
-        const floorStepX = rowDistance * (planeX * 2) / w;
-        const floorStepY = rowDistance * (planeY * 2) / w;
-        
-        let floorX = posX + rowDistance * (dirX - planeX);
-        let floorY = posY + rowDistance * (dirY - planeY);
-        
-        for (let x = 0; x < w; x += 4) {
-          const tx = Math.floor(Math.abs(floorX * texScale) % texW);
-          const ty = Math.floor(Math.abs(floorY * texScale) % texH);
-          
-          cacheCtx.drawImage(
-            floorTex,
-            tx, ty, 4, 2,
-            x, y, 4, 1
-          );
-          
-          floorX += floorStepX * 4;
-          floorY += floorStepY * 4;
-        }
-      }
-    } else {
-      // Fallback gradient floor
-      const floorGradient = cacheCtx.createLinearGradient(0, h / 2, 0, h);
-      floorGradient.addColorStop(0, "#2a2520");
-      floorGradient.addColorStop(0.5, "#3d3528");
-      floorGradient.addColorStop(1, "#1a1510");
-      cacheCtx.fillStyle = floorGradient;
-      cacheCtx.fillRect(0, h / 2, w, h / 2);
-    }
-    
-    // Raycasting - always use full quality for cache
-    for (let x = 0; x < w; x += 2) {
-      const cameraX = 2 * x / w - 1;
-      const rayDirX = dirX + planeX * cameraX;
-      const rayDirY = dirY + planeY * cameraX;
-
-      let mapX = Math.floor(posX);
-      let mapY = Math.floor(posY);
-
-      let sideDistX, sideDistY;
-      const deltaDistX = Math.abs(1 / rayDirX);
-      const deltaDistY = Math.abs(1 / rayDirY);
-      let perpWallDist;
-      let stepX, stepY;
-      let hit = 0;
-      let side;
-
-      if (rayDirX < 0) { stepX = -1; sideDistX = (posX - mapX) * deltaDistX; }
-      else { stepX = 1; sideDistX = (mapX + 1.0 - posX) * deltaDistX; }
-
-      if (rayDirY < 0) { stepY = -1; sideDistY = (posY - mapY) * deltaDistY; }
-      else { stepY = 1; sideDistY = (mapY + 1.0 - posY) * deltaDistY; }
-
-      // DDA
-      while (hit === 0) {
-        if (sideDistX < sideDistY) {
-          sideDistX += deltaDistX;
-          mapX += stepX;
-          side = 0;
-        } else {
-          sideDistY += deltaDistY;
-          mapY += stepY;
-          side = 1;
-        }
-        if (mapY < 0 || mapX < 0 || mapY >= map.length || mapX >= map[0].length) {
-          hit = 1; perpWallDist = 100;
-        } else if (map[mapY][mapX] > 0) {
-          hit = map[mapY][mapX];
-        }
-      }
-      
-      const isDoor = hit === 2;
-      if (side === 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
-      else perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
-
-      const lineHeight = Math.floor(h / perpWallDist);
-      const drawStart = Math.max(0, -lineHeight / 2 + h / 2);
-      const drawEnd = Math.min(h - 1, lineHeight / 2 + h / 2);
-
-      // Draw wall
-      if (textures.wall) {
-        let wallX;
-        if (side === 0) wallX = posY + perpWallDist * rayDirY;
-        else wallX = posX + perpWallDist * rayDirX;
-        wallX -= Math.floor(wallX);
-        const texX = Math.floor(wallX * textures.wall.width);
-        
-        cacheCtx.globalAlpha = 1.0;
-        if (side === 1) cacheCtx.globalAlpha = 0.7;
-        const fog = Math.min(1, 4.0 / perpWallDist);
-        
-        if (isDoor && textures.door) {
-          cacheCtx.drawImage(
-            textures.door,
-            texX, 0, 1, textures.door.height,
-            x, drawStart, 2, drawEnd - drawStart
-          );
-        } else {
-          cacheCtx.drawImage(
-            textures.wall,
-            texX, 0, 1, textures.wall.height,
-            x, drawStart, 2, drawEnd - drawStart
-          );
-        }
-        
-        cacheCtx.globalAlpha = 1 - fog;
-        cacheCtx.fillStyle = "#000";
-        cacheCtx.fillRect(x, drawStart, 2, drawEnd - drawStart);
-        cacheCtx.globalAlpha = 1.0;
-      }
-    }
-    
-    return cacheCanvas;
-  }, [gameData.dir, gameData.level, gameData.map, renderWidth, renderHeight, getCacheKey, texturesRef]);
 
   return (
     <div className={className}>
