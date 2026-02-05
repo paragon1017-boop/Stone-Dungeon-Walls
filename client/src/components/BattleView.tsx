@@ -242,10 +242,7 @@ function TransparentMonster({
   return (
     <div 
       className={`relative transition-all duration-200 ${isFlying ? 'animate-float' : ''}`}
-      style={{
-        ...getAnimationStyle(),
-        filter: 'drop-shadow(0 8px 30px rgba(0,0,0,0.8))'
-      }}
+      style={getAnimationStyle()}
     >
       {/* Processed canvas - shown when background removal succeeds */}
       <canvas 
@@ -262,7 +259,6 @@ function TransparentMonster({
           alt={alt} 
           className={`${className} object-contain ${processingState === 'fallback' ? 'opacity-100' : 'opacity-0'}`}
           style={{ 
-            filter: 'drop-shadow(0 6px 25px rgba(0,0,0,0.9))',
             transition: 'opacity 0.2s ease-in'
           }}
         />
