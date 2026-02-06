@@ -104,17 +104,17 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       const doorImg = new Image();
       doorImg.src = "/assets/textures/door_metal.png";
 
-      wallImg.onload = () => { texturesRef.current.wall = wallImg; draw(); };
-      floorImg.onload = () => { texturesRef.current.floor = floorImg; draw(); };
-      ceilingImg.onload = () => { texturesRef.current.ceiling = ceilingImg; draw(); };
-      doorImg.onload = () => { texturesRef.current.door = doorImg; draw(); };
+      wallImg.onload = () => { texturesRef.current.wall = wallImg; lastRenderState.current = null; draw(); };
+      floorImg.onload = () => { texturesRef.current.floor = floorImg; lastRenderState.current = null; draw(); };
+      ceilingImg.onload = () => { texturesRef.current.ceiling = ceilingImg; lastRenderState.current = null; draw(); };
+      doorImg.onload = () => { texturesRef.current.door = doorImg; lastRenderState.current = null; draw(); };
       
       texturesRef.current.extraFloors = [];
       if (texturePaths.extraFloors) {
         texturePaths.extraFloors.forEach((src) => {
           const img = new Image();
           img.src = src;
-          img.onload = () => { texturesRef.current.extraFloors.push(img); draw(); };
+          img.onload = () => { texturesRef.current.extraFloors.push(img); lastRenderState.current = null; draw(); };
         });
       }
     }
