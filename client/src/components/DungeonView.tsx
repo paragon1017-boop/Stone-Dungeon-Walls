@@ -12,18 +12,41 @@ interface DungeonViewProps {
 }
 
 // Cache buster for texture reloads during development
-const TEXTURE_VERSION = 22;
+const TEXTURE_VERSION = 23;
 
 // Get texture paths for a specific dungeon level (1-10, each with unique textures)
-function getTexturesForLevel(level: number): { wall: string; floor: string; ceiling: string; extraFloors?: string[] } {
+function getTexturesForLevel(level: number): { wall: string; floor: string; ceiling: string; extraFloors?: string[]; extraWalls?: string[]; extraCeilings?: string[] } {
   const lvl = Math.max(1, Math.min(10, level));
   const v = `?v=${TEXTURE_VERSION}`;
   
   if (lvl === 1) {
     return {
-      wall: `/assets/textures/stone_wall_1.png${v}`,
-      floor: `/assets/textures/cobblestone_floor_1.png${v}`,
-      ceiling: `/assets/textures/stone_wall_1.png${v}`,
+      wall: `/assets/textures/floor1tile1.PNG${v}`,
+      floor: `/assets/textures/floor1ground1.PNG${v}`,
+      ceiling: `/assets/textures/ceiling1floor1.PNG${v}`,
+      extraWalls: [
+        `/assets/textures/floor1tile2.PNG${v}`,
+        `/assets/textures/floor1tile3.PNG${v}`,
+        `/assets/textures/floor1tile4.PNG${v}`,
+        `/assets/textures/floor1tile5.PNG${v}`,
+        `/assets/textures/floor1tile6.PNG${v}`,
+        `/assets/textures/floor1tile7.PNG${v}`,
+        `/assets/textures/floor1tile8.PNG${v}`,
+        `/assets/textures/floor1tile9.PNG${v}`,
+      ],
+      extraFloors: [
+        `/assets/textures/floor1ground2.PNG${v}`,
+        `/assets/textures/floor1ground3.PNG${v}`,
+        `/assets/textures/floor1ground4.PNG${v}`,
+        `/assets/textures/floor1ground5.PNG${v}`,
+        `/assets/textures/floor1ground6.PNG${v}`,
+        `/assets/textures/floor1ground7.PNG${v}`,
+      ],
+      extraCeilings: [
+        `/assets/textures/ceiling1floor2.PNG${v}`,
+        `/assets/textures/ceiling1floor3.PNG${v}`,
+        `/assets/textures/ceiling1floor4.PNG${v}`,
+      ],
     };
   }
   
@@ -36,7 +59,7 @@ function getTexturesForLevel(level: number): { wall: string; floor: string; ceil
 
 export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600, visualX, visualY, onCanvasRef }: DungeonViewProps) {
   const internalCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; ceiling: HTMLImageElement | null; door: HTMLImageElement | null; extraFloors: HTMLImageElement[] }>({ wall: null, floor: null, ceiling: null, door: null, extraFloors: [] });
+  const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; ceiling: HTMLImageElement | null; door: HTMLImageElement | null; extraFloors: HTMLImageElement[]; extraWalls: HTMLImageElement[]; extraCeilings: HTMLImageElement[] }>({ wall: null, floor: null, ceiling: null, door: null, extraFloors: [], extraWalls: [], extraCeilings: [] });
   
   // Callback ref to notify parent when canvas is mounted, and store locally
   const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
@@ -89,6 +112,24 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
         img.crossOrigin = 'anonymous';
         img.src = src;
         img.onload = () => { texturesRef.current.extraFloors.push(img); lastRenderState.current = null; draw(); };
+      });
+    }
+    texturesRef.current.extraWalls = [];
+    if (texturePaths.extraWalls) {
+      texturePaths.extraWalls.forEach((src) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+        img.onload = () => { texturesRef.current.extraWalls.push(img); lastRenderState.current = null; draw(); };
+      });
+    }
+    texturesRef.current.extraCeilings = [];
+    if (texturePaths.extraCeilings) {
+      texturePaths.extraCeilings.forEach((src) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+        img.onload = () => { texturesRef.current.extraCeilings.push(img); lastRenderState.current = null; draw(); };
       });
     }
   }, [gameData.level]);
@@ -172,14 +213,10 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     // Use larger pixel step during movement for performance, full detail when stationary
     const pxStep = isMoving ? 4 : 2;
 
-    // Draw Ceiling with perspective texture using dedicated ceiling texture
-    const ceilingTex = texturesRef.current.ceiling || texturesRef.current.floor; // Use ceiling texture, fallback to floor
+    // Draw Ceiling with perspective texture, randomly mixed per tile
+    const ceilingTex = texturesRef.current.ceiling || texturesRef.current.floor;
+    const allCeilingTextures = [ceilingTex, ...texturesRef.current.extraCeilings].filter(Boolean) as HTMLImageElement[];
     if (ceilingTex) {
-      const texW = ceilingTex.width;
-      const texH = ceilingTex.height;
-      const texScale = 320;
-      
-      // Ceiling casting - mirror of floor casting
       for (let y = 0; y < Math.floor(h / 2); y++) {
         const p = Math.floor(h / 2) - y;
         const rowDistance = (h * 0.5) / p;
@@ -191,21 +228,23 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
         let ceilY = posY + rowDistance * (dirY - planeY);
         
         for (let x = 0; x < w; x += pxStep) {
-          const tx = Math.floor(Math.abs(ceilX * texScale) % texW);
-          const ty = Math.floor(Math.abs(ceilY * texScale) % texH);
-          
-          ctx.drawImage(
-            ceilingTex,
-            tx, ty, 2, 2,
-            x, y, pxStep, 1
-          );
+          const tileX = Math.floor(ceilX);
+          const tileY = Math.floor(ceilY);
+          const tileHash = ((tileX * 7919 + tileY * 104729) & 0x7fffffff) % allCeilingTextures.length;
+          const tex = allCeilingTextures[tileHash];
+          if (tex && tex.width > 0 && tex.height > 0) {
+            const fracXC = ceilX - tileX;
+            const fracYC = ceilY - tileY;
+            const txC = Math.floor(Math.abs(fracXC) * tex.width) % tex.width;
+            const tyC = Math.floor(Math.abs(fracYC) * tex.height) % tex.height;
+            ctx.drawImage(tex, txC, tyC, 2, 2, x, y, pxStep, 1);
+          }
           
           ceilX += ceilStepX * pxStep;
           ceilY += ceilStepY * pxStep;
         }
       }
     } else {
-      // Fallback gradient ceiling
       const ceilingGradient = ctx.createLinearGradient(0, 0, 0, h / 2);
       ceilingGradient.addColorStop(0, "#0a0806");
       ceilingGradient.addColorStop(1, "#1a1510");
@@ -213,12 +252,10 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       ctx.fillRect(0, 0, w, h / 2);
     }
 
-    // Draw Floor with perspective floor casting (cobblestone walkway effect)
+    // Draw Floor with perspective floor casting, randomly mixed per tile
     const floorTex = texturesRef.current.floor;
     const allFloorTextures = [floorTex, ...texturesRef.current.extraFloors].filter(Boolean) as HTMLImageElement[];
     if (floorTex) {
-      const texScale = 320;
-      
       for (let y = Math.floor(h / 2) + 1; y < h; y++) {
         const p = y - h / 2;
         const rowDistance = (h * 0.5) / p;
@@ -234,15 +271,13 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
           const tileY = Math.floor(floorY);
           const tileHash = ((tileX * 7919 + tileY * 104729) & 0x7fffffff) % allFloorTextures.length;
           const tex = allFloorTextures[tileHash];
-          
-          const tx = Math.floor(Math.abs(floorX * texScale) % tex.width);
-          const ty = Math.floor(Math.abs(floorY * texScale) % tex.height);
-          
-          ctx.drawImage(
-            tex,
-            tx, ty, 2, 2,
-            x, y, pxStep, 1
-          );
+          if (tex && tex.width > 0 && tex.height > 0) {
+            const fX = floorX - tileX;
+            const fY = floorY - tileY;
+            const txF = Math.floor(Math.abs(fX) * tex.width) % tex.width;
+            const tyF = Math.floor(Math.abs(fY) * tex.height) % tex.height;
+            ctx.drawImage(tex, txF, tyF, 2, 2, x, y, pxStep, 1);
+          }
           
           floorX += floorStepX * pxStep;
           floorY += floorStepY * pxStep;
@@ -258,6 +293,9 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       ctx.fillStyle = floorGradient;
       ctx.fillRect(0, h / 2, w, h / 2);
     }
+
+    // Pre-compute wall texture array once for the raycasting loop
+    const allWallTextures = [texturesRef.current.wall, ...texturesRef.current.extraWalls].filter(Boolean) as HTMLImageElement[];
 
     // Raycasting Loop
     for (let x = 0; x < w; x+=pxStep) {
@@ -324,13 +362,16 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       const drawEnd = Math.min(h - 1, lineHeight / 2 + h / 2);
 
       // Texture mapping
-      if (texturesRef.current.wall) {
+      if (allWallTextures.length > 0) {
+         const wallTileHash = ((mapX * 7919 + mapY * 104729) & 0x7fffffff) % allWallTextures.length;
+         const selectedWallTex = allWallTextures[wallTileHash];
+         
          let wallX; 
          if (side === 0) wallX = posY + perpWallDist * rayDirY;
          else            wallX = posX + perpWallDist * rayDirX;
          wallX -= Math.floor(wallX);
 
-         const texX = Math.floor(wallX * texturesRef.current.wall.width);
+         const texX = Math.floor(wallX * selectedWallTex.width);
          
          // Darken farther walls
          ctx.globalAlpha = 1.0;
@@ -343,7 +384,7 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
            // Draw metal door using texture with stone frame
            const doorHeight = drawEnd - drawStart;
            const doorTex = texturesRef.current.door;
-           const wallTex = texturesRef.current.wall;
+           const wallTex = selectedWallTex;
            
            // Door frame parameters (percentage of door width)
            const frameWidth = 0.12; // Stone frame on each side
@@ -428,8 +469,8 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
            ctx.globalAlpha = 1.0;
          } else {
            ctx.drawImage(
-              texturesRef.current.wall, 
-              texX, 0, 1, texturesRef.current.wall.height,
+              selectedWallTex, 
+              texX, 0, 1, selectedWallTex.height,
               x, drawStart, pxStep, drawEnd - drawStart
            );
            
