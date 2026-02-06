@@ -57,6 +57,9 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
   
   // Dirty tracking to skip redundant redraws
   const lastRenderState = useRef<{ x: number; y: number; dir: number; level: number; width: number; height: number } | null>(null);
+  
+  // Offscreen canvas cache for expensive static ceiling decorations (beams, fascia, stone overlay)
+  const ceilingCacheRef = useRef<{ canvas: OffscreenCanvas | HTMLCanvasElement; w: number; h: number; level: number } | null>(null);
 
   // Load textures based on current dungeon level (unique textures for each level 1-10)
   useEffect(() => {
@@ -166,6 +169,11 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
 
     const w = canvas.width;
     const h = canvas.height;
+    
+    // Detect if camera is moving (fractional position = mid-interpolation)
+    const isMoving = (Math.abs(currentX - Math.round(currentX)) > 0.02) || (Math.abs(currentY - Math.round(currentY)) > 0.02);
+    // Use larger pixel step during movement for performance, full detail when stationary
+    const pxStep = isMoving ? 4 : 2;
 
     // Draw Ceiling with perspective texture using dedicated ceiling texture
     const ceilingTex = texturesRef.current.ceiling || texturesRef.current.floor; // Use ceiling texture, fallback to floor
@@ -185,183 +193,248 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
         let ceilX = posX + rowDistance * (dirX - planeX);
         let ceilY = posY + rowDistance * (dirY - planeY);
         
-        for (let x = 0; x < w; x += 2) {
+        for (let x = 0; x < w; x += pxStep) {
           const tx = Math.floor(Math.abs(ceilX * texScale) % texW);
           const ty = Math.floor(Math.abs(ceilY * texScale) % texH);
           
           ctx.drawImage(
             ceilingTex,
             tx, ty, 2, 2,
-            x, y, 2, 1
+            x, y, pxStep, 1
           );
           
-          ceilX += ceilStepX * 2;
-          ceilY += ceilStepY * 2;
+          ceilX += ceilStepX * pxStep;
+          ceilY += ceilStepY * pxStep;
         }
       }
       
-      // Apply jagged stone texture with color variations to ceiling
-      const stoneColors = [
-        { r: 45, g: 42, b: 38 },   // Dark brown-gray
-        { r: 55, g: 50, b: 45 },   // Medium gray-brown
-        { r: 38, g: 45, b: 40 },   // Dark green-gray
-        { r: 50, g: 48, b: 52 },   // Purple-gray
-        { r: 42, g: 40, b: 35 },   // Warm dark gray
-      ];
+      // Build or reuse cached ceiling decorations (stone overlay, beams, fascia)
+      const cache = ceilingCacheRef.current;
+      const needsCache = !cache || cache.w !== w || cache.h !== h || cache.level !== gameData.level;
       
-      // Seed for consistent random pattern
-      let seed = 12345;
-      const seededRandom = () => {
-        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-        return seed / 0x7fffffff;
-      };
-      
-      for (let y = 0; y < Math.floor(h / 2); y += 2) {
-        const p = Math.floor(h / 2) - y;
-        const rowDistance = (h * 0.5) / p;
-        const darkness = Math.min(0.75, 0.4 + rowDistance / 15);
+      if (needsCache) {
+        // Create offscreen canvas for ceiling decorations
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = w;
+        offCanvas.height = Math.floor(h / 2) + 20;
+        const offCtx = offCanvas.getContext('2d', { alpha: true });
         
-        // Add jagged stone blocks with color variation
-        for (let x = 0; x < w; x += 6 + Math.floor(seededRandom() * 8)) {
-          const blockWidth = 4 + Math.floor(seededRandom() * 10);
-          const colorIdx = Math.floor(seededRandom() * stoneColors.length);
-          const color = stoneColors[colorIdx];
+        if (offCtx) {
+          offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height);
           
-          // Vary brightness slightly for each block
-          const brightVar = 0.85 + seededRandom() * 0.3;
-          const r = Math.floor(color.r * brightVar);
-          const g = Math.floor(color.g * brightVar);
-          const b = Math.floor(color.b * brightVar);
+          // Apply jagged stone texture with color variations to ceiling
+          const stoneColors = [
+            { r: 45, g: 42, b: 38 },
+            { r: 55, g: 50, b: 45 },
+            { r: 38, g: 45, b: 40 },
+            { r: 50, g: 48, b: 52 },
+            { r: 42, g: 40, b: 35 },
+          ];
           
-          // Add jagged edge effect
-          const jaggedOffset = Math.floor(seededRandom() * 2) - 1;
+          let seed = 12345;
+          const seededRandom = () => {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed / 0x7fffffff;
+          };
           
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.3 + seededRandom() * 0.2})`;
-          ctx.fillRect(x, y + jaggedOffset, blockWidth, 3);
+          for (let y = 0; y < Math.floor(h / 2); y += 2) {
+            const p = Math.floor(h / 2) - y;
+            const rowDistance = (h * 0.5) / p;
+            const darkness = Math.min(0.75, 0.4 + rowDistance / 15);
+            
+            for (let x = 0; x < w; x += 6 + Math.floor(seededRandom() * 8)) {
+              const blockWidth = 4 + Math.floor(seededRandom() * 10);
+              const colorIdx = Math.floor(seededRandom() * stoneColors.length);
+              const color = stoneColors[colorIdx];
+              const brightVar = 0.85 + seededRandom() * 0.3;
+              const r = Math.floor(color.r * brightVar);
+              const g = Math.floor(color.g * brightVar);
+              const b = Math.floor(color.b * brightVar);
+              const jaggedOffset = Math.floor(seededRandom() * 2) - 1;
+              
+              offCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.3 + seededRandom() * 0.2})`;
+              offCtx.fillRect(x, y + jaggedOffset, blockWidth, 3);
+            }
+            
+            offCtx.fillStyle = `rgba(5, 12, 8, ${darkness})`;
+            offCtx.fillRect(0, y, w, 2);
+          }
+      
+          // Draw wooden support beams across ceiling
+          const beamCount = 5;
+          const beamSizes = [1.2, 0.8, 1.0, 0.9, 1.1];
+          
+          let woodSeed = 54321;
+          const woodRandom = () => {
+            woodSeed = (woodSeed * 1103515245 + 12345) & 0x7fffffff;
+            return woodSeed / 0x7fffffff;
+          };
+          
+          for (let i = 1; i <= beamCount; i++) {
+            const beamY = Math.floor((h / 2) * (i / (beamCount + 1)));
+            const p = Math.floor(h / 2) - beamY;
+            const rowDistance = (h * 0.5) / p;
+            const sizeMultiplier = beamSizes[(i - 1) % beamSizes.length];
+            const beamHeight = Math.max(8, Math.floor(22 / rowDistance * sizeMultiplier));
+            const darkness = Math.min(0.6, rowDistance / 8);
+            const beamTop = beamY - beamHeight/2;
+            const beamBottom = beamY + beamHeight/2;
+            const baseR = 90 + Math.floor(woodRandom() * 20);
+            const baseG = 66 + Math.floor(woodRandom() * 15);
+            const baseB = 40 + Math.floor(woodRandom() * 10);
+            
+            offCtx.fillStyle = `rgb(${baseR - 32}, ${baseG - 26}, ${baseB - 22})`;
+            offCtx.fillRect(0, beamTop, w, 2);
+            
+            for (let bx = 0; bx < w; bx += 2) {
+              for (let by = beamTop + 2; by < beamBottom - 2; by += 2) {
+                const distFromCenter = Math.abs(by - beamY) / (beamHeight / 2);
+                const edgeDarken = distFromCenter * 0.3;
+                const grainOffset = Math.sin(bx * 0.1 + i * 10) * 8;
+                const grainBrightness = 0.85 + Math.sin((bx + grainOffset) * 0.05 + by * 0.2) * 0.15;
+                const r = Math.floor((baseR - edgeDarken * 40) * grainBrightness);
+                const g = Math.floor((baseG - edgeDarken * 30) * grainBrightness);
+                const b = Math.floor((baseB - edgeDarken * 20) * grainBrightness);
+                offCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                offCtx.fillRect(bx, by, 2, 2);
+              }
+            }
+            
+            offCtx.lineWidth = 1;
+            const grainSpacing = Math.max(2, Math.floor(beamHeight / 5));
+            for (let gy = beamTop + grainSpacing; gy < beamBottom - 2; gy += grainSpacing) {
+              offCtx.strokeStyle = `rgba(30, 20, 10, ${0.2 + woodRandom() * 0.2})`;
+              offCtx.beginPath();
+              offCtx.moveTo(0, gy);
+              for (let gx = 0; gx < w; gx += 10) {
+                const waveY = gy + Math.sin(gx * 0.03 + i) * 1.5;
+                offCtx.lineTo(gx, waveY);
+              }
+              offCtx.stroke();
+            }
+            
+            const knotCount = 2 + Math.floor(woodRandom() * 3);
+            for (let k = 0; k < knotCount; k++) {
+              const knotX = Math.floor(woodRandom() * w);
+              const knotY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
+              const knotW = 3 + Math.floor(woodRandom() * 4);
+              const knotH = 2 + Math.floor(woodRandom() * 3);
+              offCtx.fillStyle = `rgba(25, 18, 10, ${0.6 + woodRandom() * 0.3})`;
+              offCtx.beginPath();
+              offCtx.ellipse(knotX, knotY, knotW, knotH, 0, 0, Math.PI * 2);
+              offCtx.fill();
+              offCtx.strokeStyle = `rgba(45, 32, 20, 0.5)`;
+              offCtx.lineWidth = 1;
+              offCtx.beginPath();
+              offCtx.ellipse(knotX, knotY, knotW + 1, knotH + 1, 0, 0, Math.PI * 2);
+              offCtx.stroke();
+            }
+            
+            for (let s = 0; s < 3; s++) {
+              const streakY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
+              const streakStart = Math.floor(woodRandom() * w * 0.5);
+              const streakLen = 20 + Math.floor(woodRandom() * 60);
+              offCtx.fillStyle = `rgba(140, 115, 80, ${0.15 + woodRandom() * 0.15})`;
+              offCtx.fillRect(streakStart, streakY, streakLen, 1);
+            }
+            
+            for (let c = 0; c < 2; c++) {
+              const crackY = beamTop + 2 + Math.floor(woodRandom() * (beamHeight - 4));
+              const crackStart = Math.floor(woodRandom() * w * 0.7);
+              const crackLen = 10 + Math.floor(woodRandom() * 30);
+              offCtx.fillStyle = `rgba(20, 12, 5, ${0.3 + woodRandom() * 0.2})`;
+              offCtx.fillRect(crackStart, crackY, crackLen, 1);
+            }
+            
+            offCtx.fillStyle = `rgb(${baseR - 48}, ${baseG - 40}, ${baseB - 30})`;
+            offCtx.fillRect(0, beamBottom - 2, w, 2);
+            offCtx.fillStyle = `rgba(5, 8, 5, ${darkness})`;
+            offCtx.fillRect(0, beamTop, w, beamHeight);
+            offCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            offCtx.fillRect(0, beamBottom, w, 3);
+          }
+          
+          // Stone boulder fascia at ceiling/wall transition
+          const fasciaY = Math.floor(h / 2) - 8;
+          const fasciaHeight = 12;
+          let fasciaSeed = 98765;
+          const fasciaRandom = () => {
+            fasciaSeed = (fasciaSeed * 1103515245 + 12345) & 0x7fffffff;
+            return fasciaSeed / 0x7fffffff;
+          };
+          
+          let boulderX = 0;
+          while (boulderX < w) {
+            const boulderW = 12 + Math.floor(fasciaRandom() * 18);
+            const boulderH = 8 + Math.floor(fasciaRandom() * 5);
+            const boulderYOffset = Math.floor(fasciaRandom() * 3) - 1;
+            const baseGray = 65 + Math.floor(fasciaRandom() * 25);
+            const rVar = Math.floor(fasciaRandom() * 15) - 7;
+            const gVar = Math.floor(fasciaRandom() * 10) - 5;
+            const bVar = Math.floor(fasciaRandom() * 10) - 5;
+            const r = baseGray + rVar;
+            const g = baseGray + gVar - 3;
+            const b = baseGray + bVar - 5;
+            
+            offCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            offCtx.beginPath();
+            offCtx.moveTo(boulderX + 2, fasciaY + boulderYOffset);
+            offCtx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset);
+            offCtx.lineTo(boulderX + boulderW, fasciaY + boulderYOffset + 3);
+            offCtx.lineTo(boulderX + boulderW - 1, fasciaY + boulderYOffset + boulderH - 2);
+            offCtx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + boulderH);
+            offCtx.lineTo(boulderX + 3, fasciaY + boulderYOffset + boulderH);
+            offCtx.lineTo(boulderX, fasciaY + boulderYOffset + boulderH - 3);
+            offCtx.lineTo(boulderX + 1, fasciaY + boulderYOffset + 2);
+            offCtx.closePath();
+            offCtx.fill();
+            
+            offCtx.fillStyle = `rgb(${r + 20}, ${g + 18}, ${b + 15})`;
+            offCtx.beginPath();
+            offCtx.moveTo(boulderX + 3, fasciaY + boulderYOffset + 1);
+            offCtx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + 1);
+            offCtx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + 3);
+            offCtx.lineTo(boulderX + 4, fasciaY + boulderYOffset + 3);
+            offCtx.closePath();
+            offCtx.fill();
+            
+            offCtx.fillStyle = `rgba(0, 0, 0, 0.4)`;
+            offCtx.beginPath();
+            offCtx.moveTo(boulderX + 4, fasciaY + boulderYOffset + boulderH - 1);
+            offCtx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + boulderH - 1);
+            offCtx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset + boulderH - 3);
+            offCtx.lineTo(boulderX + 2, fasciaY + boulderYOffset + boulderH - 3);
+            offCtx.closePath();
+            offCtx.fill();
+            
+            if (fasciaRandom() > 0.4) {
+              offCtx.strokeStyle = `rgba(30, 28, 25, 0.5)`;
+              offCtx.lineWidth = 1;
+              offCtx.beginPath();
+              const crackStartX = boulderX + 3 + Math.floor(fasciaRandom() * (boulderW - 6));
+              offCtx.moveTo(crackStartX, fasciaY + boulderYOffset + 2);
+              offCtx.lineTo(crackStartX + (fasciaRandom() - 0.5) * 4, fasciaY + boulderYOffset + boulderH - 2);
+              offCtx.stroke();
+            }
+            
+            offCtx.fillStyle = 'rgba(20, 18, 15, 0.7)';
+            offCtx.fillRect(boulderX + boulderW - 1, fasciaY, 2, fasciaHeight);
+            boulderX += boulderW + 1;
+          }
+          
+          offCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          offCtx.fillRect(0, fasciaY + fasciaHeight - 2, w, 3);
+          offCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          offCtx.fillRect(0, fasciaY - 1, w, 2);
+          
+          ceilingCacheRef.current = { canvas: offCanvas, w, h, level: gameData.level };
         }
-        
-        // Dark mossy overlay
-        ctx.fillStyle = `rgba(5, 12, 8, ${darkness})`;
-        ctx.fillRect(0, y, w, 2);
       }
       
-      // Draw wooden support beams across ceiling
-      const beamCount = 5;
-      const beamSizes = [1.2, 0.8, 1.0, 0.9, 1.1]; // Variation in beam thickness
-      
-      // Seeded random for consistent wood details
-      let woodSeed = 54321;
-      const woodRandom = () => {
-        woodSeed = (woodSeed * 1103515245 + 12345) & 0x7fffffff;
-        return woodSeed / 0x7fffffff;
-      };
-      
-      for (let i = 1; i <= beamCount; i++) {
-        const beamY = Math.floor((h / 2) * (i / (beamCount + 1)));
-        const p = Math.floor(h / 2) - beamY;
-        const rowDistance = (h * 0.5) / p;
-        
-        // Beam gets thicker as it gets closer (perspective) with size variation
-        const sizeMultiplier = beamSizes[(i - 1) % beamSizes.length];
-        const beamHeight = Math.max(8, Math.floor(22 / rowDistance * sizeMultiplier));
-        const darkness = Math.min(0.6, rowDistance / 8);
-        const beamTop = beamY - beamHeight/2;
-        const beamBottom = beamY + beamHeight/2;
-        
-        // Base wood colors with slight variation per beam
-        const baseR = 90 + Math.floor(woodRandom() * 20);
-        const baseG = 66 + Math.floor(woodRandom() * 15);
-        const baseB = 40 + Math.floor(woodRandom() * 10);
-        
-        // Top edge highlight
-        ctx.fillStyle = `rgb(${baseR - 32}, ${baseG - 26}, ${baseB - 22})`;
-        ctx.fillRect(0, beamTop, w, 2);
-        
-        // Main beam body with wood grain texture
-        for (let bx = 0; bx < w; bx += 2) {
-          // Vertical color variation (lighter in middle, darker at edges)
-          for (let by = beamTop + 2; by < beamBottom - 2; by += 2) {
-            const distFromCenter = Math.abs(by - beamY) / (beamHeight / 2);
-            const edgeDarken = distFromCenter * 0.3;
-            
-            // Horizontal grain streaks
-            const grainOffset = Math.sin(bx * 0.1 + i * 10) * 8;
-            const grainBrightness = 0.85 + Math.sin((bx + grainOffset) * 0.05 + by * 0.2) * 0.15;
-            
-            const r = Math.floor((baseR - edgeDarken * 40) * grainBrightness);
-            const g = Math.floor((baseG - edgeDarken * 30) * grainBrightness);
-            const b = Math.floor((baseB - edgeDarken * 20) * grainBrightness);
-            
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            ctx.fillRect(bx, by, 2, 2);
-          }
-        }
-        
-        // Add detailed wood grain lines with slight waviness
-        ctx.lineWidth = 1;
-        const grainSpacing = Math.max(2, Math.floor(beamHeight / 5));
-        for (let gy = beamTop + grainSpacing; gy < beamBottom - 2; gy += grainSpacing) {
-          ctx.strokeStyle = `rgba(30, 20, 10, ${0.2 + woodRandom() * 0.2})`;
-          ctx.beginPath();
-          ctx.moveTo(0, gy);
-          for (let gx = 0; gx < w; gx += 10) {
-            const waveY = gy + Math.sin(gx * 0.03 + i) * 1.5;
-            ctx.lineTo(gx, waveY);
-          }
-          ctx.stroke();
-        }
-        
-        // Add wood knots (darker oval spots)
-        const knotCount = 2 + Math.floor(woodRandom() * 3);
-        for (let k = 0; k < knotCount; k++) {
-          const knotX = Math.floor(woodRandom() * w);
-          const knotY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
-          const knotW = 3 + Math.floor(woodRandom() * 4);
-          const knotH = 2 + Math.floor(woodRandom() * 3);
-          
-          // Knot center (dark)
-          ctx.fillStyle = `rgba(25, 18, 10, ${0.6 + woodRandom() * 0.3})`;
-          ctx.beginPath();
-          ctx.ellipse(knotX, knotY, knotW, knotH, 0, 0, Math.PI * 2);
-          ctx.fill();
-          
-          // Knot ring (slightly lighter)
-          ctx.strokeStyle = `rgba(45, 32, 20, 0.5)`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.ellipse(knotX, knotY, knotW + 1, knotH + 1, 0, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-        
-        // Add lighter streaks (weathered wood highlights)
-        for (let s = 0; s < 3; s++) {
-          const streakY = beamTop + 3 + Math.floor(woodRandom() * (beamHeight - 6));
-          const streakStart = Math.floor(woodRandom() * w * 0.5);
-          const streakLen = 20 + Math.floor(woodRandom() * 60);
-          ctx.fillStyle = `rgba(140, 115, 80, ${0.15 + woodRandom() * 0.15})`;
-          ctx.fillRect(streakStart, streakY, streakLen, 1);
-        }
-        
-        // Add darker cracks/age lines
-        for (let c = 0; c < 2; c++) {
-          const crackY = beamTop + 2 + Math.floor(woodRandom() * (beamHeight - 4));
-          const crackStart = Math.floor(woodRandom() * w * 0.7);
-          const crackLen = 10 + Math.floor(woodRandom() * 30);
-          ctx.fillStyle = `rgba(20, 12, 5, ${0.3 + woodRandom() * 0.2})`;
-          ctx.fillRect(crackStart, crackY, crackLen, 1);
-        }
-        
-        // Bottom edge (darker)
-        ctx.fillStyle = `rgb(${baseR - 48}, ${baseG - 40}, ${baseB - 30})`;
-        ctx.fillRect(0, beamBottom - 2, w, 2);
-        
-        // Darken distant beams
-        ctx.fillStyle = `rgba(5, 8, 5, ${darkness})`;
-        ctx.fillRect(0, beamTop, w, beamHeight);
-        
-        // Hard bottom shadow for depth
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(0, beamBottom, w, 3);
+      // Draw cached ceiling decorations overlay
+      const cachedCeiling = ceilingCacheRef.current;
+      if (cachedCeiling) {
+        ctx.drawImage(cachedCeiling.canvas, 0, 0);
       }
     } else {
       // Fallback gradient ceiling
@@ -371,94 +444,6 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
       ctx.fillStyle = ceilingGradient;
       ctx.fillRect(0, 0, w, h / 2);
     }
-    
-    // Stone boulder fascia at ceiling/wall transition
-    const fasciaY = Math.floor(h / 2) - 8;
-    const fasciaHeight = 12;
-    
-    // Seeded random for consistent boulder pattern
-    let fasciaSeed = 98765;
-    const fasciaRandom = () => {
-      fasciaSeed = (fasciaSeed * 1103515245 + 12345) & 0x7fffffff;
-      return fasciaSeed / 0x7fffffff;
-    };
-    
-    // Draw stone boulders across the fascia
-    let boulderX = 0;
-    while (boulderX < w) {
-      const boulderW = 12 + Math.floor(fasciaRandom() * 18);
-      const boulderH = 8 + Math.floor(fasciaRandom() * 5);
-      const boulderYOffset = Math.floor(fasciaRandom() * 3) - 1;
-      
-      // Boulder base color with variation
-      const baseGray = 65 + Math.floor(fasciaRandom() * 25);
-      const rVar = Math.floor(fasciaRandom() * 15) - 7;
-      const gVar = Math.floor(fasciaRandom() * 10) - 5;
-      const bVar = Math.floor(fasciaRandom() * 10) - 5;
-      
-      const r = baseGray + rVar;
-      const g = baseGray + gVar - 3;
-      const b = baseGray + bVar - 5;
-      
-      // Main boulder body
-      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      ctx.beginPath();
-      ctx.moveTo(boulderX + 2, fasciaY + boulderYOffset);
-      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset);
-      ctx.lineTo(boulderX + boulderW, fasciaY + boulderYOffset + 3);
-      ctx.lineTo(boulderX + boulderW - 1, fasciaY + boulderYOffset + boulderH - 2);
-      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + boulderH);
-      ctx.lineTo(boulderX + 3, fasciaY + boulderYOffset + boulderH);
-      ctx.lineTo(boulderX, fasciaY + boulderYOffset + boulderH - 3);
-      ctx.lineTo(boulderX + 1, fasciaY + boulderYOffset + 2);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Boulder top highlight
-      ctx.fillStyle = `rgb(${r + 20}, ${g + 18}, ${b + 15})`;
-      ctx.beginPath();
-      ctx.moveTo(boulderX + 3, fasciaY + boulderYOffset + 1);
-      ctx.lineTo(boulderX + boulderW - 3, fasciaY + boulderYOffset + 1);
-      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + 3);
-      ctx.lineTo(boulderX + 4, fasciaY + boulderYOffset + 3);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Boulder bottom shadow
-      ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
-      ctx.beginPath();
-      ctx.moveTo(boulderX + 4, fasciaY + boulderYOffset + boulderH - 1);
-      ctx.lineTo(boulderX + boulderW - 4, fasciaY + boulderYOffset + boulderH - 1);
-      ctx.lineTo(boulderX + boulderW - 2, fasciaY + boulderYOffset + boulderH - 3);
-      ctx.lineTo(boulderX + 2, fasciaY + boulderYOffset + boulderH - 3);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Cracks and texture on boulder
-      if (fasciaRandom() > 0.4) {
-        ctx.strokeStyle = `rgba(30, 28, 25, 0.5)`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const crackStartX = boulderX + 3 + Math.floor(fasciaRandom() * (boulderW - 6));
-        ctx.moveTo(crackStartX, fasciaY + boulderYOffset + 2);
-        ctx.lineTo(crackStartX + (fasciaRandom() - 0.5) * 4, fasciaY + boulderYOffset + boulderH - 2);
-        ctx.stroke();
-      }
-      
-      // Mortar/gap between boulders
-      ctx.fillStyle = 'rgba(20, 18, 15, 0.7)';
-      ctx.fillRect(boulderX + boulderW - 1, fasciaY, 2, fasciaHeight);
-      
-      boulderX += boulderW + 1;
-    }
-    
-    // Shadow below fascia (transition to wall)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, fasciaY + fasciaHeight - 2, w, 3);
-    
-    // Dark line at very top of fascia (ceiling shadow)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(0, fasciaY - 1, w, 2);
 
     // Draw Floor with perspective floor casting (cobblestone walkway effect)
     const floorTex = texturesRef.current.floor;
@@ -476,8 +461,7 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
         let floorX = posX + rowDistance * (dirX - planeX);
         let floorY = posY + rowDistance * (dirY - planeY);
         
-        for (let x = 0; x < w; x += 2) {
-          // Pick texture based on which tile we're over (consistent per tile)
+        for (let x = 0; x < w; x += pxStep) {
           const tileX = Math.floor(floorX);
           const tileY = Math.floor(floorY);
           const tileHash = ((tileX * 7919 + tileY * 104729) & 0x7fffffff) % allFloorTextures.length;
@@ -489,11 +473,11 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
           ctx.drawImage(
             tex,
             tx, ty, 2, 2,
-            x, y, 2, 1
+            x, y, pxStep, 1
           );
           
-          floorX += floorStepX * 2;
-          floorY += floorStepY * 2;
+          floorX += floorStepX * pxStep;
+          floorY += floorStepY * pxStep;
         }
       }
       
@@ -517,7 +501,7 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
     }
 
     // Raycasting Loop
-    for (let x = 0; x < w; x+=2) { // Optimization: Step by 2 pixels
+    for (let x = 0; x < w; x+=pxStep) {
       const cameraX = 2 * x / w - 1;
       const rayDirX = dirX + planeX * cameraX;
       const rayDirY = dirY + planeY * cameraX;
@@ -619,21 +603,18 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
              ctx.drawImage(
                wallTex,
                frameTexX, 0, 1, wallTex.height,
-               x, drawStart, 2, doorHeight
+               x, drawStart, pxStep, doorHeight
              );
              
-             // Add dark edge to create depth/recess effect
              ctx.globalAlpha = 0.4;
              ctx.fillStyle = "#000";
              if (wallX < frameWidth) {
-               // Left frame - dark on right edge
                if (wallX > frameWidth - 0.03) {
-                 ctx.fillRect(x, drawStart, 2, doorHeight);
+                 ctx.fillRect(x, drawStart, pxStep, doorHeight);
                }
              } else {
-               // Right frame - dark on left edge
                if (wallX < (1 - frameWidth) + 0.03) {
-                 ctx.fillRect(x, drawStart, 2, doorHeight);
+                 ctx.fillRect(x, drawStart, pxStep, doorHeight);
                }
              }
              ctx.globalAlpha = 1.0;
@@ -654,12 +635,11 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
                ctx.drawImage(
                  wallTex,
                  lintelTexX, 0, 1, wallTex.height * 0.2,
-                 x, drawStart, 2, lintelHeight
+                 x, drawStart, pxStep, lintelHeight
                );
-               // Dark bottom edge of lintel
                ctx.globalAlpha = 0.5;
                ctx.fillStyle = "#000";
-               ctx.fillRect(x, drawStart + lintelHeight - 2, 2, 3);
+               ctx.fillRect(x, drawStart + lintelHeight - 2, pxStep, 3);
                ctx.globalAlpha = 1.0;
              }
              
@@ -672,33 +652,31 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
              ctx.drawImage(
                doorTex,
                doorTexX, 0, 1, doorTex.height,
-               x, drawStart + lintelHeight, 2, doorHeight - lintelHeight
+               x, drawStart + lintelHeight, pxStep, doorHeight - lintelHeight
              );
              
              ctx.globalAlpha = 1.0;
            } else {
              // Fallback solid color if texture not loaded
              ctx.fillStyle = side === 1 ? '#3a4a50' : '#4a5a60';
-             ctx.fillRect(x, drawStart, 2, doorHeight);
+             ctx.fillRect(x, drawStart, pxStep, doorHeight);
            }
            
            // Apply fog to door
            ctx.globalAlpha = 1 - fog;
            ctx.fillStyle = "#000";
-           ctx.fillRect(x, drawStart, 2, doorHeight);
+           ctx.fillRect(x, drawStart, pxStep, doorHeight);
            ctx.globalAlpha = 1.0;
          } else {
-           // Draw regular wall slice
            ctx.drawImage(
               texturesRef.current.wall, 
               texX, 0, 1, texturesRef.current.wall.height,
-              x, drawStart, 2, drawEnd - drawStart // Width 2 because loop step is 2
+              x, drawStart, pxStep, drawEnd - drawStart
            );
            
-           // Apply fog (draw black rect with opacity over it)
            ctx.globalAlpha = 1 - fog;
            ctx.fillStyle = "#000";
-           ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
+           ctx.fillRect(x, drawStart, pxStep, drawEnd - drawStart);
            ctx.globalAlpha = 1.0;
          }
          
@@ -717,34 +695,30 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
            ctx.drawImage(
              floorTex,
              texX, 0, 2, floorTex.height,
-             x, baseboardTop, 2, baseboardHeight
+             x, baseboardTop, pxStep, baseboardHeight
            );
            ctx.globalAlpha = 1.0;
            
-           // Darken slightly to differentiate from floor
            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-           ctx.fillRect(x, baseboardTop, 2, baseboardHeight);
+           ctx.fillRect(x, baseboardTop, pxStep, baseboardHeight);
          }
          
-         // Top edge highlight (stone cap)
          ctx.fillStyle = 'rgba(180, 170, 155, 0.4)';
-         ctx.fillRect(x, baseboardTop, 2, 1);
+         ctx.fillRect(x, baseboardTop, pxStep, 1);
          
-         // Bottom shadow where it meets floor
          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-         ctx.fillRect(x, drawEnd - 1, 2, 1);
+         ctx.fillRect(x, drawEnd - 1, pxStep, 1);
          
-         // Apply distance fog to baseboard
          ctx.globalAlpha = 1 - fog;
          ctx.fillStyle = "#000";
-         ctx.fillRect(x, baseboardTop, 2, baseboardHeight);
+         ctx.fillRect(x, baseboardTop, pxStep, baseboardHeight);
          ctx.globalAlpha = 1.0;
          } // end if !isDoor for baseboard
       } else {
          // Fallback color
          const color = side === 1 ? '#555' : '#777';
          ctx.fillStyle = color;
-         ctx.fillRect(x, drawStart, 2, drawEnd - drawStart);
+         ctx.fillRect(x, drawStart, pxStep, drawEnd - drawStart);
       }
     }
     
