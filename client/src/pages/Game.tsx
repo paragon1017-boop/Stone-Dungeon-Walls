@@ -27,9 +27,9 @@ import { Loader2, Skull, Sword, User, LogOut, Save, RotateCw, RotateCcw, ArrowUp
 // Graphics resolution presets
 type GraphicsQuality = 'high' | 'medium' | 'low';
 const RESOLUTION_PRESETS: Record<GraphicsQuality, { width: number; height: number; label: string }> = {
-  high: { width: 1024, height: 640, label: 'High (1024x640)' },
-  medium: { width: 800, height: 500, label: 'Medium (800x500)' },
-  low: { width: 640, height: 400, label: 'Low (640x400)' }
+  high: { width: 1920, height: 1080, label: 'High (1920x1080)' },
+  medium: { width: 1280, height: 720, label: 'Medium (1280x720)' },
+  low: { width: 800, height: 500, label: 'Low (800x500)' }
 };
 
 function formatEquipmentStats(item: Equipment): string {
