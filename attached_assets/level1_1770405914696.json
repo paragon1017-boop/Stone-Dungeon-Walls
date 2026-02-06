@@ -1,0 +1,5 @@
+{
+  "walls": { "tiles": ["floor1tile1.PNG","floor1tile2.PNG","floor1tile3.PNG","floor1tile4.PNG","floor1tile5.PNG","floor1tile6.PNG","floor1tile7.PNG","floor1tile8.PNG","floor1tile9.PNG"], "cols": 3, "rows": 3 },
+  "floors": { "tiles": ["floor1ground1.PNG","floor1ground2.PNG","floor1ground3.PNG","floor1ground4.PNG","floor1ground5.PNG","floor1ground6.PNG","floor1ground7.PNG"], "cols": 7, "rows": 1 },
+  "ceilings": { "tiles": ["ceiling1floor1.PNG","ceiling1floor2.PNG","ceiling1floor3.PNG","ceiling1floor4.PNG"], "cols": 2, "rows": 2 }
+}
