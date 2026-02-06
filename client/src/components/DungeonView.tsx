@@ -23,7 +23,7 @@ function getTexturesForLevel(level: number): { wall: string; floor: string; ceil
     return {
       wall: `/assets/textures/bricks_wall_floor1.PNG${v}`,
       floor: `/assets/textures/floorsbrick1.PNG${v}`,
-      ceiling: `/assets/textures/ceiling_stone_dungeon.png${v}`,
+      ceiling: `/assets/textures/bricks_wall_floor1.PNG${v}`,
       extraFloors: [
         `/assets/textures/runefloors.PNG${v}`,
         `/assets/textures/runefloors2.PNG${v}`,
