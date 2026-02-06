@@ -41,7 +41,9 @@ function getTexturesForLevel(level: number): { wall: string; floor: string; ceil
 
 export function DungeonView({ gameData, className, renderWidth = 800, renderHeight = 600, visualX, visualY, onCanvasRef }: DungeonViewProps) {
   const internalCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const texturesRef = useRef<{ wall: HTMLImageElement | null; floor: HTMLImageElement | null; ceiling: HTMLImageElement | null; door: HTMLImageElement | null; extraFloors: HTMLImageElement[] }>({ wall: null, floor: null, ceiling: null, door: null, extraFloors: [] });
+  const canvasSizeRef = useRef<{ w: number; h: number }>({ w: renderWidth, h: renderHeight });
   
   // Callback ref to notify parent when canvas is mounted, and store locally
   const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
@@ -57,6 +59,31 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
   
   // Dirty tracking to skip redundant redraws
   const lastRenderState = useRef<{ x: number; y: number; dir: number; level: number; width: number; height: number } | null>(null);
+  
+  // Resize canvas to match container size for sharp rendering
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
+    
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const w = Math.floor(rect.width);
+      const h = Math.floor(rect.height);
+      if (w > 0 && h > 0 && (canvas.width !== w || canvas.height !== h)) {
+        canvas.width = w;
+        canvas.height = h;
+        canvasSizeRef.current = { w, h };
+        lastRenderState.current = null;
+        draw();
+      }
+    };
+    
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   // Load textures based on current dungeon level (unique textures for each level 1-10)
   useEffect(() => {
@@ -1651,12 +1678,13 @@ export function DungeonView({ gameData, className, renderWidth = 800, renderHeig
   };
 
   return (
-    <div className={className}>
+    <div ref={containerRef} className={`${className} relative`}>
       <canvas 
         ref={setCanvasRef} 
         width={renderWidth} 
         height={renderHeight} 
-        className="w-full h-full image-pixelated rounded-lg border-4 border-muted shadow-inner bg-black"
+        className="absolute inset-0 w-full h-full rounded-lg border-4 border-muted shadow-inner bg-black"
+        style={{ imageRendering: 'auto' }}
       />
       {/* Compass / Coords Overlay */}
       <div className="absolute top-4 right-4 text-primary font-pixel text-xs bg-black/50 p-2 rounded">
